@@ -72,10 +72,10 @@ main:
 	ADD RET_MONTH, AL
 
 	;Get current date
-	;MOV AH, 04H
-	;INT 1AH
-	MOV CURR_MONTH, 9;DH
-	MOV CURR_DAY, 7;DL
+	MOV AH, 04H
+	INT 1AH
+	MOV CURR_MONTH, DH
+	MOV CURR_DAY, DL
 
 
     MOV BX, 0  
@@ -99,18 +99,19 @@ main:
     LOOP COUNT_RET_DAY_OF_MONTHS
 
 	INC BX ;include the current day
+
+	MOV CX, 0
     MOV DIFF_DAY, BX
     MOV AX, BX
 
 	;ADA MASALAH DI SINI
     READ_DIFF_DAY:
+		INC CX
         DIV TEN 
         MOV BX, AX 
 
-        MOV AH, 02H 
-        MOV DL, BH 
-        ADD DL, 30H 
-        INT 21H 
+		MOV AL, 0 ; remove the integral part
+        PUSH AX ;save value to the stack
 
         CMP BL, 0
         JE END_READ_DIFF_DAY
@@ -121,16 +122,25 @@ main:
 
     END_READ_DIFF_DAY:
 
-    	CMP DIFF_DAY, 0
-    	JBE CHECK_OUT_PENALTY ;calculate penalty if current date exceeds return date
+	DISPLAY_DIFF_DAY:
+		POP BX ; get the value from stack
 
-		MOV AX, DIFF_DAY
-		MUL PENALTY_RATE
+		MOV AH, 02H 
+		MOV DL, BH 
+		ADD DL, 30H 
+		INT 21H	
+	LOOP DISPLAY_DIFF_DAY
 
-		CMP AX, 100
-		JBE NOT_MAXIMUM_CHARGE_PENALTY
-		MOV PENALTY_CHARGE, 100
-		JMP CHECK_OUT_PENALTY
+    CMP DIFF_DAY, 0
+    JBE CHECK_OUT_PENALTY ;calculate penalty if current date exceeds return date
+
+	MOV AX, DIFF_DAY
+	MUL PENALTY_RATE
+
+	CMP AX, 100
+	JBE NOT_MAXIMUM_CHARGE_PENALTY
+	MOV PENALTY_CHARGE, 100
+	JMP CHECK_OUT_PENALTY
 
 	NOT_MAXIMUM_CHARGE_PENALTY:
 		MOV PENALTY_CHARGE, AX
@@ -143,12 +153,15 @@ main:
 
 	;DISPLAY PENALTY CHARGE AMOUNT
 	MOV BX, 0
+	MOV CX, 0
 	MOV AX, PENALTY_CHARGE
 	READ_PENALTY:
+		INC CX
 		DIV TEN 
         MOV BX, AX 
 
-		PUSH BH ; save the value to stack
+		MOV AL, 0
+		PUSH AX ; save the value to stack
 
         CMP BL, 0
         JE END_READ_PENALTY
@@ -160,14 +173,13 @@ main:
 	END_READ_PENALTY:
 
 	DISPLAY_PENALTY:
-		POP BH ; get the value from stack
+		POP BX ; get the value from stack
 
 		MOV AH, 02H 
 		MOV DL, BH 
 		ADD DL, 30H 
 		INT 21H
-
-	JMP DISPLAY_PENALTY		
+	LOOP DISPLAY_PENALTY		
 
 	mov ah, 4Ch                  ; Exit program
 	int 21h

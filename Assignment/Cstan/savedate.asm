@@ -15,17 +15,14 @@ main:
     MOV DS, AX
     
     ;Get current date
-    MOV AH, 04H      
-    INT 1AH  
-
-    mov month, DH     
-    mov day, DL
+    mov ah, 04h       
+    int 1Ah  
 
     LEA SI, DATE      
     
     ;Display Day
     MOV AX, 0
-    MOV AL, day
+    MOV AL, DL 
     DIV TEN
     MOV BX, AX
     
@@ -49,7 +46,7 @@ main:
 
     ; Display '/'
     mov ah, 02h       
-    mov dl, DATE_DELIMETER      
+    mov dl, '/'      
     int 21h
 
     MOV BL, DATE_DELIMETER
@@ -58,7 +55,7 @@ main:
 
     ; Display month
     MOV AX, 0
-    MOV AL, month
+    MOV AL, DH
     DIV TEN
     MOV BX, AX 
 
@@ -82,7 +79,7 @@ main:
 
     ; Display '/'
     mov ah, 02h       
-    mov dl, DATE_DELIMETER       
+    mov dl, '/'       
     int 21H
 
     MOV BL, DATE_DELIMETER

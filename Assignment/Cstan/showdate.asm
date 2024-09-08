@@ -2,9 +2,7 @@
 .stack 100h
 .data
     YEAR db "2024$" 
-    DATE_DELIMETER DB '/'        
-    month db 0        
-    day db 0    
+    DATE_DELIMETER DB '/'          
     TEN DB 10
     DATE DB 11 DUP('$')
     date_msg db "Current Date: $"
@@ -21,14 +19,12 @@ main:
     MOV AH, 04H      
     INT 1AH  
 
-    mov month, DH     
-    mov day, DL
-
+    
     LEA SI, DATE      
     
     ;Store Day
     MOV AX, 0
-    MOV AL, day
+    MOV AL, DL
     DIV TEN
     MOV BX, AX
 
@@ -47,7 +43,7 @@ main:
 
     ;Store month
     MOV AX, 0
-    MOV AL, month
+    MOV AL, DH
     DIV TEN
     MOV BX, AX 
 
@@ -84,7 +80,7 @@ main:
     INT 21H
 
     MOV AH,09H
-    LEA NL
+    LEA DX, NL
     INT 21H
 
     ;assume that user want to return the second book
@@ -93,10 +89,11 @@ main:
     LEA SI, RET_DATE_ARRAY
     ;move to selected book's return date
     ;new SI = old SI +(selected Index * sizeOf(value))
+    MOV AX, 0
     MOV AL, SELECTED_BOOK_ID
     MUL DATE_SIZE
 
-    ADD SI, AL
+    ADD SI, AX
 
     MOV AH,09H
     LEA DX, [SI]
