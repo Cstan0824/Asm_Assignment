@@ -54,6 +54,7 @@
     NL DB 0DH,0AH,'$'
     TEN DB 10
     INVALID_INPUT DB "Invalid Input$"
+    USER_NOT_FOUND DB "User not found$"
     
 
     BOOK_NAME DB "Book: $"
@@ -79,13 +80,11 @@
     PAYMENT_MSG DB "Do you want to proceed payment",63," (Y/N): $"
     PAYMENT_COMPLETE DB "Payment Complete$"
     PAYMENT_FAILED DB "Payment Failed$"
-
-    TESTING DB "Testing$"
 .CODE
     MAIN PROC
         MOV AX, @DATA
         MOV DS, AX
-        MOV BX , 3 ; TESTING
+        MOV BX , 3
         CALL UPDATE_BORROW_STATUS
 
         ;Point to array
@@ -133,6 +132,9 @@
             JMP SHOW_CURR_BORROWED
 
         USER_ID_NOT_EXISTS:
+            MOV AH, 09H 
+            LEA DX, USER_NOT_FOUND
+            INT 21H
             JMP FIN
 
         SHOW_CURR_BORROWED:
@@ -290,10 +292,10 @@
         ;Get current date
         ;DL - day
         ;DH - month
-        ;MOV AH, 04H      
-        ;INT 1AH  
-        MOV DL, 2 ; TESTING
-        MOV DH, 9 ; TESTING
+        MOV AH, 04H      
+        INT 1AH  
+        ;MOV DL, 2 ; TESTING
+        ;MOV DH, 9 ; TESTING
         MOV CURR_MONTH, DH
         MOV CURR_DAY, DL
 
@@ -505,24 +507,10 @@
 
         MOV AL, '$'
         MOV CX, 50
-        LABEL1:
+        CLEAR_BORROW_STATUS:
             MOV [SI], AL
             INC SI
-        LOOP LABEL1
-
-        SUB SI, 50
-
-        MOV AH, 09H 
-        LEA DX, NL 
-        INT 21H
-
-        MOV AH, 09H 
-        LEA DX, TESTING 
-        INT 21H 
-
-        MOV AH, 09H 
-        MOV DX, SI 
-        INT 21H
+        LOOP CLEAR_BORROW_STATUS
 
         RET
     UPDATE_BORROW_STATUS ENDP
