@@ -30,12 +30,44 @@
         MOV AX, @DATA
         MOV DS, AX
 
-        CALL ADMIN_MODULES
-        CALL USER_MODULES
+        START_MAIN_MENU:
+        CALL DISPLAY_MAIN_MENU
+        CALL GET_CHOICE
 
+        CMP AX, 1
+        JE LOGIN_AS_ADMIN
+        CMP AX, 2
+        JE LOGIN_AS_USER
+        CMP AX, 3
+        JE EXIT_PROGRAM
+
+        LOGIN_AS_ADMIN:
+            ;ADMIN LOGIN - YY PART
+            JMP REDIRECT_TO_ADMIN_MODULES
+        LOGIN_AS_USER:
+            ;USER LOGIN - YY PART
+            JMP REDIRECT_TO_USER_MODULES
+        
+
+        REDIRECT_TO_ADMIN_MODULES:
+            ;LOGIN
+            CALL ADMIN_MODULES
+            JMP START_MAIN_MENU
+        REDIRECT_TO_USER_MODULES:
+            CALL USER_MODULES
+            JMP START_MAIN_MENU
+
+        EXIT_PROGRAM:
         MOV AX, 4C00H
         INT 21H
     MAIN ENDP
+
+    DISPLAY_MAIN_MENU PROC
+        MOV AH, 09H
+        LEA DX, MAIN_MENU
+        INT 21H
+        RET
+    DISPLAY_MAIN_MENU ENDP
 
     ADMIN_MODULES PROC
         START_ADMIN_MENU:
@@ -177,7 +209,7 @@
 
             CALL NEW_LINE
             JMP INPUT_CHOICE
-        RET_CHOICE:
+        RET_CHOICE: ; RETURN VALUE TO AX
             XOR AH, AH
             SUB AL, 30H
         RET 
