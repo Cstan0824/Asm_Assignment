@@ -3,7 +3,7 @@
 
 .DATA
     CURR_USER_ID DB "JAY_CHOU$", 41 DUP("$")
-
+    QUANTITY DB 10 DUP(0)
     NL DB 0DH,0AH,'$'
 
     USER_ID_ARRAY DB "ALI_BABA$", 41 DUP('$')

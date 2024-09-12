@@ -84,6 +84,7 @@
     MAIN PROC
         MOV AX, @DATA
         MOV DS, AX
+        
         MOV BX , 3
         CALL UPDATE_BORROW_STATUS
 
@@ -435,7 +436,6 @@
 
         DISPLAY_DIFF_DAY:
             POP BX ; get the value from stack
-
             MOV AH, 02H 
             MOV DL, BH 
             ADD DL, 30H 
@@ -497,7 +497,7 @@
     CALCULATE_PENALTY ENDP 
     ; NEED TO BUAT DOUBLE TESTING FOR THIS FUNCTION
     UPDATE_BORROW_STATUS PROC
-        ;set all the 50 bytes to '$'
+        ;set all the 40 bytes to '$'
         LEA SI, BORROW_BY_ARRAY
 
         MOV AX, BX
@@ -506,7 +506,7 @@
         ADD SI, AX
 
         MOV AL, '$'
-        MOV CX, 50
+        MOV CX, 40
         CLEAR_BORROW_STATUS:
             MOV [SI], AL
             INC SI
