@@ -15,7 +15,11 @@
     AVALIABLE_MSG DB "Available$"
     NOT_AVALIABLE_MSG DB "Book Not Available to borrow$"
     USER_NOT_FOUND_MSG DB "User not found!$"
+    USER_NOT_AVALIABLE_MSG DB "User not available to borrow!$"
     BORROW_RECORED_NOT_FOUND_MSG DB "Borrow Record not found!$"
+    PAYMENT_MSG DB "Do you want to proceed payment",63," (Y/N): $"
+    PAYMENT_COMPLETE DB "Payment Complete$"
+    PAYMENT_FAILED DB "Payment Failed$"
 
     BOOK_NAME DB "Book: $"
     AUTHOR DB "Author: $"
@@ -32,7 +36,8 @@
     ;TABLE HDR
     BOOK_CATALOG_HEADER DB "| ID | Book Name", 20 DUP(" "), " | Author $"
     BORROW_RECORD_HEADER DB "| ID | Book Name", 20 DUP(" "), " | Author",23 DUP(" ")," | Borrow By $"
-	TABLE_LINE DB 90 DUP("="), "$"
+	BORROW_RECORD_LINE DB 90 DUP("=") , "$"
+    BOOK_CATALOG_LINE DB 70 DUP("=") , "$"
 
     ;Book ID
     BOOK_COUNT DW 0
@@ -40,51 +45,51 @@
 
     ;Book Name
     BOOK_NAME_ARRAY DB "To Kill a Mockingbird$", 8 DUP('$')
-	    DB "1984$", 25 DUP('$')
-	    DB "Pride and Prejudice$", 10 DUP('$')
-	    DB "The Great Gatsby$", 13 DUP('$')
-	    DB "Moby - Dick$", 18 DUP('$')
-	    DB "The Catcher in the Rye$", 7 DUP('$')
-	    DB "The Lord of the Rings$", 8 DUP('$')
-	    DB "The Alchemist$", 16 DUP('$')
-	    DB "Sapiens$", 22 DUP('$')
-	    DB "The Da Vinci Code$", 12 DUP('$')
+	                DB "1984$", 25 DUP('$')
+	                DB "Pride and Prejudice$", 10 DUP('$')
+	                DB "The Great Gatsby$", 13 DUP('$')
+	                DB "Moby - Dick$", 18 DUP('$')
+	                DB "The Catcher in the Rye$", 7 DUP('$')
+	                DB "The Lord of the Rings$", 8 DUP('$')
+	                DB "The Alchemist$", 16 DUP('$')
+	                DB "Sapiens$", 22 DUP('$')
+	                DB "The Da Vinci Code$", 12 DUP('$')
 
 	;Author
-	BOOK_AUTHORS DB "Harper Lee$", 19 DUP('$')
-	    DB "George Orwell$", 16 DUP('$')
-	    DB "Jane Austen$", 18 DUP('$')
-	    DB "F. Scott Fitzgerald$", 10 DUP('$')
-	    DB "Herman Melville$", 14 DUP('$')
-	    DB "J.D. Salinger$", 16 DUP('$')
-	    DB "J.R.R. Tolkien$", 15 DUP('$')
-	    DB "Paulo Coelho$", 17 DUP('$')
-	    DB "Yuval Noah Harari$", 12 DUP('$')
-	    DB "Dan Brown$", 20 DUP('$')
+	BOOK_AUTHORS    DB "Harper Lee$", 19 DUP('$')
+	                DB "George Orwell$", 16 DUP('$')
+	                DB "Jane Austen$", 18 DUP('$')
+	                DB "F. Scott Fitzgerald$", 10 DUP('$')
+	                DB "Herman Melville$", 14 DUP('$')
+	                DB "J.D. Salinger$", 16 DUP('$')
+	                DB "J.R.R. Tolkien$", 15 DUP('$')
+	                DB "Paulo Coelho$", 17 DUP('$')
+	                DB "Yuval Noah Harari$", 12 DUP('$')
+	                DB "Dan Brown$", 20 DUP('$')
 
     ;User Details
-    USER_ID_ARRAY DB "ALI_BABA$", 31 DUP('$')
-        DB "THE_BEST_DOGGAN$", 24 DUP('$')
-        DB "ABG_CHIN$", 31 DUP('$')
-        DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
-        DB "CSTANTAN$", 31 DUP('$')
-        DB "CSTAN$", 34 DUP('$')
-        DB "LIM_ZHI_PING$", 37 DUP('$')
-        DB "G.E.M.$", 33 DUP('$')
-        DB "JAY_CHOU$", 31 DUP('$')
-        DB "COLDPLAY$", 31 DUP('$')
+    USER_ID_ARRAY   DB "ALI_BABA$", 31 DUP('$')
+                    DB "THE_BEST_DOGGAN$", 24 DUP('$')
+                    DB "ABG_CHIN$", 31 DUP('$')
+                    DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
+                    DB "CSTANTAN$", 31 DUP('$')
+                    DB "CSTAN$", 34 DUP('$')
+                    DB "LIM_ZHI_PING$", 37 DUP('$')
+                    DB "G.E.M.$", 33 DUP('$')
+                    DB "JAY_CHOU$", 31 DUP('$')
+                    DB "COLDPLAY$", 31 DUP('$')
 
     ;Borrow Status
     BORROW_BY_ARRAY DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB "CSTAN$", 34 DUP('$')
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB "THE_BEST_DOGGAN$", 44 DUP('$')
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB "THE_BEST_DOGGAN$", 44 DUP('$')
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
     
     BORROW_STATUS_ARRAY DB 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 ;0 = available, 1 = not available
     
@@ -92,18 +97,40 @@
 
     ;DATE
     DATE DB 11 DUP('$')
-    RET_DATE_ARRAY DB "01/09/2024$", "02/09/2024$","03/09/2024$","04/09/2024$","05/09/2024$","06/09/2024$","07/09/2024$", "08/09/2024$","09/09/2024$","10/09/2024$"
+    RET_DATE_ARRAY DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB "03/09/2024$"
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB "07/09/2024$"
+                   DB 11 DUP("$") 
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
 	DAY_OF_MONTH DB 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-	
+
+	;current date
 	CURR_MONTH DB 0
 	CURR_DAY DB 0
+    CURR_YEAR DW 0
+    ;return date
 	RET_MONTH DB 0
 	RET_DAY DB 0
+    RET_YEAR DW 0
+    ;diff day
+	DIFF_DAY DW 0
+
+
+    PENALTY_RATE DB 5
+    PENALTY_CHARGE Dw 0
 .CODE
     MAIN PROC
         MOV AX, @DATA
         MOV DS, AX
+
+        JMP START_USER_MENU
         START_MENU:;main menu
+            JMP FIN
 
         START_USER_MENU:
         CALL DISPLAY_USER_MENU
@@ -130,19 +157,37 @@
         BACK_TO_MAIN_MENU:
             JMP START_MENU
 
+        FIN:
         MOV AX, 4C00H
         INT 21H
     MAIN ENDP
 
     DISPLAY_USER_MENU PROC
+        CALL NEW_LINE
         MOV AH, 09H
         LEA DX, USER_MENU
         INT 21H
         RET
     DISPLAY_USER_MENU ENDP
 
+
+
     ;CSTAN/GAN PART
     BORROW_BOOK PROC
+        ;Ensure user didnt borrow any book
+        CALL CHECK_USER_EXISTENCE
+        CMP BX, 0
+        JS USER_AVAILABLE_TO_BORROW ; display the details if user is not founded inside the borrow by array 
+            ;User founded
+            CALL NEW_LINE
+            
+            MOV AH, 09H
+            LEA DX, USER_NOT_AVALIABLE_MSG
+            INT 21H
+
+            CALL NEW_LINE
+            RET
+        USER_AVAILABLE_TO_BORROW:
         ;DISPLAY BOOK CATALOG
         START_BORROW_BOOK:
         CALL DISPLAY_BOOK_CATALOG
@@ -152,9 +197,10 @@
         ADD BX, 30H
         CALL GET_CHOICE 
         MOV BX, AX 
+        DEC BX
 
         LEA SI, BORROW_STATUS_ARRAY
-        MOV AL, [SI+BX]
+        MOV AL, [SI + BX]
         CMP AL, 1
         JNE BOOK_AVAILABLE_TO_BORROW ;Book Available to borrow if true
         ;Book not available to borrow
@@ -162,12 +208,14 @@
         MOV AH, 09H 
         LEA DX, NOT_AVALIABLE_MSG
         INT 21H
+        CALL NEW_LINE
 
         JMP START_BORROW_BOOK
 
 
         BOOK_AVAILABLE_TO_BORROW:
             CALL SET_BORROW_STATUS
+            CALL GENERATE_RET_DATE
         RET
     BORROW_BOOK ENDP
 
@@ -178,12 +226,12 @@
 
         MOV AX, BX
         MUL USER_ID_SIZE
-        INC AX ; _REMOVE
         ADD SI, AX
 
         MOV CX, 40
         UPDATE_STATUS:
             MOV AL, [DI]
+            MOV AH, [SI]
             MOV [SI], AL
             INC SI
             INC DI 
@@ -213,7 +261,7 @@
         
         ;DISPLAY LINE
         MOV AH, 09H
-        LEA DX, TABLE_LINE
+        LEA DX, BOOK_CATALOG_LINE
         INT 21H
 
         ;NEW LINE
@@ -224,30 +272,32 @@
         MOV CX, 10
         XOR BX, BX
         DISPLAY_BOOKS:
-            MOV BOOk_ID_COUNT, BX
+            MOV BOOK_COUNT, BX
             CMP BOOK_ID_ARRAY[BX], 0
-            JS NEXT_BOOK
+            JNS CURRENT_BOOK
+
+            JMP NEXT_BOOK
+            CURRENT_BOOK:
 
             ;Check if book is available to borrow
             MOV AX, BX 
             MUL USER_ID_SIZE 
             MOV BX, AX
-            INC BX
             CMP BORROW_BY_ARRAY[BX], '$'   ;Book available to borrow if this return true
-            JE BOOK_AVAILABLE_TO_BORROW
+            JE BOOK_AVAILABLE
             PUSH CX ;store the value of CX to stack temporarily
             ;Display Read is not available - ez chatgpt
             MOV AH, 09H          ; BIOS function to write character and attributes
             MOV AL, ' '          ; Character to display
             MOV BH, 0            ; Page number (usually 0)
-            MOV BL, 04H          ; Attribute byte (foreground: green, background: black)
+            MOV BL, 02H          ; Attribute byte (foreground: green, background: black)
             MOV CX, 100          ; Number of times to print the character
             INT 10H              ; Call BIOS interrupt
 
             POP CX ; get back the cx value from stack
-            BOOK_AVAILABLE_TO_BORROW:
+            BOOK_AVAILABLE:
 
-            MOV BX, BOOK_ID_COUNT
+            MOV BX, BOOK_COUNT
             
             ;Delimeter
             MOV AH, 02H
@@ -347,10 +397,12 @@
             CALL NEW_LINE
 
             ;jmp to next value
-            MOV BX, BOOk_ID_COUNT
+            MOV BX, BOOK_COUNT
             INC BX
-            ADD SI, BOOK_SIZE
-            ADD DI, BOOK_SIZE
+            XOR AX, AX
+            MOV AL, BOOK_SIZE
+            ADD SI, AX
+            ADD DI, AX
 
             NEXT_BOOK:
             DEC CX
@@ -367,7 +419,7 @@
         MOV AH,09H 
         MOV AL, ' ' 
         MOV BH, 0
-        MOV BL, 04H 
+        MOV BL, 02H 
         MOV CX, 5 
         INT 10H
         
@@ -378,11 +430,118 @@
         RET
     DISPLAY_BOOK_CATALOG ENDP
 
+    ;create return date - current_date + 7 day
+    GENERATE_RET_DATE PROC
+        LEA SI, RET_DATE_ARRAY
+        LEA DI, DAY_OF_MONTH
+        XOR AX, AX
+        MOV AL, DATE_SIZE
+        MUL BX 
+        ADD SI, AX 
+        CALL GET_DATE
+
+        XOR AX, AX
+        MOV AL, CURR_MONTH
+        ADD DI, AX
+        DEC DI
+
+        ;add 7 day to current date
+        MOV AL, CURR_DAY 
+        ADD AL, 7
+        CMP AL, [DI]
+        JBE STORE_TO_RET_DATE
+
+        ;add month if day exceeds DAY_OF_MONTH
+        SUB AL, [DI]
+        INC CURR_MONTH
+        MOV RET_DAY, AL
+
+        MOV AL, CURR_MONTH
+        CMP AL, 12 
+        JBE STORE_TO_RET_DATE
+
+        ;add year if month exceeds 12
+        SUB AL, 12
+        MOV RET_MONTH, AL
+        
+        MOV AX, CURR_YEAR
+        INC AX 
+        MOV RET_YEAR, AX
+        ;store to RET_DATE_ARRAY
+        STORE_TO_RET_DATE:
+            ;Store Day
+            XOR AX, AX
+            MOV AL, CURR_DAY
+            DIV TEN
+            MOV BX, AX
+
+            ADD BL, 30H
+            MOV [SI], BL
+            INC SI
+
+            ADD BH, 30H
+            MOV [SI], BH
+            INC SI
+
+            ; Store '/'
+            MOV BL, DATE_DELIMETER
+            MOV [SI], BL
+            INC SI
+
+            ;Store month
+            XOR AX, AX
+            MOV AL, CURR_MONTH
+            DIV TEN
+            MOV BX, AX 
+
+            ADD BL, 30H
+            MOV [SI], BL
+            INC DI
+
+            ADD BH, 30H
+            MOV [SI], BH
+            INC SI
+
+            ;Store '/'
+            MOV BL, DATE_DELIMETER
+            MOV [SI], BL
+            INC SI
+
+            ;Store year
+            XOR BX, BX
+            XOR CX, CX
+            MOV AX, RET_YEAR
+            READ_RET_YEAR:
+                INC CX
+                DIV TEN
+                MOV BX, AX
+
+                XOR AL, AL ; clear integral part and push remainder only to stack
+                PUSH AX 
+
+                CMP BL, 0
+                JE END_READ_RET_YEAR
+
+                XOR BH, BH ; clear remainder part and calculate only integral part
+                MOV AX, BX 
+            JMP READ_RET_YEAR
+
+            END_READ_RET_YEAR:
+
+            STORE_RET_YEAR:
+                POP BX
+                ADD BH, 30H
+                MOV [SI], BH 
+                INC SI
+            LOOP STORE_RET_YEAR
+        RET
+    GENERATE_RET_DATE ENDP 
+
     ;CSTAN PART
     RETURN_BOOK PROC
         CALL CHECK_USER_EXISTENCE
         CMP BX, 0
-        JS USER_FOUNDED ; display the details if user is founded inside the borrow by array 
+        JNS USER_FOUNDED ; display the details if user is founded inside the borrow by array 
             ;User not found
             CALL NEW_LINE
             
@@ -399,7 +558,7 @@
 
         ;index is stored at BX
         MOV AX, BX
-        MUL DATA_SIZE
+        MUL BOOK_SIZE
 
         ADD SI, AX 
         ADD DI, AX 
@@ -457,7 +616,7 @@
 
         ;Current Date
         PUSH BX ;move BX to stack temporary
-        CALL GET_DATE ; uses BX for receiving current date
+        CALL GET_DATE ; 
         POP BX ;move back to BX 
 
         MOV AH, 09H
@@ -472,7 +631,7 @@
         POP BX ;move back to BX
 
         CMP PENALTY_CHARGE, 0 ; no penalty charge if true
-        JE SET_BORROW_STATUS  ; update status - _UPDATE
+        JE UPDATE_BORROW_STATUS  ; update status - _UPDATE
 
         ;proceed payment if exceeds return date
         MOV AH, 09H
@@ -495,10 +654,10 @@
         INT 21H 
 
         ; set the borrow status if the book is return successfully
-        SET_BORROW_STATUS:
+        UPDATE_BORROW_STATUS:
             POP BX ;move back to BX
-            CALL UPDATE_BORROW_STATUS
-        JMP FIN
+            CALL CLEAR_BORROW_STATUS
+            RET
         
         FAILED_TO_PAY_PENALTY:
             ;doesnt proceed payment 
@@ -507,11 +666,10 @@
             LEA DX, PAYMENT_FAILED
             INT 21H
 
-        FIN:
         RET
     RETURN_BOOK ENDP
 
-    ;return value to BX
+    ;return value to BX - negative if user not found else positive
     CHECK_USER_EXISTENCE PROC
         ;Point to array
         LEA SI, BORROW_BY_ARRAY
@@ -544,7 +702,7 @@
             MOV CX, BX
 
             XOR BX, BX
-            MOV BL, DATA_SIZE
+            MOV BL, USER_ID_SIZE
             ADD SI, BX ;JUMP TO NEXT USER_ID
 
             INC CX 
@@ -554,6 +712,8 @@
         JMP CHECK_USER_ID_EXISTENCE
 
         USER_ID_NOT_EXISTS:
+            CALL NEW_LINE 
+
             MOV AH, 09H 
             LEA DX, USER_NOT_FOUND_MSG
             INT 21H
@@ -598,6 +758,7 @@
         RET
     GET_CONFIRMATION ENDP
 
+    ;get current date and store it to DATE
     GET_DATE PROC
         ;Get current date
         ;DL - day
@@ -608,6 +769,7 @@
         ;MOV DH, 9 ; TESTING
         MOV CURR_MONTH, DH
         MOV CURR_DAY, DL
+        MOV CURR_YEAR, CX
 
         LEA SI, DATE      
 
@@ -650,14 +812,32 @@
         INC SI
 
         ;Store year
-        LEA DI, year
-        MOV CX, 4
-        STORE_YEAR_TO_DATE:
-            MOV AL , [DI]
-            MOV [SI] , AL
+        XOR BX, BX
+        MOV AX, CX
+        XOR CX, CX
+        READ_CURR_YEAR:
+            INC CX
+            DIV TEN
+            MOV BX, AX
+
+            XOR AL, AL ; clear integral part and push remainder only to stack
+            PUSH AX 
+
+            CMP BL, 0
+            JE END_READ_CURR_YEAR
+
+            XOR BH, BH ; clear remainder part and calculate only integral part
+            MOV AX, BX 
+        JMP READ_CURR_YEAR
+
+        END_READ_CURR_YEAR:
+
+        STORE_CURR_YEAR:
+            POP BX
+            ADD BH, 30H
+            MOV [SI], BH 
             INC SI
-            INC DI
-        LOOP STORE_YEAR_TO_DATE
+        LOOP STORE_CURR_YEAR
         RET
     GET_DATE ENDP
 
@@ -811,7 +991,6 @@
 
         MOV AX, BX
         MUL USER_ID_SIZE
-        INC AX ; _REMOVE
         ADD SI, AX
 
         MOV AL, '$'
@@ -854,9 +1033,13 @@
 
             CALL NEW_LINE
             JMP INPUT_CHOICE
-        RET_CHOICE:
+        RET_CHOICE: 
             XOR AH, AH
             SUB AL, 30H
+            MOV BX, AX 
+
+            CALL NEW_LINE
+            MOV AX, BX
         RET 
     GET_CHOICE ENDP
 
