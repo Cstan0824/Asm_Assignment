@@ -117,7 +117,7 @@
         DB 40 DUP('$')
         DB 40 DUP('$')
         DB 40 DUP('$')
-        
+
     
     CURR_USER_ID DB "CSTAN$", 34 DUP('$')
 
@@ -130,6 +130,27 @@
 	CURR_DAY DB 0
 	RET_MONTH DB 0
 	RET_DAY DB 0
+
+    ;ADD_BOOK VARIABLES
+    ADD_UNAVAILABLE DB "No more slot available to add new books. $"
+
+    PROMPT_INPUT_BOOKNAME DB "Enter new book name: $"
+    PROMPT_INPUT_BOOKAUTHOR DB "Enter book author for the new book: $"
+    PROMPT_NEW_BOOKNAME DB "New Book Name: $"
+    PROMPT_NEW_BOOKAUTHOR DB "New Book Author: $"
+    PROMPT_ADDED_BOOK DB "New book has been added to the catalog. $"
+
+
+    NEW_BOOKNAME_INPUT LABEL BYTE                   ;STRING INPUT
+    MAX_BOOKNAME_SIZE DB 30                         ;MAXIMUM BOOKNAME SIZE
+    INPUT_BOOKNAME_SIZE DB ?                        ;BOOKNAME ACTUAL INPUT SIZE
+    NEW_BOOKNAME DB 30 DUP('$')                     ;STORE BOOKNAME VARIABLE
+
+    NEW_BOOKAUTHORS_INPUT LABEL BYTE                ;STRING INPUT
+    MAX_BOOKAUTHORS_SIZE DB 40                      ;MAXIMUM BOOKAUTHORS SIZE
+    INPUT_BOOKAUTHORS_SIZE DB ?                     ;BOOKAUTHORS ACTUAL INPUT SIZE
+    NEW_BOOKAUTHORS DB 40 DUP('$')                  ;STORE BOOKAUTHORS VARIABLE
+
 
 .CODE
     MAIN PROC
@@ -226,9 +247,108 @@
         RET 
     GET_CHOICE ENDP
 
-    ;JEREMY PART
+   ;JEREMY PART
     ADD_BOOK PROC
-        RET
+
+        ;Point to array
+        LEA SI, BOOK_NAME_ARRAY
+        LEA DI, BOOK_AUTHORS
+
+        ;CHECK IF THERES EMPTY SLOT
+        MOV CX, 20                                      ;loop 20 books
+        XOR BX, BX                                      ;reset BX
+            
+        CHECK_EMPTY_SLOT:
+            CMP byte ptr [SI], '$'                      ;check if book name is empty
+            JNE SKIP_CHECK_NEXT                         ;if not empty, skip to next slot
+            CMP byte ptr [DI], '$'                      ;check if book author is empty
+            JE ADD_BOOK_DETAILS                         ;if empty, add new book details
+    
+            SKIP_CHECK_NEXT:
+            MOV AX, 0                                   ;reset AX
+            MOV AL, BOOK_SIZE                           
+            ADD SI, AX                                  ;move to next book name
+            ADD DI, AX                                  ;move to next book author
+        LOOP CHECK_EMPTY_SLOT
+
+        JMP FULL_ERROR_MSG
+
+        ADD_BOOK_DETAILS:
+            INPUT_NEW_BOOKNAME:
+                CALL NEW_LINE
+                MOV AH, 09H
+                LEA DX, PROMPT_INPUT_BOOKNAME             ;prompt user to input new book name
+                INT 21H
+
+                MOV AH, 0AH
+                LEA DX, NEW_BOOKNAME_INPUT              ;store user input to NEW_BOOKNAME_INPUT
+                INT 21H
+            
+                MOV CX, 0                               ;reset CX
+                MOV CL, INPUT_BOOKNAME_SIZE             ;store the actual input size to CL
+                SAVE_TO_BOOKNAME_ARRAY:
+                    MOV AL, NEW_BOOKNAME[BX]            
+                    MOV [SI], AL                        ;store the input to BOOK_NAME_ARRAY
+                    INC SI
+                    INC BX
+                LOOP SAVE_TO_BOOKNAME_ARRAY
+        
+            CALL NEW_LINE
+
+            INPUT_NEW_BOOKAUTHORS:
+                
+                MOV AH, 09H
+                LEA DX, PROMPT_INPUT_BOOKAUTHOR          ;prompt user to input new book author
+                INT 21H
+
+                MOV AH, 0AH
+                LEA DX, NEW_BOOKAUTHORS_INPUT           ;store user input to NEW_BOOKAUTHORS_INPUT
+                INT 21H
+
+                MOV CX, 0                               ;reset CX
+                MOV CL, INPUT_BOOKAUTHORS_SIZE          ;store the actual input size to CL
+                XOR BX,BX
+                SAVE_TO_BOOKAUTHORS_ARRAY:
+                    MOV AL, NEW_BOOKAUTHORS[BX]         
+                    MOV [DI], AL                        ;store the input to BOOK_AUTHORS
+                    INC DI
+                    INC BX
+                LOOP SAVE_TO_BOOKAUTHORS_ARRAY
+            CALL NEW_LINE
+            CALL NEW_LINE
+            CALL NEW_LINE
+
+            DISPLAY_NEW_BOOK:
+                MOV AH, 09H
+                LEA DX, PROMPT_NEW_BOOKNAME             ;display new book name  
+                INT 21H
+                LEA DX, NEW_BOOKNAME
+                INT 21H
+                
+                CALL NEW_LINE
+
+                LEA DX, PROMPT_NEW_BOOKAUTHOR           ;display new book author
+                INT 21H
+                LEA DX, NEW_BOOKAUTHORS
+                INT 21H
+
+                CALL NEW_LINE
+                LEA DX, PROMPT_ADDED_BOOK               ;display new book added to catalog
+                INT 21H
+
+            CALL NEW_LINE
+            CALL NEW_LINE
+            JMP QUIT_ADD_BOOK
+
+        FULL_ERROR_MSG:
+            CALL NEW_LINE
+            MOV AH, 09H
+            LEA DX, ADD_UNAVAILABLE                          ;display error message
+            INT 21H
+            CALL NEW_LINE
+
+        QUIT_ADD_BOOK:
+            RET
     ADD_BOOK ENDP
 
     ;JEREMY PART
@@ -267,7 +387,7 @@
         LEA DX, NL
         INT 21H
         
-        MOV CX, 10
+        MOV CX, 20
         XOR BX, BX
         DISPLAY_BOOKS:
             MOV BOOK_COUNT, BX
