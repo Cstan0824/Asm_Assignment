@@ -39,7 +39,7 @@
 	BOOK_COUNT DW 0
 
     ;Book ID
-    BOOK_ID_ARRAY DB 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    BOOK_ID_ARRAY DB 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
     ;Book Name
     BOOK_NAME_ARRAY DB "To Kill a Mockingbird$", 8 DUP('$')
 	    DB "1984$", 25 DUP('$')
@@ -51,6 +51,16 @@
 	    DB "The Alchemist$", 16 DUP('$')
 	    DB "Sapiens$", 22 DUP('$')
 	    DB "The Da Vinci Code$", 12 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
 	;Author
 	BOOK_AUTHORS DB "Harper Lee$", 19 DUP('$')
 	    DB "George Orwell$", 16 DUP('$')
@@ -62,6 +72,17 @@
 	    DB "Paulo Coelho$", 17 DUP('$')
 	    DB "Yuval Noah Harari$", 12 DUP('$')
 	    DB "Dan Brown$", 20 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+
 
     ;User Details
     USER_ID_ARRAY DB "ALI_BABA$", 31 DUP('$')
@@ -74,6 +95,7 @@
         DB "G.E.M.$", 33 DUP('$')
         DB "JAY_CHOU$", 31 DUP('$')
         DB "COLDPLAY$", 31 DUP('$')
+        
     ;Borrow Status
     BORROW_BY_ARRAY DB 40 DUP("$")
         DB 40 DUP("$")
@@ -81,10 +103,21 @@
         DB 40 DUP("$")
         DB 40 DUP("$")
         DB 40 DUP("$")
-        DB "THE_BEST_DOGGAN$", 44 DUP('$')
+        DB "THE_BEST_DOGGAN$", 24 DUP('$')
         DB 40 DUP("$")
         DB 40 DUP("$")
         DB 40 DUP("$")
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        
     
     CURR_USER_ID DB "CSTAN$", 34 DUP('$')
 
@@ -244,76 +277,76 @@
             JMP NEXT_BOOK
             CURRENT_BOOK:
 
-            ;Check if book is available to borrow
-            MOV AX, BX 
-            MUL USER_ID_SIZE 
-            MOV BX, AX
-            INC BX ; idk why need this but it works
-            CMP BORROW_BY_ARRAY[BX], '$'   ;Book available to borrow if this return true
-            JE BOOK_AVAILABLE_TO_BORROW
-            PUSH CX ;store the value of CX to stack temporarily
-            ;Display Read is not available - ez chatgpt
-            mov ah, 09h          ; BIOS function to write character and attributes
-            mov al, ' '          ; Character to display
-            mov bh, 0            ; Page number (usually 0)
-            mov bl, 02h          ; Attribute byte (foreground: yellow, background: black)
-            mov CX, 100          ; Number of times to print the character
-            int 10h              ; Call BIOS interrupt
+                ;Check if book is available to borrow
+                MOV AX, BX 
+                MUL USER_ID_SIZE 
+                MOV BX, AX
+                INC BX ; idk why need this but it works
+                CMP BORROW_BY_ARRAY[BX], '$'   ;Book available to borrow if this return true
+                JE BOOK_AVAILABLE_TO_BORROW
+                PUSH CX ;store the value of CX to stack temporarily
+                ;Display Read is not available - ez chatgpt
+                mov ah, 09h          ; BIOS function to write character and attributes
+                mov al, ' '          ; Character to display
+                mov bh, 0            ; Page number (usually 0)
+                mov bl, 02h          ; Attribute byte (foreground: yellow, background: black)
+                mov CX, 100          ; Number of times to print the character
+                int 10h              ; Call BIOS interrupt
 
-            POP CX ; get back the cx value from stack
+                POP CX ; get back the cx value from stack
             BOOK_AVAILABLE_TO_BORROW:
 
-            MOV BX, BOOK_COUNT
-            
-            ;Delimeter
-            MOV AH, 02H
-            MOV DL, '|'
-            INT 21H
-            
-            ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
-            
-            ;Book_ID
-            MOV AX, 0
-            MOV AL, BOOK_ID_ARRAY[BX]
-            DIV TEN
-            MOV BX, AX
-            
-            MOV AH, 02H
-            MOV DL, BL
-            ADD DL, 30H
-            INT 21H
-            
-            MOV AH, 02H
-            MOV DL, BH
-            ADD DL, 30H
-            INT 21H
-            
-            ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
-            
-            ;Delimeter
-            MOV AH, 02H
-            MOV DL, '|'
-            INT 21H
+                MOV BX, BOOK_COUNT
+                
+                ;Delimeter
+                MOV AH, 02H
+                MOV DL, '|'
+                INT 21H
+                
+                ;Space
+                MOV AH, 02H
+                MOV DL, ' '
+                INT 21H
+                
+                ;Book_ID
+                MOV AX, 0
+                MOV AL, BOOK_ID_ARRAY[BX]
+                DIV TEN
+                MOV BX, AX
+                
+                MOV AH, 02H
+                MOV DL, BL
+                ADD DL, 30H
+                INT 21H
+                
+                MOV AH, 02H
+                MOV DL, BH
+                ADD DL, 30H
+                INT 21H
+                
+                ;Space
+                MOV AH, 02H
+                MOV DL, ' '
+                INT 21H
+                
+                ;Delimeter
+                MOV AH, 02H
+                MOV DL, '|'
+                INT 21H
 
-            ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
-            
-            ;Book_Name
-            MOV AH, 09H
-            LEA DX, [SI]
-            INT 21H
+                ;Space
+                MOV AH, 02H
+                MOV DL, ' '
+                INT 21H
+                
+                ;Book_Name
+                MOV AH, 09H
+                LEA DX, [SI]
+                INT 21H
 
-            
-            
-            MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
+                
+                
+                MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
             
             ;Count the string length
             COUNT_BOOK_NAME_SPACES:
@@ -321,7 +354,7 @@
                 JE DONE_BOOK_NAME_SPACES
                 DEC BX
                 INC SI
-            JMP COUNT_BOOK_NAME_SPACES
+                JMP COUNT_BOOK_NAME_SPACES
             DONE_BOOK_NAME_SPACES:
                 MOV AH, 02H
                 ;EXP: SI(original SI) = SI(currnet SI) - (29(total length) - BX(space length))
@@ -335,40 +368,40 @@
                 INT 21H
                 DEC BX
             
-            JMP ADD_SPACES_AFTER_NAME
+                JMP ADD_SPACES_AFTER_NAME
 
             DONE_ADD_BOOK_NAME_SPACES:
             
             
-            ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
-            
-            ;Delimeter
-            MOV AH, 02H
-            MOV DL, '|'
-            INT 21H
+                ;Space
+                MOV AH, 02H
+                MOV DL, ' '
+                INT 21H
+                
+                ;Delimeter
+                MOV AH, 02H
+                MOV DL, '|'
+                INT 21H
 
-            ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
-            
-            ;Author
-            MOV AH, 09H
-            LEA DX, [DI]
-            INT 21H 
+                ;Space
+                MOV AH, 02H
+                MOV DL, ' '
+                INT 21H
+                
+                ;Author
+                MOV AH, 09H
+                LEA DX, [DI]
+                INT 21H 
 
-            MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
-            
+                MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
+                
             ;Count the string length
             COUNT_AUTHOR_SPACES:
                 CMP BYTE PTR [DI], '$' ; apa ini
                 JE DONE_AUTHOR_SPACES
                 DEC BX
                 INC DI
-            JMP COUNT_AUTHOR_SPACES
+                JMP COUNT_AUTHOR_SPACES
             DONE_AUTHOR_SPACES:
                 MOV AH, 02H
                 ;EXP: DI(original DI) = DI(currnet DI) - (29(total length) - BX(space length))
@@ -381,34 +414,33 @@
                 MOV DL, ' '
                 INT 21H
                 DEC BX
-            
-            JMP ADD_SPACES_AFTER_AUTHOR
+                JMP ADD_SPACES_AFTER_AUTHOR
 
             DONE_ADD_AUTHOR_SPACES:
 
-            ;Delimeter
-            MOV AH, 02H
-            MOV DL, '|'
-            INT 21H
+                ;Delimeter
+                MOV AH, 02H
+                MOV DL, '|'
+                INT 21H
 
-            ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
+                ;Space
+                MOV AH, 02H
+                MOV DL, ' '
+                INT 21H
 
-            ;Borrow By
-            MOV AX, BOOK_COUNT
-            MUL USER_ID_SIZE
-            MOV BX , AX
-            MOV AL , BORROW_BY_ARRAY[BX]
-            CMP AL , '$'
-            JE AVAILABLE_TO_BORROW
+                ;Borrow By
+                MOV AX, BOOK_COUNT
+                MUL USER_ID_SIZE
+                MOV BX , AX
+                MOV AL , BORROW_BY_ARRAY[BX]
+                CMP AL , '$'
+                JE AVAILABLE_TO_BORROW
 
-            MOV AH, 09H
-            LEA DX, BORROW_BY_ARRAY[BX]
-            INT 21H
+                MOV AH, 09H
+                LEA DX, BORROW_BY_ARRAY[BX]
+                INT 21H
 
-            JMP DONE_DISPLAY_BORROW_STATUS
+                JMP DONE_DISPLAY_BORROW_STATUS
 
 
             AVAILABLE_TO_BORROW:
@@ -418,51 +450,51 @@
 
             DONE_DISPLAY_BORROW_STATUS:
             
-            CALL NEW_LINE
+                CALL NEW_LINE
 
-            ;jmp to next value
-            MOV BX, BOOK_COUNT
-            INC BX
-            XOR AX, AX
-            MOV AL, BOOK_SIZE
-            ADD SI, AX
-            ADD DI, AX
+                ;jmp to next value
+                MOV BX, BOOK_COUNT
+                INC BX
+                XOR AX, AX
+                MOV AL, BOOK_SIZE
+                ADD SI, AX
+                ADD DI, AX
 
-            NEXT_BOOK:
-            DEC CX
-            CMP CX, 0
-            JE END_DISPLAY_BOOKS
+                NEXT_BOOK:
+                DEC CX
+                CMP CX, 0
+                JE END_DISPLAY_BOOKS
 
-        JMP DISPLAY_BOOKS
+                JMP DISPLAY_BOOKS
 
-        END_DISPLAY_BOOKS:
+            END_DISPLAY_BOOKS:
 
-        CALL NEW_LINE
+                CALL NEW_LINE
 
-        ;Display red
-        MOV AH,09H 
-        MOV AL, ' ' 
-        MOV BH, 0
-        MOV BL, 02H 
-        MOV CX, 5 
-        INT 10H
-        
-        
-        MOV AH, 09H 
-        LEA DX, COLOR_REMARK_MSG
-        INT 21H
-        
-        CALL NEW_LINE
+                ;Display red
+                MOV AH,09H 
+                MOV AL, ' ' 
+                MOV BH, 0
+                MOV BL, 02H 
+                MOV CX, 5 
+                INT 10H
+                
+                
+                MOV AH, 09H 
+                LEA DX, COLOR_REMARK_MSG
+                INT 21H
+                
+                CALL NEW_LINE
 
-        MOV AH, 09H 
-        LEA DX, SYSTEM_PAUSE_MSG
-        INT 21H
+                MOV AH, 09H 
+                LEA DX, SYSTEM_PAUSE_MSG
+                INT 21H
 
-        MOV AH,07H
-        INT 21H
+                MOV AH,07H
+                INT 21H
 
-        CALL NEW_LINE
-        RET
+                CALL NEW_LINE
+                RET
     VIEW_BORROW_RECORD ENDP
 
     ;New Line
