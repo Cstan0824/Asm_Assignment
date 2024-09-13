@@ -14,7 +14,6 @@
     SYSTEM_PAUSE_MSG DB "Press any key to continue...$"
     AVALIABLE_MSG DB "Available$"
     NOT_AVALIABLE_MSG DB "Book Not Available to borrow$"
-    USER_NOT_FOUND_MSG DB "User not found!$"
     USER_NOT_AVALIABLE_MSG DB "User not available to borrow!$"
     BORROW_RECORED_NOT_FOUND_MSG DB "Borrow Record not found!$"
     PAYMENT_MSG DB "Do you want to proceed payment",63," (Y/N): $"
@@ -90,9 +89,7 @@
                     DB 40 DUP("$")
                     DB 40 DUP("$")
                     DB 40 DUP("$")
-    
-    BORROW_STATUS_ARRAY DB 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 ;0 = available, 1 = not available
-    
+        
     CURR_USER_ID DB "CSTAN$", 34 DUP('$')
 
     ;DATE
@@ -112,7 +109,7 @@
 	;current date
 	CURR_MONTH DB 0
 	CURR_DAY DB 0
-    CURR_YEAR DW 0
+    CURR_YEAR DW 2024
     ;return date
 	RET_MONTH DB 0
 	RET_DAY DB 0
@@ -133,6 +130,7 @@
             JMP FIN
 
         START_USER_MENU:
+        CALL CLEAR_SCREEN
         CALL DISPLAY_USER_MENU
 
         MOV BX, '3'   ;Maximum value for user input
@@ -147,10 +145,13 @@
         JE BACK_TO_MAIN_MENU
 
         BORROW_BOOK_FROM_CATALOG:
+            CALL CLEAR_SCREEN
             CALL BORROW_BOOK
+            ; display which book is borrowed
             JMP START_USER_MENU
         
         RETURN_BOOK_TO_CATALOG:
+            CALL CLEAR_SCREEN
             CALL RETURN_BOOK
             JMP START_USER_MENU
         
@@ -163,7 +164,6 @@
     MAIN ENDP
 
     DISPLAY_USER_MENU PROC
-        CALL NEW_LINE
         MOV AH, 09H
         LEA DX, USER_MENU
         INT 21H
@@ -179,13 +179,12 @@
         CMP BX, 0
         JS USER_AVAILABLE_TO_BORROW ; display the details if user is not founded inside the borrow by array 
             ;User founded
-            CALL NEW_LINE
-            
             MOV AH, 09H
             LEA DX, USER_NOT_AVALIABLE_MSG
             INT 21H
-
             CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
             RET
         USER_AVAILABLE_TO_BORROW:
         ;DISPLAY BOOK CATALOG
@@ -198,24 +197,37 @@
         CALL GET_CHOICE 
         MOV BX, AX 
         DEC BX
-
-        LEA SI, BORROW_STATUS_ARRAY
-        MOV AL, [SI + BX]
-        CMP AL, 1
-        JNE BOOK_AVAILABLE_TO_BORROW ;Book Available to borrow if true
+        
+        PUSH BX ; store index to stack temp
+        MOV AX, BX 
+        MUL USER_ID_SIZE 
+        MOV BX, AX
+        CMP BORROW_BY_ARRAY[BX], '$'
+        JE BOOK_AVAILABLE_TO_BORROW ;Book Available to borrow if true
         ;Book not available to borrow
-        CALL NEW_LINE
+        POP BX ; clear stack
+         
         MOV AH, 09H 
         LEA DX, NOT_AVALIABLE_MSG
         INT 21H
         CALL NEW_LINE
-
+        CALL SYSTEM_PAUSE
+        CALL CLEAR_SCREEN
         JMP START_BORROW_BOOK
 
 
         BOOK_AVAILABLE_TO_BORROW:
+            CALL CLEAR_SCREEN
+            POP BX ; get index from stack
             CALL SET_BORROW_STATUS
+            PUSH BX ; store index to stack temp
             CALL GENERATE_RET_DATE
+            POP BX ; get index from stack
+            CALL DISPLAY_BOOK_DETAILS
+
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
         RET
     BORROW_BOOK ENDP
 
@@ -237,10 +249,6 @@
             INC DI 
         LOOP UPDATE_STATUS
 
-        LEA SI, BORROW_STATUS_ARRAY
-        MOV AL, 1
-        MOV [SI+BX], AL
-
         RET
     SET_BORROW_STATUS ENDP
 
@@ -254,20 +262,15 @@
         LEA DX, BOOK_CATALOG_HEADER    
         INT 21H
 
-        ;NEW LINE
-        MOV AH, 09H
-        LEA DX, NL
-        INT 21H
+        CALL NEW_LINE
+
         
         ;DISPLAY LINE
         MOV AH, 09H
         LEA DX, BOOK_CATALOG_LINE
         INT 21H
+        CALL NEW_LINE
 
-        ;NEW LINE
-        MOV AH, 09H
-        LEA DX, NL
-        INT 21H
         
         MOV CX, 10
         XOR BX, BX
@@ -432,46 +435,55 @@
 
     ;create return date - current_date + 7 day
     GENERATE_RET_DATE PROC
+        PUSH BX  ;store the index to stack temp 
+        CALL GET_DATE
+        POP BX    ;get the index from stack
         LEA SI, RET_DATE_ARRAY
         LEA DI, DAY_OF_MONTH
         XOR AX, AX
         MOV AL, DATE_SIZE
         MUL BX 
         ADD SI, AX 
-        CALL GET_DATE
+        
+      
 
         XOR AX, AX
         MOV AL, CURR_MONTH
         ADD DI, AX
         DEC DI
 
-        ;add 7 day to current date
+        ;add 7 day to current date 
+        MOV AX, CURR_YEAR
+        MOV RET_YEAR, AX
+        
+        MOV AL, CURR_MONTH
+        MOV RET_MONTH, AL 
+        
         MOV AL, CURR_DAY 
         ADD AL, 7
+        MOV RET_DAY, AL
+        
         CMP AL, [DI]
         JBE STORE_TO_RET_DATE
 
         ;add month if day exceeds DAY_OF_MONTH
         SUB AL, [DI]
-        INC CURR_MONTH
+        INC RET_MONTH
         MOV RET_DAY, AL
 
-        MOV AL, CURR_MONTH
+        MOV AL, RET_MONTH
         CMP AL, 12 
         JBE STORE_TO_RET_DATE
 
         ;add year if month exceeds 12
         SUB AL, 12
         MOV RET_MONTH, AL
-        
-        MOV AX, CURR_YEAR
-        INC AX 
-        MOV RET_YEAR, AX
+        INC RET_YEAR
         ;store to RET_DATE_ARRAY
         STORE_TO_RET_DATE:
             ;Store Day
             XOR AX, AX
-            MOV AL, CURR_DAY
+            MOV AL, RET_DAY
             DIV TEN
             MOV BX, AX
 
@@ -490,13 +502,13 @@
 
             ;Store month
             XOR AX, AX
-            MOV AL, CURR_MONTH
+            MOV AL, RET_MONTH
             DIV TEN
             MOV BX, AX 
 
             ADD BL, 30H
             MOV [SI], BL
-            INC DI
+            INC SI
 
             ADD BH, 30H
             MOV [SI], BH
@@ -542,17 +554,71 @@
         CALL CHECK_USER_EXISTENCE
         CMP BX, 0
         JNS USER_FOUNDED ; display the details if user is founded inside the borrow by array 
-            ;User not found
-            CALL NEW_LINE
-            
+            ;User not found            
             MOV AH, 09H
             LEA DX, BORROW_RECORED_NOT_FOUND_MSG
             INT 21H
-
             CALL NEW_LINE
+            CALL SYSTEM_PAUSE 
+            CALL CLEAR_SCREEN
             RET
         USER_FOUNDED:    
 
+        CALL DISPLAY_BOOK_DETAILS
+
+        ;calculate penalty charge if exceeds return date
+        PUSH BX ;store BX to stack temporary
+        CALL CALCULATE_PENALTY
+        POP BX ;move back to BX
+
+        CMP PENALTY_CHARGE, 0 ; no penalty charge if true
+        JE UPDATE_BORROW_STATUS  ; update status - _UPDATE
+
+        ;proceed payment if exceeds return date
+        CALL NEW_LINE
+
+
+        PUSH BX ;store BX to stack temporary
+        LEA DX, PAYMENT_MSG
+        CALL GET_CONFIRMATION
+        ;result stores in y
+        CMP BL, 'N'
+        JE FAILED_TO_PAY_PENALTY 
+        CMP BL, 'n'
+        JE FAILED_TO_PAY_PENALTY ;doesnt proceed payment
+
+        ;continue payment 
+        CALL NEW_LINE
+        MOV AH, 09H
+        LEA DX, PAYMENT_COMPLETE
+        INT 21H 
+
+        ; set the borrow status if the book is return successfully
+        UPDATE_BORROW_STATUS:
+            POP BX ;move back to BX
+            CALL CLEAR_BORROW_STATUS
+
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+            RET
+        
+        FAILED_TO_PAY_PENALTY:
+            ;doesnt proceed payment 
+            POP BX ;clear stack - _REMOVE
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, PAYMENT_FAILED
+            INT 21H
+
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+        RET
+    RETURN_BOOK ENDP
+
+    DISPLAY_BOOK_DETAILS PROC
         LEA SI, BOOK_NAME_ARRAY
         LEA DI, BOOK_AUTHORS
 
@@ -574,9 +640,7 @@
         INT 21H 
 
         ;new line
-        MOV AH, 09H
-        LEA DX, NL
-        INT 21H
+        CALL NEW_LINE
 
         ;Author
         MOV AH, 09H
@@ -588,9 +652,8 @@
         INT 21H 
 
         ;new line
-        MOV AH, 09H
-        LEA DX, NL
-        INT 21H
+        CALL NEW_LINE
+
 
         ;Return Date
         MOV AH, 09H
@@ -600,19 +663,17 @@
         ;get return date from list
         LEA SI , RET_DATE_ARRAY
         XOR AX, AX
-        MOV AX, BX 
+        MOV AX, BX
         MUL DATE_SIZE
 
-        ADD SI, AX  
+        ADD SI, AX   
 
         MOV AH, 09H
         MOV DX, SI
         INT 21H
 
-        ;new line
-        MOV AH, 09H
-        LEA DX, NL
-        INT 21H
+        CALL NEW_LINE
+
 
         ;Current Date
         PUSH BX ;move BX to stack temporary
@@ -626,48 +687,7 @@
         MOV AH, 09H
         LEA DX, DATE
         INT 21H
-        PUSH BX ;store BX to stack temporary
-        CALL CALCULATE_PENALTY
-        POP BX ;move back to BX
-
-        CMP PENALTY_CHARGE, 0 ; no penalty charge if true
-        JE UPDATE_BORROW_STATUS  ; update status - _UPDATE
-
-        ;proceed payment if exceeds return date
-        MOV AH, 09H
-        LEA DX, NL 
-        INT 21H
-
-        MOV AH, 09H 
-        LEA DX, PAYMENT_MSG
-        INT 21H 
-
-        PUSH BX ;store BX to stack temporary
-        CALL GET_CONFIRMATION
-        ;result stores in BX
-        CMP BL, 'N'
-        JE FAILED_TO_PAY_PENALTY ;doesnt proceed payment
-
-        ;continue payment 
-        MOV AH, 09H
-        LEA DX, PAYMENT_COMPLETE
-        INT 21H 
-
-        ; set the borrow status if the book is return successfully
-        UPDATE_BORROW_STATUS:
-            POP BX ;move back to BX
-            CALL CLEAR_BORROW_STATUS
-            RET
-        
-        FAILED_TO_PAY_PENALTY:
-            ;doesnt proceed payment 
-            POP BX ;clear stack - _REMOVE
-            MOV AH, 09H
-            LEA DX, PAYMENT_FAILED
-            INT 21H
-
-        RET
-    RETURN_BOOK ENDP
+    DISPLAY_BOOK_DETAILS ENDP
 
     ;return value to BX - negative if user not found else positive
     CHECK_USER_EXISTENCE PROC
@@ -711,13 +731,7 @@
 
         JMP CHECK_USER_ID_EXISTENCE
 
-        USER_ID_NOT_EXISTS:
-            CALL NEW_LINE 
-
-            MOV AH, 09H 
-            LEA DX, USER_NOT_FOUND_MSG
-            INT 21H
-            
+        USER_ID_NOT_EXISTS:                    
             MOV BX, -1 ; set to -1 if user not found
 
         MATCH_USER_ID:
@@ -728,6 +742,11 @@
     GET_CONFIRMATION PROC
         XOR BX, BX
         GET_INPUT:
+
+            MOV AH, 09H
+            INT 21H
+            PUSH DX ; stock input msg temp to stack
+
             MOV AH, 01H
             INT 21H 
 
@@ -742,18 +761,19 @@
             CMP BL, 'y'
             JE VALID_INPUT
             CMP BL, 'n'
+            JE VALID_INPUT
 
             ;invalid input
+            CALL NEW_LINE
             MOV AH, 09H
             LEA DX, INVALID_INPUT
             INT 21H
-
-            MOV AH, 09H
-            LEA DX, NL
-            INT 21H
+            CALL NEW_LINE
+            POP DX ; get input msg from stack
         JMP GET_INPUT
-
+        
         VALID_INPUT:
+        POP DX
 
         RET
     GET_CONFIRMATION ENDP
@@ -765,11 +785,12 @@
         ;DH - month
         MOV AH, 04H      
         INT 1AH  
-        ;MOV DL, 2 ; TESTING
+        ;MOV DL, 13 ; TESTING
         ;MOV DH, 9 ; TESTING
         MOV CURR_MONTH, DH
         MOV CURR_DAY, DL
-        MOV CURR_YEAR, CX
+        MOV CX, CURR_YEAR
+
 
         LEA SI, DATE      
 
@@ -813,7 +834,7 @@
 
         ;Store year
         XOR BX, BX
-        MOV AX, CX
+        MOV AX, CURR_YEAR
         XOR CX, CX
         READ_CURR_YEAR:
             INC CX
@@ -878,7 +899,8 @@
         ADD RET_MONTH, AL
 
         XOR BX, BX
-        XOR CX, CX
+        XOR CX, CX  
+        XOR AX, AX
         ;count the diff days
         LEA SI, DAY_OF_MONTH
         MOV BL, CURR_DAY
@@ -886,7 +908,8 @@
         MOV CL, CURR_MONTH
         DEC CX
         COUNT_CURR_DAY_OF_MONTHS:
-            ADD BL, [SI]
+            MOV AL, [SI]
+            ADD BX, AX
         LOOP COUNT_CURR_DAY_OF_MONTHS
 
         LEA SI, DAY_OF_MONTH
@@ -894,9 +917,10 @@
         MOV CL, RET_MONTH
         DEC CX
 
-        COUNT_RET_DAY_OF_MONTHS:
-            SUB BL, [SI]
-            CMP BL, 0
+        COUNT_RET_DAY_OF_MONTHS: 
+            MOV AL, [SI]
+            SUB BX, AX
+            CMP BX, 0
             JS END_CALCULATE_PENALTY ; check if the sign flag is 1:Negative value
         LOOP COUNT_RET_DAY_OF_MONTHS
 
@@ -947,9 +971,8 @@
 
         CHECK_OUT_PENALTY:
 
-        MOV AH, 09H
-        LEA DX, NL
-        INT 21H
+                CALL NEW_LINE
+
 
         ;DISPLAY PENALTY CHARGE AMOUNT
         XOR BX, BX
@@ -1000,10 +1023,6 @@
             INC SI
         LOOP CLEAR_STATUS
 
-        LEA SI, BORROW_STATUS_ARRAY
-        MOV AL, 0
-        MOV [SI+BX], AL
-
         RET
     CLEAR_BORROW_STATUS ENDP
 
@@ -1050,4 +1069,21 @@
         INT 21H
         RET
     NEW_LINE ENDP
+
+    ;cls
+    CLEAR_SCREEN PROC 
+        MOV AX, 0003H
+        INT 10H
+        RET
+    CLEAR_SCREEN ENDP
+
+    SYSTEM_PAUSE PROC
+        MOV AH, 09H 
+        LEA DX, SYSTEM_PAUSE_MSG
+        INT 21H
+
+        MOV AH,07H
+        INT 21H
+        RET
+    SYSTEM_PAUSE ENDP
 END MAIN
