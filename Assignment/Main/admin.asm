@@ -31,8 +31,10 @@
                 DB "$"
 
     ;TABLE HDR
-    BORROW_RECORD_HEADER DB "| ID | Book Name", 20 DUP(" "), " | Author",23 DUP(" ")," | Borrow By $"
-	TABLE_LINE DB 90 DUP("="), "$"
+    BOOK_CATALOG_HEADER DB "| ID | Book Name", 20 DUP(" "), " | Author $"
+    BORROW_RECORD_HEADER DB "| ID | Book Name", 20 DUP(" "), " | Author",13 DUP(" ")," | Borrow By$"
+	BORROW_RECORD_LINE DB 79 DUP("=") , "$"
+    BOOK_CATALOG_LINE DB 70 DUP("=") , "$"
     
     ;DATA
     ;Book Details
@@ -159,9 +161,7 @@
         JMP START_ADMIN_MENU
         START_MENU: 
             ;MAIN MENU
-            JMP FIN
-
-        
+            JMP FIN 
         START_ADMIN_MENU:
         CALL DISPLAY_ADMIN_MENU
 
@@ -185,19 +185,27 @@
 
 
         ADD_BOOK_TO_CATALOG:
+            CALL CLEAR_SCREEN
             CALL ADD_BOOK
+            CALL CLEAR_SCREEN
             JMP START_ADMIN_MENU
 
         EDIT_BOOK_FROM_CATALOG:
+            CALL CLEAR_SCREEN
             CALL EDIT_BOOK
+            CALL CLEAR_SCREEN
             JMP START_ADMIN_MENU
 
         DELETE_BOOK_FROM_CATALOG:
+            CALL CLEAR_SCREEN
             CALL REMOVE_BOOK
+            CALL CLEAR_SCREEN
             JMP START_ADMIN_MENU
 
         VIEW_BOOK_FROM_CATALOG:
+            CALL CLEAR_SCREEN
             CALL VIEW_BORROW_RECORD
+            CALL CLEAR_SCREEN
             JMP START_ADMIN_MENU
 
         BACK_TO_MAIN_MENU:
@@ -366,37 +374,33 @@
         ;Point to array
         LEA SI, BOOK_NAME_ARRAY
         LEA DI, BOOK_AUTHORS
+
+        CALL NEW_LINE
         
         ;DISPLAY HEADER
         MOV AH, 09H
         LEA DX, BORROW_RECORD_HEADER    
         INT 21H
 
-        ;NEW LINE
-        MOV AH, 09H
-        LEA DX, NL
-        INT 21H
+        CALL NEW_LINE
         
         ;DISPLAY LINE
         MOV AH, 09H
-        LEA DX, TABLE_LINE
+        LEA DX, BORROW_RECORD_LINE
         INT 21H
 
-        ;NEW LINE
-        MOV AH, 09H
-        LEA DX, NL
-        INT 21H
+        CALL NEW_LINE
         
         MOV CX, 20
         XOR BX, BX
+        MOV BOOK_COUNT, 0
         DISPLAY_BOOKS:
-            MOV BOOK_COUNT, BX
-            CMP BOOK_ID_ARRAY[BX], 0
-            JNS CURRENT_BOOK
+            CMP BYTE PTR [SI], '$' ; check if the book name exists
+            JNE CURRENT_BOOK
 
             JMP NEXT_BOOK
             CURRENT_BOOK:
-
+                PUSH BX
                 ;Check if book is available to borrow
                 MOV AX, BX 
                 MUL USER_ID_SIZE 
@@ -410,63 +414,63 @@
                 mov al, ' '          ; Character to display
                 mov bh, 0            ; Page number (usually 0)
                 mov bl, 02h          ; Attribute byte (foreground: yellow, background: black)
-                mov CX, 100          ; Number of times to print the character
+                mov CX, 80          ; Number of times to print the character
                 int 10h              ; Call BIOS interrupt
 
                 POP CX ; get back the cx value from stack
             BOOK_AVAILABLE_TO_BORROW:
+            POP BX ; get back the value of BX[index] from stack 
+            PUSH BX ; store the value of BX to stack again for future use temporarily  
+            
+            ;Delimeter
+            MOV AH, 02H
+            MOV DL, '|'
+            INT 21H
+            
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Book_ID
+            MOV AX, 0
+            MOV AL, BOOK_ID_ARRAY[BX]
+            DIV TEN
+            MOV BX, AX
+            
+            MOV AH, 02H
+            MOV DL, BL
+            ADD DL, 30H
+            INT 21H
+            
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+            
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Delimeter
+            MOV AH, 02H
+            MOV DL, '|'
+            INT 21H
 
-                MOV BX, BOOK_COUNT
-                
-                ;Delimeter
-                MOV AH, 02H
-                MOV DL, '|'
-                INT 21H
-                
-                ;Space
-                MOV AH, 02H
-                MOV DL, ' '
-                INT 21H
-                
-                ;Book_ID
-                MOV AX, 0
-                MOV AL, BOOK_ID_ARRAY[BX]
-                DIV TEN
-                MOV BX, AX
-                
-                MOV AH, 02H
-                MOV DL, BL
-                ADD DL, 30H
-                INT 21H
-                
-                MOV AH, 02H
-                MOV DL, BH
-                ADD DL, 30H
-                INT 21H
-                
-                ;Space
-                MOV AH, 02H
-                MOV DL, ' '
-                INT 21H
-                
-                ;Delimeter
-                MOV AH, 02H
-                MOV DL, '|'
-                INT 21H
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Book_Name
+            MOV AH, 09H
+            LEA DX, [SI]
+            INT 21H
 
-                ;Space
-                MOV AH, 02H
-                MOV DL, ' '
-                INT 21H
-                
-                ;Book_Name
-                MOV AH, 09H
-                LEA DX, [SI]
-                INT 21H
-
-                
-                
-                MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
+            
+            
+            MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
             
             ;Count the string length
             COUNT_BOOK_NAME_SPACES:
@@ -513,7 +517,8 @@
                 LEA DX, [DI]
                 INT 21H 
 
-                MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
+                MOV BX, 20 ;should use 29 but since not enough space for borrow by user so i use 20 instead
+                ;suspose to be 30 but 1 is for delimeter - from copilot
                 
             ;Count the string length
             COUNT_AUTHOR_SPACES:
@@ -526,7 +531,7 @@
                 MOV AH, 02H
                 ;EXP: DI(original DI) = DI(currnet DI) - (29(total length) - BX(space length))
                 ADD DI, BX 
-                SUB DI, 29
+                SUB DI, 20
 
             ADD_SPACES_AFTER_AUTHOR:
                 CMP BX, 0
@@ -570,51 +575,47 @@
 
             DONE_DISPLAY_BORROW_STATUS:
             
-                CALL NEW_LINE
+            CALL NEW_LINE
 
-                ;jmp to next value
-                MOV BX, BOOK_COUNT
-                INC BX
+            ;jmp to next value
+            POP BX ; get back the value of BX from stack
+            INC BOOK_COUNT
+            NEXT_BOOK:
+
                 XOR AX, AX
                 MOV AL, BOOK_SIZE
                 ADD SI, AX
                 ADD DI, AX
 
-                NEXT_BOOK:
+                INC BX
+
                 DEC CX
                 CMP CX, 0
-                JE END_DISPLAY_BOOKS
+            JE END_DISPLAY_BOOKS
 
-                JMP DISPLAY_BOOKS
+        JMP DISPLAY_BOOKS
 
-            END_DISPLAY_BOOKS:
+        END_DISPLAY_BOOKS:
 
-                CALL NEW_LINE
+            CALL NEW_LINE
 
-                ;Display red
-                MOV AH,09H 
-                MOV AL, ' ' 
-                MOV BH, 0
-                MOV BL, 02H 
-                MOV CX, 5 
-                INT 10H
-                
-                
-                MOV AH, 09H 
-                LEA DX, COLOR_REMARK_MSG
-                INT 21H
-                
-                CALL NEW_LINE
-
-                MOV AH, 09H 
-                LEA DX, SYSTEM_PAUSE_MSG
-                INT 21H
-
-                MOV AH,07H
-                INT 21H
-
-                CALL NEW_LINE
-                RET
+            ;Display red
+            MOV AH,09H 
+            MOV AL, ' ' 
+            MOV BH, 0
+            MOV BL, 02H 
+            MOV CX, 5 
+            INT 10H
+            
+            
+            MOV AH, 09H 
+            LEA DX, COLOR_REMARK_MSG
+            INT 21H
+            
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+            RET
     VIEW_BORROW_RECORD ENDP
 
     ;New Line
@@ -624,4 +625,20 @@
         INT 21H
         RET
     NEW_LINE ENDP
+
+    CLEAR_SCREEN PROC 
+        MOV AX, 0003H
+        INT 10H
+        RET
+    CLEAR_SCREEN ENDP
+
+    SYSTEM_PAUSE PROC
+        MOV AH, 09H 
+        LEA DX, SYSTEM_PAUSE_MSG
+        INT 21H
+
+        MOV AH,07H
+        INT 21H
+        RET
+    SYSTEM_PAUSE ENDP
 END MAIN

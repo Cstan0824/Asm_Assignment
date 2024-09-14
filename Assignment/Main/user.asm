@@ -43,7 +43,7 @@
 
     ;Book ID
     BOOK_COUNT DW 0
-    BOOK_ID_ARRAY DB 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    BOOK_ID_ARRAY DB 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 
     ;Book Name
     BOOK_NAME_ARRAY DB "To Kill a Mockingbird$", 8 DUP('$')
@@ -56,6 +56,16 @@
 	                DB "The Alchemist$", 16 DUP('$')
 	                DB "Sapiens$", 22 DUP('$')
 	                DB "The Da Vinci Code$", 12 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
 
 	;Author
 	BOOK_AUTHORS    DB "Harper Lee$", 19 DUP('$')
@@ -68,6 +78,16 @@
 	                DB "Paulo Coelho$", 17 DUP('$')
 	                DB "Yuval Noah Harari$", 12 DUP('$')
 	                DB "Dan Brown$", 20 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
 
     ;User Details
     USER_ID_ARRAY   DB "ALI_BABA$", 31 DUP('$')
@@ -82,6 +102,7 @@
                     DB "COLDPLAY$", 31 DUP('$')
 
     ;Borrow Status
+     ;Borrow Status
     BORROW_BY_ARRAY DB 40 DUP("$")
                     DB "CSTAN$", 34 DUP('$')
                     DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
@@ -89,6 +110,16 @@
                     DB 40 DUP("$")
                     DB 40 DUP("$")
                     DB "THE_BEST_DOGGAN$", 44 DUP('$')
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
                     DB 40 DUP("$")
                     DB 40 DUP("$")
                     DB 40 DUP("$")
@@ -107,12 +138,23 @@
                    DB 11 DUP("$") 
                    DB 11 DUP("$")
                    DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
 	DAY_OF_MONTH DB 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 
 	;current date
 	CURR_MONTH DB 0
 	CURR_DAY DB 0
-    CURR_YEAR DW 2024
+    CURR_YEAR DW 0
+
     ;return date
 	RET_MONTH DB 0
 	RET_DAY DB 0
@@ -259,6 +301,8 @@
         ;Point to array
         LEA SI, BOOK_NAME_ARRAY
         LEA DI, BOOK_AUTHORS
+
+        CALL NEW_LINE
         
         ;DISPLAY HEADER
         MOV AH, 09H
@@ -267,44 +311,45 @@
 
         CALL NEW_LINE
 
-        
         ;DISPLAY LINE
         MOV AH, 09H
         LEA DX, BOOK_CATALOG_LINE
         INT 21H
-        CALL NEW_LINE
 
+        CALL NEW_LINE
         
-        MOV CX, 10
+        MOV CX, 20
         XOR BX, BX
+        MOV BOOK_COUNT, 0
         DISPLAY_BOOKS:
-            MOV BOOK_COUNT, BX
-            CMP BOOK_ID_ARRAY[BX], 0
-            JNS CURRENT_BOOK
+            CMP BYTE PTR [SI], '$' ; check if the book name exists
+            JNE CURRENT_BOOK
 
             JMP NEXT_BOOK
             CURRENT_BOOK:
+                PUSH BX ; store the value of BX to stack temporarily
+                ;Check if book is available to borrow
+                MOV AX, BX 
+                MUL USER_ID_SIZE 
+                MOV BX, AX
+                CMP BORROW_BY_ARRAY[BX], '$'   ;Book available to borrow if this return true
+                JE BOOK_AVAILABLE
+                PUSH CX ;store the value of CX to stack temporarily
 
-            ;Check if book is available to borrow
-            MOV AX, BX 
-            MUL USER_ID_SIZE 
-            MOV BX, AX
-            CMP BORROW_BY_ARRAY[BX], '$'   ;Book available to borrow if this return true
-            JE BOOK_AVAILABLE
-            PUSH CX ;store the value of CX to stack temporarily
-            ;Display Read is not available - ez chatgpt
-            MOV AH, 09H          ; BIOS function to write character and attributes
-            MOV AL, ' '          ; Character to display
-            MOV BH, 0            ; Page number (usually 0)
-            MOV BL, 02H          ; Attribute byte (foreground: green, background: black)
-            MOV CX, 100          ; Number of times to print the character
-            INT 10H              ; Call BIOS interrupt
+                ;Display Read is not available - ez chatgpt
+                MOV AH, 09H          ; BIOS function to write character and attributes
+                MOV AL, ' '          ; Character to display
+                MOV BH, 0            ; Page number (usually 0)
+                MOV BL, 02H          ; Attribute byte (foreground: green, background: black)
+                MOV CX, 80           ; Number of times to print the character
+                INT 10H              ; Call BIOS interrupt
 
-            POP CX ; get back the cx value from stack
+                POP CX ; get back the cx value from stack
             BOOK_AVAILABLE:
 
-            MOV BX, BOOK_COUNT
-            
+            POP BX ; get back the value of BX[index] from stack 
+            PUSH BX ; store the value of BX to stack again for future use temporarily  
+
             ;Delimeter
             MOV AH, 02H
             MOV DL, '|'
@@ -318,7 +363,7 @@
             ;Book_ID
             MOV AX, 0
             MOV AL, BOOK_ID_ARRAY[BX]
-            DIV TEN
+            DIV TEN 
             MOV BX, AX
             
             MOV AH, 02H
@@ -403,16 +448,19 @@
             CALL NEW_LINE
 
             ;jmp to next value
-            MOV BX, BOOK_COUNT
-            INC BX
-            XOR AX, AX
-            MOV AL, BOOK_SIZE
-            ADD SI, AX
-            ADD DI, AX
-
+            POP BX ; get back the value of BX from stack
+            INC BOOK_COUNT
             NEXT_BOOK:
-            DEC CX
-            CMP CX, 0
+
+                XOR AX, AX
+                MOV AL, BOOK_SIZE
+                ADD SI, AX
+                ADD DI, AX
+
+                INC BX
+
+                DEC CX
+                CMP CX, 0
             JE END_DISPLAY_BOOKS
 
         JMP DISPLAY_BOOKS
@@ -812,13 +860,14 @@
         ;Get current date
         ;DL - day
         ;DH - month
-        MOV AH, 04H      
-        INT 1AH  
+        MOV AH, 2Ah
+        INT 21h 
         ;MOV DL, 14 ; TESTING
         ;MOV DH, 9 ; TESTING
         MOV CURR_MONTH, DH
         MOV CURR_DAY, DL
-        MOV CX, CURR_YEAR
+        MOV CURR_YEAR, CX
+
 
 
         LEA SI, DATE      
