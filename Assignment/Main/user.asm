@@ -14,9 +14,12 @@
     SYSTEM_PAUSE_MSG DB "Press any key to continue...$"
     AVALIABLE_MSG DB "Available$"
     NOT_AVALIABLE_MSG DB "Book Not Available to borrow$"
+    BOOK_RETURNED_MSG DB "Book Returned Successfully$"
+    BOOK_RETURN_FAILED DB "Book Return Failed$"
+    RETURN_BOOK_MSG DB "Do you want to return the book", 63, " (Y/N): $"
     USER_NOT_AVALIABLE_MSG DB "User not available to borrow!$"
     BORROW_RECORED_NOT_FOUND_MSG DB "Borrow Record not found!$"
-    PAYMENT_MSG DB "Do you want to proceed payment",63," (Y/N): $"
+    PAYMENT_MSG DB "Do you want to proceed payment", 63, " (Y/N): $"
     PAYMENT_COMPLETE DB "Payment Complete$"
     PAYMENT_FAILED DB "Payment Failed$"
 
@@ -80,7 +83,7 @@
 
     ;Borrow Status
     BORROW_BY_ARRAY DB 40 DUP("$")
-                    DB 40 DUP("$")
+                    DB "CSTAN$", 34 DUP('$')
                     DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
                     DB 40 DUP("$")
                     DB 40 DUP("$")
@@ -95,7 +98,7 @@
     ;DATE
     DATE DB 11 DUP('$')
     RET_DATE_ARRAY DB 11 DUP("$")
-                   DB 11 DUP("$")
+                   DB "03/02/2024$"
                    DB "03/09/2024$"
                    DB 11 DUP("$")
                    DB 11 DUP("$")
@@ -560,7 +563,6 @@
             INT 21H
             CALL NEW_LINE
             CALL SYSTEM_PAUSE 
-            CALL CLEAR_SCREEN
             RET
         USER_FOUNDED:    
 
@@ -570,6 +572,18 @@
         PUSH BX ;store BX to stack temporary
         CALL CALCULATE_PENALTY
         POP BX ;move back to BX
+
+        ;confirm with user to return the book
+        CALL NEW_LINE
+        PUSH BX ;store BX to stack temporary
+        LEA DX, RETURN_BOOK_MSG
+        CALL GET_CONFIRMATION
+        CMP BL, 'N'
+        JE FAILED_TO_RETURN_BOOK 
+        CMP BL, 'n'
+        JE FAILED_TO_RETURN_BOOK ;doesnt return book
+
+        POP BX ; get back the index from stack
 
         CMP PENALTY_CHARGE, 0 ; no penalty charge if true
         JE UPDATE_BORROW_STATUS  ; update status - _UPDATE
@@ -587,6 +601,7 @@
         CMP BL, 'n'
         JE FAILED_TO_PAY_PENALTY ;doesnt proceed payment
 
+        POP BX ; get back the index from stack
         ;continue payment 
         CALL NEW_LINE
         MOV AH, 09H
@@ -595,17 +610,20 @@
 
         ; set the borrow status if the book is return successfully
         UPDATE_BORROW_STATUS:
-            POP BX ;move back to BX
             CALL CLEAR_BORROW_STATUS
+            CALL CLEAR_SCREEN
+
+            MOV AH, 09H
+            LEA DX, BOOK_RETURNED_MSG
+            INT 21H
 
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            CALL CLEAR_SCREEN
             RET
         
         FAILED_TO_PAY_PENALTY:
             ;doesnt proceed payment 
-            POP BX ;clear stack - _REMOVE
+            POP BX ;clear stack
             CALL NEW_LINE
 
             MOV AH, 09H
@@ -614,8 +632,19 @@
 
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            CALL CLEAR_SCREEN
-        RET
+            RET
+        
+        FAILED_TO_RETURN_BOOK:
+            POP BX ;clear stack 
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, BOOK_RETURN_FAILED
+            INT 21H
+
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            RET
     RETURN_BOOK ENDP
 
     DISPLAY_BOOK_DETAILS PROC
@@ -677,7 +706,7 @@
 
         ;Current Date
         PUSH BX ;move BX to stack temporary
-        CALL GET_DATE ; 
+        CALL GET_DATE ;
         POP BX ;move back to BX 
 
         MOV AH, 09H
@@ -785,7 +814,7 @@
         ;DH - month
         MOV AH, 04H      
         INT 1AH  
-        ;MOV DL, 13 ; TESTING
+        ;MOV DL, 14 ; TESTING
         ;MOV DH, 9 ; TESTING
         MOV CURR_MONTH, DH
         MOV CURR_DAY, DL
@@ -863,6 +892,8 @@
     GET_DATE ENDP
 
     CALCULATE_PENALTY PROC
+        MOV PENALTY_CHARGE, 0
+        MOV DIFF_DAY, 0
         LEA SI, RET_DATE_ARRAY
 
         ;move to selected book's return date
@@ -906,23 +937,31 @@
         MOV BL, CURR_DAY
 
         MOV CL, CURR_MONTH
-        DEC CX
+        DEC CX 
+        CMP CX, 0
+        JE END_COUNT_CURR_DAY_OF_MONTHS   
         COUNT_CURR_DAY_OF_MONTHS:
-            MOV AL, [SI]
+            MOV AL, [SI]  
             ADD BX, AX
-        LOOP COUNT_CURR_DAY_OF_MONTHS
+            INC SI
+        LOOP COUNT_CURR_DAY_OF_MONTHS   
+        END_COUNT_CURR_DAY_OF_MONTHS:
 
         LEA SI, DAY_OF_MONTH
-        SUB BL, RET_DAY
+        MOV AL, RET_DAY
+        SUB BX, AX
         MOV CL, RET_MONTH
         DEC CX
-
-        COUNT_RET_DAY_OF_MONTHS: 
+        CMP CX, 0
+        JE END_COUNT_RET_DAY_OF_MONTHS
+        COUNT_RET_DAY_OF_MONTHS:
             MOV AL, [SI]
             SUB BX, AX
             CMP BX, 0
-            JS END_CALCULATE_PENALTY ; check if the sign flag is 1:Negative value
-        LOOP COUNT_RET_DAY_OF_MONTHS
+            JS END_COUNT    
+            INC SI
+        LOOP COUNT_RET_DAY_OF_MONTHS  
+        END_COUNT_RET_DAY_OF_MONTHS:
 
         ;INC BX ;include the current day - maybe no need _REMOVE
 
@@ -955,11 +994,15 @@
             INT 21H	
         LOOP DISPLAY_DIFF_DAY
 
-        CMP DIFF_DAY, 0
+        END_COUNT:
+
+        CMP DIFF_DAY, 0 ; if does not exceed the return date will not stores the difference day to DIFF_DAY
         JBE CHECK_OUT_PENALTY ;calculate penalty if current date exceeds return date
 
         MOV AX, DIFF_DAY
-        MUL PENALTY_RATE
+        XOR BX, BX
+        MOV BL, PENALTY_RATE
+        MUL BX
 
         CMP AX, 100
         JBE NOT_MAXIMUM_CHARGE_PENALTY
@@ -967,12 +1010,10 @@
         JMP CHECK_OUT_PENALTY
 
         NOT_MAXIMUM_CHARGE_PENALTY:
-        MOV PENALTY_CHARGE, AX
+            MOV PENALTY_CHARGE, AX
 
         CHECK_OUT_PENALTY:
-
                 CALL NEW_LINE
-
 
         ;DISPLAY PENALTY CHARGE AMOUNT
         XOR BX, BX
@@ -987,11 +1028,11 @@
             PUSH AX ; save the value to stack
 
             CMP BL, 0
-        JE END_READ_PENALTY
+            JE END_READ_PENALTY
 
-        XOR BH, BH ; remove remainder part
-        MOV AX, BX 
-        JMP READ_PENALTY 
+            XOR BH, BH ; remove remainder part
+            MOV AX, BX 
+            JMP READ_PENALTY 
 
         END_READ_PENALTY:
 

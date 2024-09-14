@@ -1,11 +1,11 @@
-	.model small
+                   	.model small
 	.stack 100h
 	.data
 	YEAR db "2024$"
 	DATE_DELIMETER DB '/'
 	
 	date_msg db "Current Date: $"
-	RET_DATE_ARRAY DB "01/09/2024$", "02/09/2024$", "03/09/2024$", "04 / 09 / 2024$", "05 / 09 / 2024$", "06 / 09 / 2024$", "07 / 09 / 2024$", "08 / 09 / 2024$", "09 / 09 / 2024$", "10 / 09 / 2024$"
+	RET_DATE_ARRAY DB "01/09/2024$", "02/01/2024$", "03/09/2024$", "04/09/2024$", "05/09/2024$", "06/09/2024$", "07/09/2024$", "08/09/2024$", "09/09/2024$", "10/09/2024$"
 	SELECTED_BOOK_ID DB 2
 	DATE_SIZE DB 11
 	DAY_OF_MONTH DB 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
@@ -72,8 +72,10 @@ main:
 	ADD RET_MONTH, AL
 
 	;Get current date
-	MOV AH, 04H
-	INT 1AH
+	;MOV AH, 04H
+	;INT 1AH
+	MOV DH, 1
+	MOV DL, 14
 	MOV CURR_MONTH, DH
 	MOV CURR_DAY, DL
 
@@ -85,20 +87,33 @@ main:
     MOV BL, CURR_DAY
 
     MOV CL, CURR_MONTH
-    DEC CX
+    DEC CX 
+    CMP CX, 0
+    JE END_COUNT_CURR_DAY_OF_MONTHS   
     COUNT_CURR_DAY_OF_MONTHS:
-        ADD BL, [SI]
-    LOOP COUNT_CURR_DAY_OF_MONTHS
+        MOV AL, [SI]  
+        ADD BX, AX
+        INC SI
+    LOOP COUNT_CURR_DAY_OF_MONTHS   
+    END_COUNT_CURR_DAY_OF_MONTHS:
 
-    LEA SI, DAY_OF_MONTH
-    SUB BL, RET_DAY
+    LEA SI, DAY_OF_MONTH 
+    MOV AL, RET_DAY
+    SUB BX, AX
     MOV CL, RET_MONTH
-    DEC CX
+    DEC CX 
+    CMP CX, 0
+    JE END_COUNT_RET_DAY_OF_MONTHS
     COUNT_RET_DAY_OF_MONTHS:
-        SUB BL, [SI]
-    LOOP COUNT_RET_DAY_OF_MONTHS
+        MOV AL, [SI]
+        SUB BX, AX
+        CMP BX, 0
+        JS END_COUNT:    
+        INC SI
+    LOOP COUNT_RET_DAY_OF_MONTHS  
+    END_COUNT_RET_DAY_OF_MONTHS:
 
-	INC BX ;include the current day
+	;INC BX ;include the current day
 
 	MOV CX, 0
     MOV DIFF_DAY, BX
@@ -130,13 +145,16 @@ main:
 		ADD DL, 30H 
 		INT 21H	
 	LOOP DISPLAY_DIFF_DAY
+	
+	END_COUNT:
 
     CMP DIFF_DAY, 0
     JBE CHECK_OUT_PENALTY ;calculate penalty if current date exceeds return date
 
-	MOV AX, DIFF_DAY
-	MUL PENALTY_RATE
-
+	MOV AX, DIFF_DAY   
+	XOR BX, BX
+	MOV BL, PENALTY_RATE
+	MUL BX
 	CMP AX, 100
 	JBE NOT_MAXIMUM_CHARGE_PENALTY
 	MOV PENALTY_CHARGE, 100
