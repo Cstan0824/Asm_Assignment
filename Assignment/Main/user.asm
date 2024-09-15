@@ -1,4 +1,4 @@
-.MODEL SMALL
+                            .MODEL SMALL
 .STACK 100
 
 .DATA
@@ -12,6 +12,8 @@
     INVALID_INPUT DB "Invalid Input! Please try again. $"
     COLOR_REMARK_MSG DB "Green: Book is not available to borrow$"
     SYSTEM_PAUSE_MSG DB "Press any key to continue...$"
+
+    ;Borrow, Return Book
     AVALIABLE_MSG DB "Available$"
     NOT_AVALIABLE_MSG DB "Book Not Available to borrow$"
     BOOK_RETURNED_MSG DB "Book Returned Successfully$"
@@ -19,18 +21,32 @@
     RETURN_BOOK_MSG DB "Do you want to return the book", 63, " (Y/N): $"
     USER_NOT_AVALIABLE_MSG DB "User not available to borrow!$"
     BORROW_RECORED_NOT_FOUND_MSG DB "Borrow Record not found!$"
+    BOOK_ID_NOT_EXISTS_MSG DB "Book ID not Exists$"
+
+    ;Penalty Payment
     PAYMENT_MSG DB "Do you want to proceed payment", 63, " (Y/N): $"
     PAYMENT_COMPLETE DB "Payment Complete$"
     PAYMENT_FAILED DB "Payment Failed$"
+    PENALTY_CHARGE_MSG DB "Penalty Charge = $" 
+    PENALTY_CHARGE_FORMAT DB "               = $"
+    PENALTY_BASIC_RATE_INFO DB " (Penalty Basic Rate) $"
+    ;exp:  PENALTY CHARGE: RM 5.00 (Penalty Basic Rate) x 10 (Exceed Days) x 110% = RM 55.00 (Penalty Charge, MAX: RM 100.00)
+    PENALTY_RATE_INFO DB " (Penalty Rate) $"
+    DIFF_DAY_INFO DB " (Exceed Days) $"
+    RM DB "RM $"
+    ROUNDED_DECIMAL DB ".00$"
+    PENALTY_CHARGE_INFO DB " (Penalty Charge, MAX: RM 100.00) $"
+
 
     BOOK_NAME DB "Book: $"
     AUTHOR DB "Author: $"
-    RET_DATE DB "Return Date: $"
+    RET_DATE DB  "Return Date : $"
     CURR_DATE DB "Current Date: $"
     YEAR DB "2024$"
     DATE_DELIMETER DB '/'
 
     TEN DB 10
+	HUNDRED DB 100
     BOOK_SIZE DB 30
     USER_ID_SIZE DB 40
     DATE_SIZE DB 11
@@ -129,7 +145,7 @@
     ;DATE
     DATE DB 11 DUP('$')
     RET_DATE_ARRAY DB 11 DUP("$")
-                   DB "03/02/2024$"
+                   DB "29/08/2024$"
                    DB "03/09/2024$"
                    DB 11 DUP("$")
                    DB 11 DUP("$")
@@ -164,7 +180,10 @@
 
 
     PENALTY_RATE DB 5
-    PENALTY_CHARGE Dw 0
+    HAS_PENALTY_CHARGE DB 0 ; 0 - no penalty charge, 1 - has penalty charge
+	PENALTY_EXTRA_RATE DB 10 ; extra 10% charge if the diff days exceed 14 days
+    MAX_PENALTY_CHARGE DB 100
+	PENALTY DB 7 DUP("$") ; stores the penalty charge - 100.00 (maximum)
 .CODE
     MAIN PROC
         MOV AX, @DATA
@@ -216,7 +235,6 @@
     DISPLAY_USER_MENU ENDP
 
 
-
     ;CSTAN/GAN PART
     BORROW_BOOK PROC
         ;Ensure user didnt borrow any book
@@ -242,8 +260,29 @@
         CALL GET_CHOICE 
         MOV BX, AX 
         DEC BX
-        
+
         PUSH BX ; store index to stack temp
+        ;Check if the book exists (not empty/not deleted)
+        MOV AX, BX
+        MUL BOOK_SIZE
+        MOV BX , AX 
+        CMP BOOK_NAME_ARRAY[BX], '$'
+        JNE CHECK_AVAILABILITY ;Book not available to borrow if true
+        POP BX ; get back value from stack
+        
+        MOV AH, 09H 
+        LEA DX, BOOK_ID_NOT_EXISTS_MSG
+        INT 21H
+
+        CALL NEW_LINE
+        CALL SYSTEM_PAUSE
+        CALL CLEAR_SCREEN
+        JMP START_BORROW_BOOK
+        
+        CHECK_AVAILABILITY:
+        POP BX ; get index from stack 
+        PUSH BX ; store index to stack temp
+        ;Check if the book is available to borrow
         MOV AX, BX 
         MUL USER_ID_SIZE 
         MOV BX, AX
@@ -251,7 +290,7 @@
         JE BOOK_AVAILABLE_TO_BORROW ;Book Available to borrow if true
         ;Book not available to borrow
         POP BX ; clear stack
-         
+
         MOV AH, 09H 
         LEA DX, NOT_AVALIABLE_MSG
         INT 21H
@@ -259,7 +298,6 @@
         CALL SYSTEM_PAUSE
         CALL CLEAR_SCREEN
         JMP START_BORROW_BOOK
-
 
         BOOK_AVAILABLE_TO_BORROW:
             CALL CLEAR_SCREEN
@@ -356,9 +394,7 @@
             INT 21H
             
             ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
+            CALL SPACE
             
             ;Book_ID
             MOV AX, 0
@@ -377,9 +413,7 @@
             INT 21H
             
             ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
+            CALL SPACE
             
             ;Delimeter
             MOV AH, 02H
@@ -387,9 +421,7 @@
             INT 21H
 
             ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
+            CALL SPACE
             
             ;Book_Name
             MOV AH, 09H
@@ -426,9 +458,7 @@
             
             
             ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
+            CALL SPACE
             
             ;Delimeter
             MOV AH, 02H
@@ -436,9 +466,7 @@
             INT 21H
 
             ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
+            CALL SPACE
             
             ;Author
             MOV AH, 09H
@@ -618,7 +646,7 @@
 
         ;calculate penalty charge if exceeds return date
         PUSH BX ;store BX to stack temporary
-        CALL CALCULATE_PENALTY
+        CALL CALCULATE_PENALTY  
         POP BX ;move back to BX
 
         ;confirm with user to return the book
@@ -632,8 +660,7 @@
         JE FAILED_TO_RETURN_BOOK ;doesnt return book
 
         POP BX ; get back the index from stack
-
-        CMP PENALTY_CHARGE, 0 ; no penalty charge if true
+        CMP HAS_PENALTY_CHARGE, 0 ; no penalty charge if true
         JE UPDATE_BORROW_STATUS  ; update status - _UPDATE
 
         ;proceed payment if exceeds return date
@@ -941,7 +968,7 @@
     GET_DATE ENDP
 
     CALCULATE_PENALTY PROC
-        MOV PENALTY_CHARGE, 0
+        MOV HAS_PENALTY_CHARGE, 0
         MOV DIFF_DAY, 0
         LEA SI, RET_DATE_ARRAY
 
@@ -981,13 +1008,14 @@
         XOR BX, BX
         XOR CX, CX  
         XOR AX, AX
-        ;count the diff days
+
+        ;Count Difference Day
         LEA SI, DAY_OF_MONTH
         MOV BL, CURR_DAY
 
         MOV CL, CURR_MONTH
         DEC CX 
-        CMP CX, 0
+        CMP CX, 0 ;add day only if January
         JE END_COUNT_CURR_DAY_OF_MONTHS   
         COUNT_CURR_DAY_OF_MONTHS:
             MOV AL, [SI]  
@@ -1001,22 +1029,202 @@
         SUB BX, AX
         MOV CL, RET_MONTH
         DEC CX
-        CMP CX, 0
+        CMP CX, 0 ;add day only if January
         JE END_COUNT_RET_DAY_OF_MONTHS
         COUNT_RET_DAY_OF_MONTHS:
             MOV AL, [SI]
             SUB BX, AX
             CMP BX, 0
-            JS END_COUNT    
+            JS NOT_EXCEED_RET_DATE    
             INC SI
-        LOOP COUNT_RET_DAY_OF_MONTHS  
+        LOOP COUNT_RET_DAY_OF_MONTHS
+        JMP END_COUNT_RET_DAY_OF_MONTHS
+        NOT_EXCEED_RET_DATE:
+            JMP NO_PENALTY_CHARGE  
         END_COUNT_RET_DAY_OF_MONTHS:
 
-        ;INC BX ;include the current day - maybe no need _REMOVE
-
+        ;store the difference day to DIFF_DAY
         XOR CX, CX
         MOV DIFF_DAY, BX
-        MOV AX, BX
+        
+        CMP DIFF_DAY, 0 ; if does not exceed the return date will not stores the difference day to DIFF_DAY
+        JE NOT_EXCEED_RET_DATE ;calculate penalty if current date exceeds return date
+        ; PENALTY_EXTRA_RATE (10) / PENALTY_RATE (5) = 2 ( diff_day * 2 = PENALTY_EXTRA_RATE (10))
+        XOR AX, AX
+        MOV AL, PENALTY_EXTRA_RATE
+        DIV PENALTY_RATE
+        XOR AH, AH 
+        
+        MOV BX, AX   
+        ; MAX_PENALTY_CHARGE (100) / PENALTY_RATE (5) = 20 ( diff_day * 20 = 100)
+        MOV AL, MAX_PENALTY_CHARGE 
+        DIV PENALTY_RATE
+        XOR AH, AH 
+        SUB AL, BL 
+        ; 20 - 2 (diff_day * 20 - diff_day * 2 = THRESHOLD_DAY)
+        ; 18 - if more than 18 days then its considered as max penalty charge
+        ; 18 * 5 * 110% = 99
+        ; 19 * 5 * 110% = 104.5 -> 100
+        ; 20 * 5 * 110% = 110 -> 100
+        CMP DIFF_DAY, AX 
+        JLE IS_NOT_MAX_PENALTY_CHARGE
+
+        XOR AH, AH
+        MOV AL, MAX_PENALTY_CHARGE; PENALTY(AX) = 100
+
+        JMP NO_EXTRA_PENALTY_CHARGE ; since the penalty is already max penalty charge
+        
+        IS_NOT_MAX_PENALTY_CHARGE:
+        
+            MOV AX, DIFF_DAY   
+            XOR BX, BX
+            MOV BL, PENALTY_RATE
+            MUL BX 
+
+            CMP DIFF_DAY, 14
+            JL NO_EXTRA_PENALTY_CHARGE
+            ; PENALTY(AX) = PENALTY(AX) * 110% (BX)
+            MOV BL , PENALTY_EXTRA_RATE
+            ADD BL, HUNDRED
+            MUL BX
+            
+            ; Divide the 16-bit value in AX by 100.
+            ; The quotient is stored in AX (2 bytes), and the remainder is stored in DL.
+            ; Since the maximum 4-digit value (9999) divided by 100 fits within 2 bytes (99 max quotient), 
+            ; both AX and DL can store the result safely using only 2 bytes each.
+            MOV BL, HUNDRED
+            DIV BX ; AX = AX / 100 
+            CMP DL, 0
+            JE SKIP_REMAINDER_STORE   
+                MOV AH, DL
+            SKIP_REMAINDER_STORE:
+            
+
+        NO_EXTRA_PENALTY_CHARGE:
+        PUSH AX ; store the value to stack temp - since need to use AX for read and store penalty
+        
+        LEA SI, PENALTY
+        XOR AH,AH ; get only integral part 
+        XOR CX, CX
+        READ_PENALTY:  
+            INC CX
+        
+            DIV TEN
+            MOV BX, AX
+            MOV AL, 0
+            PUSH AX
+            
+            CMP BL, 0
+            JE END_READ_PENALTY
+            
+            MOv BH, 0
+            MOV AX, BX
+            
+        
+        JMP READ_PENALTY  
+
+        END_READ_PENALTY:
+
+        STORE_PENALTY: 
+            POP BX
+            ADD BH, 30H
+            MOV [SI], BH
+            
+            INC SI
+        LOOP STORE_PENALTY
+
+
+        MOV BYTE PTR [SI], '.'
+        INC SI 
+        
+        POP AX
+        CMP AH, 0
+        JNE HAS_DECIMAL
+            
+        MOV BYTE PTR [SI], '0'
+        INC SI
+        MOV BYTE PTR [SI], '0'
+        INC SI
+
+        JMP DISPLAY_PENALTY
+        HAS_DECIMAL:
+
+        MOV CX, 2 ; only take 2 decimal places
+        CALCULATE_DECIMAL:
+            MOV AL, AH ; get the remainder and continue calculate the decimal part
+            XOR AH, AH
+            MUL TEN 
+
+            MOV BL, HUNDRED
+            DIV BL ; AX = AX / 100
+            ADD AL, 30H
+            MOV [SI], AL
+            INC SI
+        LOOP CALCULATE_DECIMAL 
+
+        DISPLAY_PENALTY:
+            CALL NEW_LINE
+            CALL DISPLAY_PENALTY_DET   
+            MOV HAS_PENALTY_CHARGE, 1
+        NO_PENALTY_CHARGE:	
+        RET
+    CALCULATE_PENALTY ENDP 
+
+    DISPLAY_PENALTY_DET PROC 
+        ;PENALTY CHARGE: RM 5.00 (Penalty Basic Rate) x 10 (Exceed Days) x 110% = RM 55.00 (Penalty Charge, MAX: RM 100.00)
+        MOV AH, 09H 
+        LEA DX, PENALTY_CHARGE_MSG
+        INT 21H 
+
+        ;Penalty Rate details
+        MOV AH, 09H 
+        LEA DX, RM
+        INT 21H 
+
+        XOR AH, AH
+        MOV AL, PENALTY_RATE
+        XOR CX, CX
+        READ_PENALTY_RATE:
+            INC CX  
+            DIV TEN
+            MOV BX, AX
+            XOR AL, AL 
+            PUSH AX
+
+            CMP BL, 0
+            JE END_READ_PENALTY_RATE
+
+            XOR BH, BH
+            MOV AX, BX
+        JMP READ_PENALTY_RATE 
+
+        END_READ_PENALTY_RATE:
+
+        DISPLAY_PENALTY_RATE:
+            POP BX
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+        LOOP DISPLAY_PENALTY_RATE
+
+        MOV AH, 09H 
+        LEA DX, ROUNDED_DECIMAL 
+        INT 21H 
+
+        MOV AH, 09H 
+        LEA DX, PENALTY_BASIC_RATE_INFO 
+        INT 21H 
+
+        MOV AH, 02H 
+        MOV DL, 'X'
+        INT 21H 
+
+        CALL SPACE
+
+        ;Display Exceed Days
+        MOV AX, DIFF_DAY 
+        XOR CX, CX
 
         READ_DIFF_DAY:
             INC CX
@@ -1043,60 +1251,74 @@
             INT 21H	
         LOOP DISPLAY_DIFF_DAY
 
-        END_COUNT:
+        MOV AH, 09H 
+        LEA DX, DIFF_DAY_INFO 
+        INT 21H 
 
-        CMP DIFF_DAY, 0 ; if does not exceed the return date will not stores the difference day to DIFF_DAY
-        JBE CHECK_OUT_PENALTY ;calculate penalty if current date exceeds return date
+        CMP DIFF_DAY, 14
+        JL SKIP_DISPLAY_EXTRA_RATE ; skip display extra rate if less than 14 days
 
-        MOV AX, DIFF_DAY
-        XOR BX, BX
-        MOV BL, PENALTY_RATE
-        MUL BX
+        MOV AH, 02H 
+        MOV DL, 'X'
+        INT 21H 
 
-        CMP AX, 100
-        JBE NOT_MAXIMUM_CHARGE_PENALTY
-        MOV PENALTY_CHARGE, 100
-        JMP CHECK_OUT_PENALTY
+        CALL SPACE
 
-        NOT_MAXIMUM_CHARGE_PENALTY:
-            MOV PENALTY_CHARGE, AX
-
-        CHECK_OUT_PENALTY:
-                CALL NEW_LINE
-
-        ;DISPLAY PENALTY CHARGE AMOUNT
-        XOR BX, BX
+        ;Display Extra Rate 
+        XOR AX, AX
+        ADD AL, PENALTY_EXTRA_RATE
+        ADD AL, HUNDRED
         XOR CX, CX
-        MOV AX, PENALTY_CHARGE
-        READ_PENALTY:
-            INC CX
-            DIV TEN 
-            MOV BX, AX 
+        READ_PENALTY_EXTRA_RATE:
+            INC CX 
+            DIV TEN
+            MOV BX, AX
 
             XOR AL, AL
-            PUSH AX ; save the value to stack
+            PUSH AX
 
             CMP BL, 0
-            JE END_READ_PENALTY
+            JE END_READ_PENALTY_EXTRA_RATE
 
-            XOR BH, BH ; remove remainder part
-            MOV AX, BX 
-            JMP READ_PENALTY 
+            XOR BH, BH
+            MOV AX, BX
+        JMP READ_PENALTY_EXTRA_RATE
 
-        END_READ_PENALTY:
+        END_READ_PENALTY_EXTRA_RATE:
 
-        DISPLAY_PENALTY:
-            POP BX ; get the value from stack
-
-            MOV AH, 02H 
-            MOV DL, BH 
-            ADD DL, 30H 
+        DISPLAY_PENALTY_EXTRA_RATE:
+            POP BX
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
             INT 21H
-        LOOP DISPLAY_PENALTY
+        LOOP DISPLAY_PENALTY_EXTRA_RATE
 
-        END_CALCULATE_PENALTY:	
+        MOV AH, 02H
+        MOV DL, '%'
+        INT 21H 
+
+        SKIP_DISPLAY_EXTRA_RATE:
+
+        CALL NEW_LINE 
+        ;Display Calculated Penalty & Details
+        MOV AH, 09H 
+        LEA DX, PENALTY_CHARGE_FORMAT
+        INT 21H 
+
+        MOV AH, 09H 
+        LEA DX, RM 
+        INT 21H 
+        
+        MOV AH, 09H
+        LEA DX, PENALTY
+        INT 21H
+        
+        MOV AH, 09H 
+        LEA DX, PENALTY_CHARGE_INFO
+        INT 21H 
         RET
-    CALCULATE_PENALTY ENDP 
+    DISPLAY_PENALTY_DET ENDP
     
     ;set all the 40 bytes to '$'
     CLEAR_BORROW_STATUS PROC
@@ -1176,4 +1398,11 @@
         INT 21H
         RET
     SYSTEM_PAUSE ENDP
+
+    SPACE PROC 
+        MOV AH, 02H
+        MOV DL, ' '
+        INT 21H
+        RET 
+    SPACE ENDP
 END MAIN
