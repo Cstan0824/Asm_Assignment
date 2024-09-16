@@ -165,7 +165,7 @@
     NEW_BOOKAUTHORS DB 30 DUP('$')                  ;STORE BOOKAUTHORS VARIABLE
 
     ;EDIT_BOOK INPUT_STRING
-    EDIT_BOOKNAME_INPUT LABEL BYTE                   ;STRING INPUT
+    EDIT_BOOKID_INPUT LABEL BYTE                   ;STRING INPUT
     AXN DB 5
     ACTN DB 0
     OUTPUT DB 5 DUP("$")
@@ -398,184 +398,170 @@
     ;GAN PART
     EDIT_BOOK PROC
 
-    START_EDIT_BOOK:
-            CALL DISPLAY_BOOK_CATALOG           
-
-            CALL NEW_LINE
-
-            ;DISPLAY INPUT
-            MOV AH, 09H
-            LEA DX, PROMPT_INPUT_BOOKID
-            INT 21H
-
-            ;GET INPUT
-            LEA DX ,  EDIT_BOOKNAME_INPUT  
-            MOV AH, 0AH
-            INT 21H
-
-            ;GET THE LENGTH OF THE INPUT
-            MOV AL , EDIT_BOOKNAME_INPUT[1]
-            
-            ;IF 1
-            CMP AL , 1
-            JE SINGLE_BOOK_ID 
-
-            ;IF 2
-            CMP AL , 2
-            JE DOUBLE_BOOK_ID
-
-            ;ELSE
-            CALL FINISH
-
-        SINGLE_BOOK_ID:
-            MOV BL , OUTPUT[0]          ;GET THE FIRST DIGIT 
-            SUB BL , "0"                ;CONVERT ASCII TO INTEGER
-            JMP PROCESS_EDIT_BOOK       ;JUMP TO PROCESS_EDIT_BOOK
-
-        DOUBLE_BOOK_ID:
-            MOV AL, OUTPUT[0]        ; Get the first digit
-            SUB AL, '0'              ; Convert ASCII to integer
-            MOV BL, AL               ; Store first digit in BL
-
-            MOV AL,  OUTPUT[1]       ; Get the second digit
-            SUB AL, '0'              ; Convert ASCII to integer
-            MOV BH, AL               ; Store second digit in BH
-
-            ;COBINATION OF TWO DIGIT    
-            MOV AL, BL               ; Move the first digit to AL
-            MOV CX, 10               ; Move 10 to CX
-            MUL CX                   ; Multiply AL by CX, MULTIPLY BECAUSE WE WANT TO GET THE ACTUAL VALUE
-            ADD AL, BH               ; Add BH to AL
-            MOV BL, AL               ; Store the result in BL
-
-            JMP PROCESS_EDIT_BOOK
-
-        PROCESS_EDIT_BOOK:
-            MOV SI ,0           
-            MOV CX , 20         ;LOOP 20 BOOKS ID 
-
-        SEARCH_BOOK_ID:
-            CMP BOOK_ID_ARRAY[SI], BL       ;COMPARE THE BOOK ID WITH THE INPUT
-            JE BOOK_FOUND                   ;IF FOUND JUMP TO BOOK_FOUND
-            INC SI                          ;INCREMENT SI
-        LOOP SEARCH_BOOK_ID
-
+        CALL DISPLAY_BOOK_CATALOG
         CALL NEW_LINE
 
-
         MOV AH, 09H
-        LEA DX, BOOKNOTFOUND
+        LEA DX, PROMPT_INPUT_BOOKID
         INT 21H
 
-        RET
+        MOV AH, 0AH
+        LEA DX, EDIT_BOOKID_INPUT
+        INT 21H
+
+        MOV AL , EDIT_BOOKID_INPUT[1]
+
+        CMP AL , 1 
+        JE SINGLE_BOOK_ID
+
+        CMP AL , 2
+        JE DOUBLE_BOOK_ID
+
+        CALL FINISH
+
+        SINGLE_BOOK_ID:
+            MOV BL , EDIT_BOOKID_INPUT[2]         ;GET THE FIRST DIGIT 
+            SUB BL , "0"                          ;CONVERT ASCII TO INTEGER
+            JMP PROCESS_EDIT_BOOK                 ;JUMP TO PROCESS_EDIT_BOOK
+
+        DOUBLE_BOOK_ID:
+            MOV AL , EDIT_BOOKID_INPUT[2]        ; Get the first digit
+            SUB AL, '0'                          ; Convert ASCII to integer
+            MOV BL, AL                           ; Store first digit in BL
+
+            MOV AL,  EDIT_BOOKID_INPUT[3]       ; Get the second digit
+            SUB AL, '0'                         ; Convert ASCII to integer
+            MOV BH, AL                          ; Store second digit in BH
+
+            ;COBINATION OF TWO DIGIT    
+            MOV AL, BL                          ; Move the first digit to AL
+            MOV CX, 10                          ; Move 10 to CX
+            MUL CX                              ; Multiply AL by CX, MULTIPLY BECAUSE WE WANT TO GET THE ACTUAL VALUE
+            ADD AL, BH                          ; Add BH to AL
+            MOV BL, AL                          ; Store the result in BL
+
+            JMP PROCESS_EDIT_BOOK   
+
+        PROCESS_EDIT_BOOK:
+            MOV SI , 0 
+            MOV CX , 20
+
+        SEARCH_BOOK:
+            CMP BOOK_ID_ARRAY[SI] , BL
+            JE BOOK_FOUND
+            INC SI
+        LOOP SEARCH_BOOK
+
+            CALL NEW_LINE 
+
+            MOV AH, 09H
+            LEA DX, BOOKNOTFOUND
+            INT 21H
+
+            RET
 
         BOOK_FOUND:
             CALL NEW_LINE
 
-            MOV AH , 09H 
-            LEA DX , EDIT_FIELD_PROMPT
+            MOV AH, 09H
+            LEA DX, EDIT_FIELD_PROMPT
             INT 21H
 
-            MOV AH , 01H 
-            INT 21H 
-            MOV EDIT_FIELD_CHOICE , AL
+            MOV AH, 01H
+            INT 21H
+            MOV EDIT_FIELD_CHOICE, AL
 
-            CMP EDIT_FIELD_CHOICE , 'N'
-            JE BOOK_NAME_EDIT
+            CMP EDIT_FIELD_CHOICE, 'N'
+            JE EDIT_BOOK_NAME
 
-            CMP EDIT_FIELD_CHOICE , 'A'
-            JE BOOK_AUTHOR_EDIT
+            CMP EDIT_FIELD_CHOICE, 'A'
+            JE EDIT_BOOK_AUTHOR
 
-            CALL NEW_LINE
+            CALL NEW_LINE 
 
-            MOV AH , 09H
-            LEA DX , EDIT_UNAVAILABLE_CHOICE
+            MOV AH, 09H
+            LEA DX, EDIT_UNAVAILABLE_CHOICE
             INT 21H
 
-           CALL FINISH
-
-        BOOK_NAME_EDIT:
+            CALL FINISH
+        
+        EDIT_BOOK_NAME:
             CALL NEW_LINE
 
-            ;DISPLAY INPUT
             MOV AH, 09H
             LEA DX, PROMPT_EDIT_BOOKNAME
             INT 21H
 
-            ;GET INPUT
-            LEA DX, EDITED_NEW_BOOKNAME
             MOV AH, 0AH
+            LEA DX, EDITED_NEW_BOOKNAME
             INT 21H
 
-            ; VALIDATION FOR THE INPUT
+            MOV AX , SI 
+            MUL BOOK_SIZE       ;POTENTIAL PROBLEM
 
-            MOV AX, SI          ;TIMES 30 TO GET THE ACTUAL POSITION
-            MOV CX, 30          
-            MUL CX
+            LEA DI , BOOK_NAME_ARRAY
+            ADD DI , AX
 
-            LEA DI, BOOK_NAME_ARRAY
-            ADD DI, AX         ;ADD AX TO DI TO GET THE ACTUAL POSITION
+            ;CLEAR THE BOOK NAME 
+            MOV CX , 30
+            CLEAR_BOOKNAME:
+                MOV BYTE PTR [DI] , '$'
+                INC DI
+            LOOP CLEAR_BOOKNAME
 
-            ;CLEAR THE CURRENT BOOK NAME AREA IN THE ARRAY (RESET TO ALL '$')
-            MOV CX, 30
-            MOV AL, '$'
-            REP STOSB
+            ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
+            SUB DI , 30
 
-          
-            SUB DI, 30          ;SUBTRACT 30 IN ORDER TO REWRITE IT FROM THE START
-            LEA SI, EDITED_NEW_BOOKNAME[2]    
+            ;PERFORM EDIT BOOK NAME
+            LEA SI , EDITED_NEW_BOOKNAME[2]
 
-            ; Copy the new book name from EDITED_NEW_BOOKNAME to BOOK_NAME_ARRAY
-            XOR CX, CX
-            MOV CL, ACTN_BOOKNAME
-            REPLACE_BOOK_NAME:
-                MOV AL, [SI]     
-                MOV [DI], AL      
-                INC SI            
-                INC DI            
-            LOOP REPLACE_BOOK_NAME
-
-            ; Properly terminate the new book name in the BOOK_NAME_ARRAY
-            MOV BYTE PTR [DI], '$'
+            XOR CX , CX
+            MOV CL , EDITED_NEW_BOOKNAME[1]
+            REPLACE_BOOKNAME:
+                MOV AL , [SI]
+                MOV [DI] , AL
+                INC SI
+                INC DI
+            LOOP REPLACE_BOOKNAME
 
             CALL NEW_LINE
+
             CALL DISPLAY_BOOK_CATALOG
 
-            CALL FINISH
+            CALL  FINISH
 
-
-        BOOK_AUTHOR_EDIT:
+        EDIT_BOOK_AUTHOR:
             CALL NEW_LINE
 
             MOV AH, 09H
             LEA DX, PROMPT_EDIT_AUTHOR
             INT 21H
 
-            LEA DX, EDITED_NEW_AUTHOR
             MOV AH, 0AH
+            LEA DX, EDITED_NEW_AUTHOR
             INT 21H
 
-            ; VALIDATION FOR THE INPUT
-
-            MOV AX ,SI 
-            MOV CX , 30 
-            MUL CX
+            MOV AX , SI
+            MUL BOOK_SIZE
 
             LEA DI , BOOK_AUTHORS
             ADD DI , AX
-            
 
-            ; Clear the current book author area in the array (reset to all '$')
+            ;CLEAR THE BOOK AUTHOR
             MOV CX , 30
-            MOV AL , '$'
-            REP STOSB
+            CLEAR_BOOKAUTHOR:
+                MOV BYTE PTR [DI] , '$'
+                INC DI
+            LOOP CLEAR_BOOKAUTHOR
 
+            ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
             SUB DI , 30
+
+            ;PERFORM EDIT BOOK AUTHOR
             LEA SI , EDITED_NEW_AUTHOR[2]
 
-            ; Copy the new book author from EDITED_NEW_AUTHOR to BOOK_AUTHORS
-            XOR CX, CX
-            MOV CL , ACTN_AUTHOR
+            XOR CX , CX
+            MOV CL , EDITED_NEW_AUTHOR[1]
             REPLACE_BOOK_AUTHOR:
                 MOV AL , [SI]
                 MOV [DI] , AL
@@ -583,27 +569,23 @@
                 INC DI
             LOOP REPLACE_BOOK_AUTHOR
 
-            ; Properly terminate the new book author in the BOOK_AUTHORS
-            MOV BYTE PTR [DI], '$'
-
-            
-
             CALL NEW_LINE
+
             CALL DISPLAY_BOOK_CATALOG
 
             CALL FINISH
 
-            
-
-
-            
-
     EDIT_BOOK ENDP
 
-    FINISH  PROC
-        MOV AH, 4CH
-        INT 21H 
+    ;TESTING
+    FINISH PROC
+        MOV AH  , 4CH
+        INT 21H
     FINISH ENDP
+
+    
+
+   
 
 
 
