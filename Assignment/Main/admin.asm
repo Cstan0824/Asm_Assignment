@@ -18,6 +18,7 @@
     DATE_DELIMETER DB '/'
 
     TEN DB 10
+    HUNDRED DB 100
     BOOK_SIZE DB 30
     USER_ID_SIZE DB 40
     DATE_SIZE DB 11
@@ -27,7 +28,14 @@
                 DB "2. Edit Book ", 0DH, 0AH
                 DB "3. Delete Book ", 0DH, 0AH
                 DB "4. View Book[Borrow Record] ", 0DH, 0AH
-                DB "5. Logout ", 0DH, 0AH
+                DB "5. Penalty Management ", 0DH, 0AH
+                DB "6. Logout ", 0DH, 0AH
+                DB "$"
+
+    PENALTY_MENU DB "1. Change Penalty Charge ", 0DH, 0AH
+                DB "2. Change Penalty Extra Charge Rate ", 0DH, 0AH
+                DB "3. Change Penalty Maximum Charge ", 0DH, 0AH
+                DB "4. Back ", 0DH, 0AH
                 DB "$"
 
     ;TABLE HDR
@@ -133,6 +141,8 @@
 	RET_MONTH DB 0
 	RET_DAY DB 0
 
+    
+
     ;ADD_BOOK VARIABLES
     ADD_UNAVAILABLE DB "No more slot available to add new books. $"
     PROMPT_INPUT_BOOKNAME DB "Enter new book name: $"
@@ -182,6 +192,11 @@
 
     ;DELETE_BOOK VARIABLES
     AVAILABLE_BOOKID_ARRAY DB 20 DUP(0)      ; Array to store indices of valid books
+    ;PENALTY MANAGEMENT VARIABLES
+    GET_INTEGER_STRING LABEL BYTE 
+    MAXN_DIGIT DB 5 
+    ACTN_DIGIT DB 0
+    INTEGER_STRING DB 5 DUP("$")
 
     PROMPT_INPUT_DELETE_BOOKID DB "Enter the book ID to delete: $"
     DELETE_BOOKID_INPUTBUFFER LABEL BYTE             
@@ -198,8 +213,23 @@
     PROMPT_BOOK_NOT_AVAILABLE DB "Book is currently borrowed, cannot delete!$"
     PROMPT_BOOK_NOT_FOUND DB "Book not found! Please try again. $"
     PROMPT_DELETE_BOOK_CONFIRMATION DB "Are you sure you want to delete this book? (Y/N) $"
+    INTEGER DW 0
 
-    
+    ;PENALTY MANAGEMENT VARIABLES
+    PENALTY_CHARGE_MSG DB "Enter the new penalty charge (RM 1 - RM 5): $"
+    PENALTY_EXTRA_CHARGE_RATE_MSG DB "Enter the new penalty extra charge rate (extra 1% - 10%): $"
+    PENALTY_MAXIMUM_CHARGE_MSG DB "Enter the new penalty maximum charge (RM 80 - RM 100): $"
+
+    CURR_PENALTY_CHARGE_MSG DB "Current penalty charge (RM/DAY): RM $"
+    CURR_PENALTY_EXTRA_CHARGE_RATE_MSG DB "Penalty extra rate after 14 days (%): extra $"
+    CURR_PENALTY_MAXIMUM_CHARGE_MSG DB "Current penalty maximum charge: RM $"
+
+
+    PENALTY_CHARGE DB 5
+    HAS_PENALTY_CHARGE DB 0 ; 0 - no penalty charge, 1 - has penalty charge
+	PENALTY_EXTRA_RATE DB 10 ; extra 10% charge if the diff days exceed 14 days
+    MAX_PENALTY_CHARGE DB 100
+	PENALTY DB 7 DUP("$") ; stores the penalty charge - 100.00 (maximum)
 
 
 .CODE
@@ -213,7 +243,7 @@
         START_ADMIN_MENU:
         CALL DISPLAY_ADMIN_MENU
 
-        MOV BX, '5'   ;Maximum value for user input
+        MOV BX, '6'   ;Maximum value for user input
         CALL GET_CHOICE
         MOV BX, AX 
         CALL NEW_LINE
@@ -228,6 +258,8 @@
         CMP BX , 4
         JE VIEW_BOOK_FROM_CATALOG
         CMP BX , 5
+        JE CHANGE_PENALTY_DETAILS
+        CMP BX , 6
         JE BACK_TO_MAIN_MENU
 
 
@@ -256,6 +288,12 @@
             CALL CLEAR_SCREEN
             JMP START_ADMIN_MENU
 
+        CHANGE_PENALTY_DETAILS:
+            CALL CLEAR_SCREEN
+            CALL PENALTY_MANAGEMENT
+            CALL CLEAR_SCREEN
+            JMP START_ADMIN_MENU
+
         BACK_TO_MAIN_MENU:
             JMP START_MENU
 
@@ -271,6 +309,13 @@
         INT 21H
         RET
     DISPLAY_ADMIN_MENU ENDP
+
+    DISPLAY_PENALTY_MENU PROC
+        MOV AH, 09H
+        LEA DX, PENALTY_MENU
+        INT 21H
+        RET
+    DISPLAY_PENALTY_MENU ENDP
 
     GET_CHOICE PROC 
         INPUT_CHOICE:
@@ -302,6 +347,322 @@
             SUB AL, 30H
         RET 
     GET_CHOICE ENDP
+
+    
+    GET_INTEGER PROC
+        START_GET_INTEGER: 
+        LEA SI, INTEGER_STRING
+        ;CLEAR INTEGER BUFFER
+        MOV ACTN_DIGIT, 0
+        MOV INTEGER, 0
+        XOR CX, CX 
+        MOV CL, MAXN_DIGIT
+        CLEAR_INTEGER_BUFFER:
+            MOV AL, '$'
+            MOV [SI], AL
+            INC SI
+        LOOP CLEAR_INTEGER_BUFFER 
+
+        XOR AX, AX
+        MOV AL, MAXN_DIGIT
+        SUB SI, AX
+
+        ;GET INTEGER
+        MOV AH, 0AH
+        LEA DX, GET_INTEGER_STRING
+        INT 21H
+
+        ;VALIDATE
+        XOR AX, AX
+        MOV CL, ACTN_DIGIT
+        CHECK_INTEGER:
+            MOV AL, [SI]
+            CMP AL, '0'
+            JB INVALID_INTEGER
+            CMP AL, '9'
+            JA INVALID_INTEGER
+            INC SI 
+        LOOP CHECK_INTEGER
+
+        XOR AX, AX
+        MOV AL, ACTN_DIGIT
+
+        SUB SI, AX
+
+        XOR BX, BX  
+        XOR CX, CX
+        MOV CL, ACTN_DIGIT 
+        READ_INTEGER:
+            XOR AX, AX 
+            MOV AL, [SI]
+            SUB AL, 30H
+            DIV TEN
+            MOV BX, AX
+
+            XOR AL, AL ; clear integral part and push remainder only to stack
+            PUSH AX 
+            INC SI
+        LOOP READ_INTEGER
+        
+        END_READ_INTEGER:
+
+
+        ;CONVERT TO INTEGER
+        MOV BX, 1
+        MOV CL, ACTN_DIGIT
+        CONVERT_TO_INTEGER: 
+            POP AX  
+            MOV AL, AH
+            XOR AH, AH
+            
+
+            MUL BX
+            ADD INTEGER, AX
+
+            MOV AX, BX 
+            MUL TEN 
+            MOV BX, AX 
+        LOOP CONVERT_TO_INTEGER
+        RET
+
+        INVALID_INTEGER: 
+            CALL NEW_LINE 
+            MOV AH, 09H 
+            LEA DX, INVALID_INPUT
+            INT 21H 
+            CALL NEW_LINE 
+            JMP START_GET_INTEGER
+
+    GET_INTEGER ENDP 
+
+    PENALTY_MANAGEMENT PROC 
+        CALL NEW_LINE 
+        MOV AH, 09H 
+        LEA DX, PENALTY_CAUTION_MSG
+        INT 21H
+        CALL NEW_LINE
+        CALL DISPLAY_CURR_PENALTY_DET
+        CALL NEW_LINE
+        CALL DISPLAY_PENALTY_MENU
+
+        MOV BX, '4'
+        CALL GET_CHOICE
+        MOV BX, AX ; 1 to 5
+
+        CMP BX, 1
+        JE CHANGE_PENALTY_CHARGE
+        CMP BX, 2
+        JE CHANGE_PENALTY_EXTRA_CHARGE_RATE
+        CMP BX, 3
+        JE REDIRECT_TO_CHANGE_PENALTY_MAXIMUM_CHARGE
+        ;CMP BX, 4
+        RET ; return back to main menu
+
+        REDIRECT_TO_CHANGE_PENALTY_MAXIMUM_CHARGE:
+            JMP CHANGE_PENALTY_MAXIMUM_CHARGE ; resolve jmp out of range
+
+        CHANGE_PENALTY_CHARGE:
+            START_CHANGE_PENALTY_CHARGE:
+
+                ;only between 1 to 5
+                CALL CLEAR_SCREEN 
+
+                MOV AH, 09H 
+                LEA DX, PENALTY_CHARGE_MSG
+                INT 21H
+                CALL GET_INTEGER
+                
+                CMP INTEGER, 0 
+                JBE INVALID_PENALTY_CHARGE_RANGE
+                CMP INTEGER, 5
+                JA INVALID_PENALTY_CHARGE_RANGE 
+                JMP END_CHANGE_PENALTY_CHARGE 
+                
+                INVALID_PENALTY_CHARGE_RANGE:
+                MOV AH, 09H 
+                LEA DX, INVALID_INPUT
+                INT 21H
+                CALL NEW_LINE
+                CALL SYSTEM_PAUSE 
+
+            JMP START_CHANGE_PENALTY_CHARGE
+
+            END_CHANGE_PENALTY_CHARGE:
+                MOV BX, INTEGER 
+                MOV PENALTY_CHARGE, BL
+                JMP END_PENALTY_MANAGEMENT
+        
+        CHANGE_PENALTY_EXTRA_CHARGE_RATE:
+            START_CHANGE_PENALTY_EXTRA_RATE:
+                ; only between 1 to 10
+                CALL CLEAR_SCREEN 
+                MOV AH, 09H 
+                LEA DX, PENALTY_EXTRA_CHARGE_RATE_MSG
+                INT 21H
+
+                CALL GET_INTEGER  
+                CMP INTEGER, 0
+                JBE INVALID_PENALTY_EXTRA_RATE
+                CMP INTEGER, 10
+                JA INVALID_PENALTY_EXTRA_RATE 
+                
+                JMP END_CHANGE_PENALTY_EXTRA_RATE
+                
+                INVALID_PENALTY_EXTRA_RATE:
+                MOV AH, 09H 
+                LEA DX, INVALID_INPUT
+                INT 21H
+                CALL NEW_LINE
+                CALL SYSTEM_PAUSE 
+            JMP START_CHANGE_PENALTY_EXTRA_RATE
+
+            END_CHANGE_PENALTY_EXTRA_RATE:
+                MOV BX, INTEGER 
+                MOV PENALTY_EXTRA_RATE, BL
+                JMP END_PENALTY_MANAGEMENT
+
+        CHANGE_PENALTY_MAXIMUM_CHARGE:
+            START_CHANGE_PENALTY_MAXIMUM_CHARGE:
+                ;only between 80 - 100
+                CALL CLEAR_SCREEN 
+
+                MOV AH, 09H 
+                LEA DX, PENALTY_MAXIMUM_CHARGE_MSG
+                INT 21H
+                
+                CALL GET_INTEGER 
+                CMP INTEGER, 80
+                JB INVALID_PENALTY_MAXIMUM_CHARGE
+                CMP INTEGER, 100
+                JA   INVALID_PENALTY_MAXIMUM_CHARGE
+                JMP END_CHANGE_PENALTY_MAXIMUM_CHARGE
+
+                INVALID_PENALTY_MAXIMUM_CHARGE:
+                    MOV AH, 09H 
+                    LEA DX, INVALID_INPUT
+                    INT 21H
+                    CALL NEW_LINE
+                    CALL SYSTEM_PAUSE
+            JMP START_CHANGE_PENALTY_MAXIMUM_CHARGE
+
+            END_CHANGE_PENALTY_MAXIMUM_CHARGE:
+                MOV BX, INTEGER
+                MOV MAX_PENALTY_CHARGE, BL
+                JMP END_PENALTY_MANAGEMENT
+        END_PENALTY_MANAGEMENT:
+        RET 
+    PENALTY_MANAGEMENT ENDP
+
+    DISPLAY_CURR_PENALTY_DET PROC 
+
+        ;Display Penalty Charge
+        MOV AH, 09H 
+        LEA DX, CURR_PENALTY_CHARGE_MSG
+        INT 21H
+
+        XOR AH, AH
+        MOV AL, PENALTY_CHARGE
+        XOR CX, CX
+        READ_CURR_PENALTY_CHARGE:
+            INC CX  
+            DIV TEN
+            MOV BX, AX
+            XOR AL, AL 
+            PUSH AX
+
+            CMP BL, 0
+            JE END_READ_CURR_PENALTY_CHARGE
+
+            XOR BH, BH
+            MOV AX, BX
+        JMP READ_CURR_PENALTY_CHARGE 
+
+        END_READ_CURR_PENALTY_CHARGE:
+
+        DISPLAY_CURR_PENALTY_CHARGE:
+            POP BX
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+        LOOP DISPLAY_CURR_PENALTY_CHARGE
+
+        CALL NEW_LINE
+        ;Display Penalty Extra Charge Rate
+        MOV AH, 09H
+        LEA DX, CURR_PENALTY_EXTRA_CHARGE_RATE_MSG
+        INT 21H
+
+        ;Display Extra Rate 
+        XOR AX, AX
+        ADD AL, PENALTY_EXTRA_RATE
+        XOR CX, CX
+        READ_CURR_PENALTY_EXTRA_RATE:
+            INC CX 
+            DIV TEN
+            MOV BX, AX
+
+            XOR AL, AL
+            PUSH AX
+
+            CMP BL, 0
+            JE END_READ_CURR_PENALTY_EXTRA_RATE
+
+            XOR BH, BH
+            MOV AX, BX
+        JMP READ_CURR_PENALTY_EXTRA_RATE
+
+        END_READ_CURR_PENALTY_EXTRA_RATE:
+
+        DISPLAY_CURR_PENALTY_EXTRA_RATE:
+            POP BX
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+        LOOP DISPLAY_CURR_PENALTY_EXTRA_RATE
+
+        MOV AH, 02H
+        MOV DL, '%'
+        INT 21H 
+
+        CALL NEW_LINE
+        ;Display Penalty Maximum Charge
+        MOV AH, 09h
+        LEA DX, CURR_PENALTY_MAXIMUM_CHARGE_MSG
+        INT 21H
+        
+
+        XOR CX, CX
+        XOR AX, AX
+        MOV AL, MAX_PENALTY_CHARGE
+        READ_CURR_MAX_PENALTY_CHARGE:
+            INC CX 
+            DIV TEN
+            MOV BX, AX
+
+            XOR AL, AL
+            PUSH AX
+
+            CMP BL, 0
+            JE END_READ_CURR_MAX_PENALTY_CHARGE
+
+            XOR BH, BH
+            MOV AX, BX
+        JMP READ_CURR_MAX_PENALTY_CHARGE
+
+        END_READ_CURR_MAX_PENALTY_CHARGE:
+
+        DISPLAY_CURR_MAX_PENALTY_CHARGE:
+            POP BX
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+        LOOP DISPLAY_CURR_MAX_PENALTY_CHARGE
+
+        RET
+    DISPLAY_CURR_PENALTY_DET ENDP
 
    ;JEREMY PART
     ADD_BOOK PROC
@@ -915,14 +1276,6 @@
         INT 21H
     FINISH ENDP
 
-    
-
-   
-
-
-
-    
-
     ;CSTAN PART - View Borrow Details , buat pagination kalau ada masa 
     VIEW_BORROW_RECORD PROC 
         ;Point to array
@@ -950,7 +1303,7 @@
         MOV BOOK_COUNT, 0
         DISPLAY_BORROW_RECORD:
             CMP BYTE PTR [SI], '$' ; check if the book name exists
-            JNE CURRENT_BORROW_RECORD
+            JNE CURRENT_BORROW_RECORD 
 
             JMP NEXT_BORROW_RECORD
             CURRENT_BORROW_RECORD:
@@ -1195,7 +1548,6 @@
         INT 21H
         RET
     SYSTEM_PAUSE ENDP
-
 
     DISPLAY_BOOK_CATALOG PROC
         ;Point to array

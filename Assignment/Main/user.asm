@@ -1,4 +1,4 @@
-DISPLAY_BOOK_CATALOG                            .MODEL SMALL
+.MODEL SMALL
 .STACK 100
 
 .DATA
@@ -179,11 +179,21 @@ DISPLAY_BOOK_CATALOG                            .MODEL SMALL
 	DIFF_DAY DW 0
 
 
-    PENALTY_RATE DB 5
+    PENALTY_CHARGE DB 5
     HAS_PENALTY_CHARGE DB 0 ; 0 - no penalty charge, 1 - has penalty charge
 	PENALTY_EXTRA_RATE DB 10 ; extra 10% charge if the diff days exceed 14 days
     MAX_PENALTY_CHARGE DB 100
 	PENALTY DB 7 DUP("$") ; stores the penalty charge - 100.00 (maximum)
+
+    ;PENALTY MANAGEMENT VARIABLES
+    PENALTY_EXTRA_CHARGE_RATE_MSG DB "Enter the new penalty extra charge rate (extra 1% - 10%): $"
+    PENALTY_MAXIMUM_CHARGE_MSG DB "Enter the new penalty maximum charge (RM 80 - RM 100): $"
+
+    CURR_PENALTY_CHARGE_MSG DB "Current penalty charge (RM/DAY): RM $"
+    CURR_PENALTY_EXTRA_CHARGE_RATE_MSG DB "Penalty extra rate after 14 days (%): extra $"
+    CURR_PENALTY_MAXIMUM_CHARGE_MSG DB "Current penalty maximum charge: RM $"
+    PENALTY_CAUTION_MSG DB "==================== CAUTION ===================== $"
+
 .CODE
     MAIN PROC
         MOV AX, @DATA
@@ -307,6 +317,16 @@ DISPLAY_BOOK_CATALOG                            .MODEL SMALL
             CALL GENERATE_RET_DATE
             POP BX ; get index from stack
             CALL DISPLAY_BOOK_DETAILS
+
+            CALL NEW_LINE
+
+            MOV AH, 09H 
+            LEA DX, PENALTY_CAUTION_MSG
+            INT 21h
+
+            CALL NEW_LINE 
+            CALL DISPLAY_CURR_PENALTY_DET
+            CALL NEW_LINE 
 
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
@@ -1049,16 +1069,16 @@ DISPLAY_BOOK_CATALOG                            .MODEL SMALL
         
         CMP DIFF_DAY, 0 ; if does not exceed the return date will not stores the difference day to DIFF_DAY
         JE NOT_EXCEED_RET_DATE ;calculate penalty if current date exceeds return date
-        ; PENALTY_EXTRA_RATE (10) / PENALTY_RATE (5) = 2 ( diff_day * 2 = PENALTY_EXTRA_RATE (10))
+        ; PENALTY_EXTRA_RATE (10) / PENALTY_CHARGE (5) = 2 ( diff_day * 2 = PENALTY_EXTRA_RATE (10))
         XOR AX, AX
         MOV AL, PENALTY_EXTRA_RATE
-        DIV PENALTY_RATE
+        DIV PENALTY_CHARGE
         XOR AH, AH 
         
         MOV BX, AX   
-        ; MAX_PENALTY_CHARGE (100) / PENALTY_RATE (5) = 20 ( diff_day * 20 = 100)
+        ; MAX_PENALTY_CHARGE (100) / PENALTY_CHARGE (5) = 20 ( diff_day * 20 = 100)
         MOV AL, MAX_PENALTY_CHARGE 
-        DIV PENALTY_RATE
+        DIV PENALTY_CHARGE
         XOR AH, AH 
         SUB AL, BL 
         ; 20 - 2 (diff_day * 20 - diff_day * 2 = THRESHOLD_DAY)
@@ -1078,7 +1098,7 @@ DISPLAY_BOOK_CATALOG                            .MODEL SMALL
         
             MOV AX, DIFF_DAY   
             XOR BX, BX
-            MOV BL, PENALTY_RATE
+            MOV BL, PENALTY_CHARGE
             MUL BX 
 
             CMP DIFF_DAY, 14
@@ -1182,9 +1202,9 @@ DISPLAY_BOOK_CATALOG                            .MODEL SMALL
         INT 21H 
 
         XOR AH, AH
-        MOV AL, PENALTY_RATE
+        MOV AL, PENALTY_CHARGE
         XOR CX, CX
-        READ_PENALTY_RATE:
+        READ_PENALTY_CHARGE:
             INC CX  
             DIV TEN
             MOV BX, AX
@@ -1192,21 +1212,21 @@ DISPLAY_BOOK_CATALOG                            .MODEL SMALL
             PUSH AX
 
             CMP BL, 0
-            JE END_READ_PENALTY_RATE
+            JE END_READ_PENALTY_CHARGE
 
             XOR BH, BH
             MOV AX, BX
-        JMP READ_PENALTY_RATE 
+        JMP READ_PENALTY_CHARGE 
 
-        END_READ_PENALTY_RATE:
+        END_READ_PENALTY_CHARGE:
 
-        DISPLAY_PENALTY_RATE:
+        DISPLAY_PENALTY_CHARGE:
             POP BX
             MOV AH, 02H
             MOV DL, BH
             ADD DL, 30H
             INT 21H
-        LOOP DISPLAY_PENALTY_RATE
+        LOOP DISPLAY_PENALTY_CHARGE
 
         MOV AH, 09H 
         LEA DX, ROUNDED_DECIMAL 
@@ -1405,4 +1425,115 @@ DISPLAY_BOOK_CATALOG                            .MODEL SMALL
         INT 21H
         RET 
     SPACE ENDP
+
+    DISPLAY_CURR_PENALTY_DET PROC 
+
+        ;Display Penalty Charge
+        MOV AH, 09H 
+        LEA DX, CURR_PENALTY_CHARGE_MSG
+        INT 21H
+
+        XOR AH, AH
+        MOV AL, PENALTY_CHARGE
+        XOR CX, CX
+        READ_CURR_PENALTY_CHARGE:
+            INC CX  
+            DIV TEN
+            MOV BX, AX
+            XOR AL, AL 
+            PUSH AX
+
+            CMP BL, 0
+            JE END_READ_CURR_PENALTY_CHARGE
+
+            XOR BH, BH
+            MOV AX, BX
+        JMP READ_CURR_PENALTY_CHARGE 
+
+        END_READ_CURR_PENALTY_CHARGE:
+
+        DISPLAY_CURR_PENALTY_CHARGE:
+            POP BX
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+        LOOP DISPLAY_CURR_PENALTY_CHARGE
+
+        CALL NEW_LINE
+        ;Display Penalty Extra Charge Rate
+        MOV AH, 09H
+        LEA DX, CURR_PENALTY_EXTRA_CHARGE_RATE_MSG
+        INT 21H
+
+        ;Display Extra Rate 
+        XOR AX, AX
+        ADD AL, PENALTY_EXTRA_RATE
+        XOR CX, CX
+        READ_CURR_PENALTY_EXTRA_RATE:
+            INC CX 
+            DIV TEN
+            MOV BX, AX
+
+            XOR AL, AL
+            PUSH AX
+
+            CMP BL, 0
+            JE END_READ_CURR_PENALTY_EXTRA_RATE
+
+            XOR BH, BH
+            MOV AX, BX
+        JMP READ_CURR_PENALTY_EXTRA_RATE
+
+        END_READ_CURR_PENALTY_EXTRA_RATE:
+
+        DISPLAY_CURR_PENALTY_EXTRA_RATE:
+            POP BX
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+        LOOP DISPLAY_CURR_PENALTY_EXTRA_RATE
+
+        MOV AH, 02H
+        MOV DL, '%'
+        INT 21H 
+
+        CALL NEW_LINE
+        ;Display Penalty Maximum Charge
+        MOV AH, 09h
+        LEA DX, CURR_PENALTY_MAXIMUM_CHARGE_MSG
+        INT 21H
+        
+
+        XOR CX, CX
+        XOR AX, AX
+        MOV AL, MAX_PENALTY_CHARGE
+        READ_CURR_MAX_PENALTY_CHARGE:
+            INC CX 
+            DIV TEN
+            MOV BX, AX
+
+            XOR AL, AL
+            PUSH AX
+
+            CMP BL, 0
+            JE END_READ_CURR_MAX_PENALTY_CHARGE
+
+            XOR BH, BH
+            MOV AX, BX
+        JMP READ_CURR_MAX_PENALTY_CHARGE
+
+        END_READ_CURR_MAX_PENALTY_CHARGE:
+
+        DISPLAY_CURR_MAX_PENALTY_CHARGE:
+            POP BX
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+        LOOP DISPLAY_CURR_MAX_PENALTY_CHARGE
+
+        RET
+    DISPLAY_CURR_PENALTY_DET ENDP
 END MAIN
