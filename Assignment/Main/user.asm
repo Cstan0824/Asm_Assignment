@@ -1,4 +1,4 @@
-                            .MODEL SMALL
+DISPLAY_BOOK_CATALOG                            .MODEL SMALL
 .STACK 100
 
 .DATA

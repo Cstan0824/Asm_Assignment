@@ -74,16 +74,16 @@
 	    DB "Paulo Coelho$", 17 DUP('$')
 	    DB "Yuval Noah Harari$", 12 DUP('$')
 	    DB "Dan Brown$", 20 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
+        DB 30 DUP('$')
 
 
     ;User Details
@@ -160,9 +160,9 @@
     NEW_BOOKNAME DB 30 DUP('$')                     ;STORE BOOKNAME VARIABLE
 
     NEW_BOOKAUTHORS_INPUT LABEL BYTE                ;STRING INPUT
-    MAX_BOOKAUTHORS_SIZE DB 40                      ;MAXIMUM BOOKAUTHORS SIZE
+    MAX_BOOKAUTHORS_SIZE DB 30                      ;MAXIMUM BOOKAUTHORS SIZE
     INPUT_BOOKAUTHORS_SIZE DB ?                     ;BOOKAUTHORS ACTUAL INPUT SIZE
-    NEW_BOOKAUTHORS DB 40 DUP('$')                  ;STORE BOOKAUTHORS VARIABLE
+    NEW_BOOKAUTHORS DB 30 DUP('$')                  ;STORE BOOKAUTHORS VARIABLE
 
     ;EDIT_BOOK INPUT_STRING
     EDIT_BOOKNAME_INPUT LABEL BYTE                   ;STRING INPUT
@@ -178,7 +178,7 @@
     EDITED_NEW_AUTHOR LABEL BYTE
     MAXN_AUTHOR DB 30
     ACTN_AUTHOR DB 0 
-    EDITEDAUTHOR DB 50 DUP("$")
+    EDITEDAUTHOR DB 30 DUP("$")
 
 
 
@@ -526,6 +526,7 @@
             LEA SI, EDITED_NEW_BOOKNAME[2]    
 
             ; Copy the new book name from EDITED_NEW_BOOKNAME to BOOK_NAME_ARRAY
+            XOR CX, CX
             MOV CL, ACTN_BOOKNAME
             REPLACE_BOOK_NAME:
                 MOV AL, [SI]     
@@ -573,6 +574,7 @@
             LEA SI , EDITED_NEW_AUTHOR[2]
 
             ; Copy the new book author from EDITED_NEW_AUTHOR to BOOK_AUTHORS
+            XOR CX, CX
             MOV CL , ACTN_AUTHOR
             REPLACE_BOOK_AUTHOR:
                 MOV AL , [SI]
