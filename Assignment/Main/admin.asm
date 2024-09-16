@@ -135,7 +135,6 @@
 
     ;ADD_BOOK VARIABLES
     ADD_UNAVAILABLE DB "No more slot available to add new books. $"
-
     PROMPT_INPUT_BOOKNAME DB "Enter new book name: $"
     PROMPT_INPUT_BOOKAUTHOR DB "Enter book author for the new book: $"
     PROMPT_NEW_BOOKNAME DB "New Book Name: $"
@@ -143,6 +142,18 @@
     PROMPT_ADDED_BOOK DB "New book has been added to the catalog. $"
 
 
+    ;EDIT_BOOK VARIABLES
+    PROMPT_INPUT_BOOKID DB "ENTER THE BOOK  ID YOU WANT TO EDIT: $"
+    PROMPT_EDIT_BOOKNAME DB "ENTER THE NEW BOOK NAME : $"
+    PROMPT_EDIT_AUTHOR DB "ENTER THE NEW AUTHOR NAME : $"
+    PROMPT_BOOK_EDITED DB "Book edited successfully!$"  
+    EDIT_FIELD_PROMPT DB "Do you want to edit the Name (N) or Author (A): $"
+    EDIT_FIELD_CHOICE DB 0
+    EDIT_UNAVAILABLE_CHOICE DB "Invalid choice! Please enter N or A.$"
+    BOOKNOTFOUND DB "BOOK NOT FOUND $"
+
+
+    ;NEW_BOOK INPUT_STRING 
     NEW_BOOKNAME_INPUT LABEL BYTE                   ;STRING INPUT
     MAX_BOOKNAME_SIZE DB 30                         ;MAXIMUM BOOKNAME SIZE
     INPUT_BOOKNAME_SIZE DB ?                        ;BOOKNAME ACTUAL INPUT SIZE
@@ -152,6 +163,26 @@
     MAX_BOOKAUTHORS_SIZE DB 40                      ;MAXIMUM BOOKAUTHORS SIZE
     INPUT_BOOKAUTHORS_SIZE DB ?                     ;BOOKAUTHORS ACTUAL INPUT SIZE
     NEW_BOOKAUTHORS DB 40 DUP('$')                  ;STORE BOOKAUTHORS VARIABLE
+
+    ;EDIT_BOOK INPUT_STRING
+    EDIT_BOOKNAME_INPUT LABEL BYTE                   ;STRING INPUT
+    AXN DB 5
+    ACTN DB 0
+    OUTPUT DB 5 DUP("$")
+
+    EDITED_NEW_BOOKNAME LABEL BYTE
+    MAXN_BOOKNAME DB 30
+    ACTN_BOOKNAME DB 0
+    EDITEDBOOKNAME DB 50 DUP("$")
+
+    EDITED_NEW_AUTHOR LABEL BYTE
+    MAXN_AUTHOR DB 30
+    ACTN_AUTHOR DB 0
+    EDITEDAUTHOR DB 50 DUP("$")
+
+
+
+    
 
 
 .CODE
@@ -365,9 +396,192 @@
     REMOVE_BOOK ENDP
 
     ;GAN PART
-    EDIT_BOOK PROC
+      EDIT_BOOK PROC
+
+    START_EDIT_BOOK:
+            CALL DISPLAY_BOOK_CATALOG
+
+            CALL NEW_LINE
+
+            ;DISPLAY INPUT
+            MOV AH, 09H
+            LEA DX, PROMPT_INPUT_BOOKID
+            INT 21H
+
+            LEA DX ,  EDIT_BOOKNAME_INPUT  
+            MOV AH, 0AH
+            INT 21H
+
+            MOV AL , EDIT_BOOKNAME_INPUT[1]
+            
+            CMP AL , 1
+            JE SINGLE_BOOK_ID 
+
+            CMP AL , 2
+            JE DOUBLE_BOOK_ID
+
+
+            RET 
+
+        SINGLE_BOOK_ID:
+            MOV BL , OUTPUT[0]
+            SUB BL , "0"                
+            JMP PROCESS_EDIT_BOOK
+
+        DOUBLE_BOOK_ID:
+            MOV AL, OUTPUT[0]        
+            SUB AL, '0'              ; Convert ASCII to integer
+            MOV BL, AL               
+
+            MOV AL,  OUTPUT[1]   
+            SUB AL, '0'              ; Convert ASCII to integer
+            MOV BH, AL               ; Store second digit in BH
+
+            MOV AL, BL               
+            MOV CX, 10               
+            MUL CX                   
+            ADD AL, BH             
+            MOV BL, AL              
+
+            JMP PROCESS_EDIT_BOOK
+
+        PROCESS_EDIT_BOOK:
+            MOV SI ,0 
+            MOV CX , 20
+
+        SEARCH_BOOK_ID:
+            CMP BOOK_ID_ARRAY[SI], BL
+            JE BOOK_FOUND
+
+            INC SI
+        LOOP SEARCH_BOOK_ID
+
+        CALL NEW_LINE
+
+        MOV AH, 09H
+        LEA DX, BOOKNOTFOUND
+        INT 21H
+
         RET
+
+        BOOK_FOUND:
+            CALL NEW_LINE
+
+            MOV AH , 09H 
+            LEA DX , EDIT_FIELD_PROMPT
+            INT 21H
+
+            MOV AH , 01H 
+            INT 21H 
+            MOV EDIT_FIELD_CHOICE , AL
+
+            CMP EDIT_FIELD_CHOICE , 'N'
+            JE BOOK_NAME_EDIT
+
+            CMP EDIT_FIELD_CHOICE , 'A'
+            JE BOOK_AUTHOR_EDIT
+
+            CALL NEW_LINE
+
+            MOV AH , 09H
+            LEA DX , EDIT_UNAVAILABLE_CHOICE
+            INT 21H
+
+            RET 
+
+        BOOK_NAME_EDIT:
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, PROMPT_EDIT_BOOKNAME
+            INT 21H
+
+            LEA DX, EDITED_NEW_BOOKNAME
+            MOV AH, 0AH
+            INT 21H
+
+            ; VALIDATION FOR THE INPUT
+
+            MOV AX, SI
+            MOV CX, 30          
+            MUL CX
+
+            LEA DI, BOOK_NAME_ARRAY
+            ADD DI, AX         
+
+            ; Clear the current book name area in the array (reset to all '$')
+            MOV CX, 30
+            MOV AL, '$'
+            REP STOSB
+
+          
+            SUB DI, 30
+            LEA SI, EDITED_NEW_BOOKNAME[2]    
+
+            ; Copy the new book name from EDITED_NEW_BOOKNAME to BOOK_NAME_ARRAY
+            MOV CL, ACTN_BOOKNAME
+            REPLACE_BOOK_NAME:
+                MOV AL, [SI]     
+                MOV [DI], AL      
+                INC SI            
+                INC DI            
+            LOOP REPLACE_BOOK_NAME
+
+            ; Properly terminate the new book name in the BOOK_NAME_ARRAY
+            MOV BYTE PTR [DI], '$'
+
+            CALL NEW_LINE
+            CALL DISPLAY_BOOK_CATALOG
+
+            RET
+            
+
+
+        BOOK_AUTHOR_EDIT:
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, PROMPT_EDIT_AUTHOR
+            INT 21H
+
+            LEA DX, EDITED_NEW_AUTHOR
+            MOV AH, 0AH
+            INT 21H
+
+            ; VALIDATION FOR THE INPUT
+
+            MOV AX, SI           
+            MOV CX, 30           
+            MUL CX                
+
+            LEA DI, BOOK_AUTHORS  
+            ADD DI, AX            
+
+            ; Clear the current author name (set it to all '$')
+            MOV CX, 30
+            MOV AL, '$'
+            REP STOSB
+
+            SUB DI, 30            
+            LEA SI, EDITED_NEW_AUTHOR[2]  
+
+            MOV CL, ACTN_AUTHOR    
+            REPLACE_AUTHOR_NAME:
+            MOV AL, [SI]           
+            MOV [DI], AL          
+            INC SI                
+            INC DI                
+            LOOP REPLACE_AUTHOR_NAME
+
+            MOV BYTE PTR [DI], '$'
+
+            CALL NEW_LINE
+            CALL DISPLAY_BOOK_CATALOG
+
+            RET 
+
     EDIT_BOOK ENDP
+       
 
     ;CSTAN PART - View Borrow Details , buat pagination kalau ada masa 
     VIEW_BORROW_RECORD PROC 
@@ -394,12 +608,12 @@
         MOV CX, 20
         XOR BX, BX
         MOV BOOK_COUNT, 0
-        DISPLAY_BOOKS:
+        DISPLAY_BORROW_RECORD:
             CMP BYTE PTR [SI], '$' ; check if the book name exists
-            JNE CURRENT_BOOK
+            JNE CURRENT_BORROW_RECORD
 
-            JMP NEXT_BOOK
-            CURRENT_BOOK:
+            JMP NEXT_BORROW_RECORD
+            CURRENT_BORROW_RECORD:
                 PUSH BX
                 ;Check if book is available to borrow
                 MOV AX, BX 
@@ -473,28 +687,28 @@
             MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
             
             ;Count the string length
-            COUNT_BOOK_NAME_SPACES:
+            COUNT_BOOK_NAME_SPACES_1:
                 CMP BYTE PTR [SI], '$' ; apa ini
-                JE DONE_BOOK_NAME_SPACES
+                JE DONE_BOOK_NAME_SPACES_1
                 DEC BX
                 INC SI
-                JMP COUNT_BOOK_NAME_SPACES
-            DONE_BOOK_NAME_SPACES:
+                JMP COUNT_BOOK_NAME_SPACES_1
+            DONE_BOOK_NAME_SPACES_1:
                 MOV AH, 02H
                 ;EXP: SI(original SI) = SI(currnet SI) - (29(total length) - BX(space length))
                 ADD SI, BX 
                 SUB SI, 29
 
-            ADD_SPACES_AFTER_NAME:
+            ADD_SPACES_AFTER_NAME_1:
                 CMP BX, 0
-                JE DONE_ADD_BOOK_NAME_SPACES
+                JE DONE_ADD_BOOK_NAME_SPACES_1
                 MOV DL, ' '
                 INT 21H
                 DEC BX
             
-                JMP ADD_SPACES_AFTER_NAME
+                JMP ADD_SPACES_AFTER_NAME_1
 
-            DONE_ADD_BOOK_NAME_SPACES:
+            DONE_ADD_BOOK_NAME_SPACES_1:
             
             
                 ;Space
@@ -580,7 +794,7 @@
             ;jmp to next value
             POP BX ; get back the value of BX from stack
             INC BOOK_COUNT
-            NEXT_BOOK:
+            NEXT_BORROW_RECORD:
 
                 XOR AX, AX
                 MOV AL, BOOK_SIZE
@@ -591,11 +805,11 @@
 
                 DEC CX
                 CMP CX, 0
-            JE END_DISPLAY_BOOKS
+            JE END_DISPLAY_BORROW_RECORD
 
-        JMP DISPLAY_BOOKS
+        JMP DISPLAY_BORROW_RECORD
 
-        END_DISPLAY_BOOKS:
+        END_DISPLAY_BORROW_RECORD:
 
             CALL NEW_LINE
 
@@ -641,4 +855,195 @@
         INT 21H
         RET
     SYSTEM_PAUSE ENDP
+
+
+    DISPLAY_BOOK_CATALOG PROC
+        ;Point to array
+        LEA SI, BOOK_NAME_ARRAY
+        LEA DI, BOOK_AUTHORS
+
+        CALL NEW_LINE
+        
+        ;DISPLAY HEADER
+        MOV AH, 09H
+        LEA DX, BOOK_CATALOG_HEADER    
+        INT 21H
+
+        CALL NEW_LINE
+
+        ;DISPLAY LINE
+        MOV AH, 09H
+        LEA DX, BOOK_CATALOG_LINE
+        INT 21H
+
+        CALL NEW_LINE
+        
+        MOV CX, 20
+        XOR BX, BX
+        MOV BOOK_COUNT, 0
+        DISPLAY_BOOKS:
+            CMP BYTE PTR [SI], '$' ; check if the book name exists
+            JNE CURRENT_BOOK
+
+            JMP NEXT_BOOK
+            CURRENT_BOOK:
+                PUSH BX ; store the value of BX to stack temporarily
+                ;Check if book is available to borrow
+                MOV AX, BX 
+                MUL USER_ID_SIZE 
+                MOV BX, AX
+                CMP BORROW_BY_ARRAY[BX], '$'   ;Book available to borrow if this return true
+                JE BOOK_AVAILABLE
+                PUSH CX ;store the value of CX to stack temporarily
+
+                ;Display Read is not available - ez chatgpt
+                MOV AH, 09H          ; BIOS function to write character and attributes
+                MOV AL, ' '          ; Character to display
+                MOV BH, 0            ; Page number (usually 0)
+                MOV BL, 02H          ; Attribute byte (foreground: green, background: black)
+                MOV CX, 80           ; Number of times to print the character
+                INT 10H              ; Call BIOS interrupt
+
+                POP CX ; get back the cx value from stack
+            BOOK_AVAILABLE:
+
+            POP BX ; get back the value of BX[index] from stack 
+            PUSH BX ; store the value of BX to stack again for future use temporarily  
+
+            ;Delimeter
+            MOV AH, 02H
+            MOV DL, '|'
+            INT 21H
+            
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Book_ID
+            MOV AX, 0
+            MOV AL, BOOK_ID_ARRAY[BX]
+            DIV TEN 
+            MOV BX, AX
+            
+            MOV AH, 02H
+            MOV DL, BL
+            ADD DL, 30H
+            INT 21H
+            
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+            
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Delimeter
+            MOV AH, 02H
+            MOV DL, '|'
+            INT 21H
+
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Book_Name
+            MOV AH, 09H
+            LEA DX, [SI]
+            INT 21H
+
+            
+            
+            MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
+            
+            ;Count the string length
+            COUNT_BOOK_NAME_SPACES:
+                CMP BYTE PTR [SI], '$' ; apa ini
+                JE DONE_BOOK_NAME_SPACES
+                DEC BX
+                INC SI
+            JMP COUNT_BOOK_NAME_SPACES
+            DONE_BOOK_NAME_SPACES:
+                MOV AH, 02H
+                ;EXP: SI(original SI) = SI(currnet SI) - (29(total length) - BX(space length))
+                ADD SI, BX 
+                SUB SI, 29
+
+            ADD_SPACES_AFTER_NAME:
+                CMP BX, 0
+                JE DONE_ADD_BOOK_NAME_SPACES
+                MOV DL, ' '
+                INT 21H
+                DEC BX
+            
+            JMP ADD_SPACES_AFTER_NAME
+
+            DONE_ADD_BOOK_NAME_SPACES:
+            
+            
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Delimeter
+            MOV AH, 02H
+            MOV DL, '|'
+            INT 21H
+
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Author
+            MOV AH, 09H
+            LEA DX, [DI]
+            INT 21H 
+
+            CALL NEW_LINE
+
+            ;jmp to next value
+            POP BX ; get back the value of BX from stack
+            INC BOOK_COUNT
+            NEXT_BOOK:
+
+                XOR AX, AX
+                MOV AL, BOOK_SIZE
+                ADD SI, AX
+                ADD DI, AX
+
+                INC BX
+
+                DEC CX
+                CMP CX, 0
+            JE END_DISPLAY_BOOKS
+
+        JMP DISPLAY_BOOKS
+
+        END_DISPLAY_BOOKS:
+
+        CALL NEW_LINE
+
+        ;Display green
+        MOV AH,09H 
+        MOV AL, ' ' 
+        MOV BH, 0
+        MOV BL, 02H 
+        MOV CX, 5 
+        INT 10H
+        
+        MOV AH, 09H 
+        LEA DX, COLOR_REMARK_MSG
+        INT 21H
+        
+        RET
+    DISPLAY_BOOK_CATALOG ENDP
+
+    
+
 END MAIN
