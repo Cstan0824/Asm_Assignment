@@ -6,33 +6,32 @@
 
 	;---admin login
 	;---A = Admin
-	VASTATUS DB ?
-	AUSERNAME DB 'admin123$'
-	APASSWORD DB 'admin123$'
+	ADMIN_USERNAME DB 'admin$'
+	ADMIN_PASSWORD DB 'admin123$'
 
-	AIUSERNAME LABEL BYTE
-	AUSERNAMEMAXN DB 40
-	AUSERNAMEACTN DB ?
-	AOUSERNAME DB 40 DUP('$')
+	ADMIN_INPUT_USERNAME LABEL BYTE
+	ADMIN_USERNAME_MAXN DB 40
+	ADMIN_USERNAME_ACTN DB ?
+	ADMIN_OUTPUT_USERNAME DB 40 DUP('$')
 
-	AIPASSWORD LABEL BYTE
-	AIPASSWORDMAXN DB 12
-	AIPASSWORDACTN DB ?
-	AOPASSWORD DB 12 DUP('$')
+	ADMIN_INPUT_PASSWORD LABEL BYTE
+	ADMIN_INPUT_PASSWORD_MAXN DB 12
+	ADMIN_INPUT_PASSWORD_ACTN DB ?
+	ADMIN_OUTPUT_PASSWORD DB 12 DUP('$')
 	
 	;---UI = user input
-	UUSERNAME DB 'user123$'
-	UPASSWORD DB 'user123$'
+	USER_USERNAME DB 'user$'
+	USER_PASSWORD DB 'user123$'
 
-	UIUSERNAME LABEL BYTE
-	UUSERNAMEMAXN DB 40
-	UUSERNAMEACTN DB ?
-	UOUSERNAME DB 40 DUP('$')
+	USER_INPUT_USERNAME LABEL BYTE
+	USER_USERNAME_MAXN DB 40
+	USER_USERNAME_ACTN DB ?
+	USER_OUTPUT_USERNAME DB 40 DUP('$')
 
-	UIPASSWORD LABEL BYTE
-	UIPASSWORDMAXN DB 12
-	UIPASSWORDACTN DB ?
-	UOPASSWORD DB 12 DUP('$')
+	USER_INPUT_PASSWORD LABEL BYTE
+	USER_INPUT_PASSWORD_MAXN DB 12
+	USER_INPUT_PASSWORD_ACTN DB ?
+	USER_OUTPUT_PASSWORD DB 12 DUP('$')
 
 	;---user
 
@@ -41,47 +40,47 @@
 	;---D = Display
 	NL DB 0AH,0DH,'$'
 	LINE DB 10,13,'===============================================',10,13,'$'
-	DWELCOME DB 10,13,'Welcome to our library system!',10,13,'$'
+	DISPLAY_WELCOME_MAINPAGE DB 10,13,'Welcome to our library system!',10,13,'$'
 
 
-	DROLE DB '1. Admin',10,13,'2. User',10,13,'3. Exit',10,13,'$'
-	DSROLE DB 10,13,'Enter selection: $'
+	DISPLAY_ROLE_MAINPAGE DB '1. Admin',10,13,'2. User',10,13,'3. Exit',10,13,'$'
+	DISPLAY_SELECTION DB 10,13,'Enter selection: $'
 
 	;---Admin Menu
-	DAWELCOME DB 10,13,'Welcome to Admin page!',10,13,'$'
-	DASTATUS DB '1. Login',10,13,'2. Back to Menu',10,13,'3. Exit',10,13,'$'
-	ACHOICE DB ?
+	DISPLAY_WELCOME_ADMINPAGE DB 10,13,'Welcome to Admin page!',10,13,'$'
+	DISPLAY_ROLE_ADMINPAGE DB '1. Login',10,13,'2. Back to Menu',10,13,'3. Exit',10,13,'$'
+	CHOICE_ADMINPAGE DB ?
 	
 	;---login page displays
-	DLOGIN DB 10,13,'LOGIN$'
-	DENAME DB 10,13,'Please enter your username: $'
-	DEPSW DB 10,13,'Please enter your password: $'
-	LOGINFAIL DB 10,13,'The username or password u entered might be wrong, please try again!',10,13,'$'
-	DLOGINS DB 10,13,'Login Successfull!',10,13,'$'
+	DISPLAY_LOGIN DB 10,13,'LOGIN$'
+	DISPLAY_ENTER_USERNAME DB 10,13,'Please enter your username: $'
+	DISPLAY_ENTER_PASSWORD DB 10,13,'Please enter your password: $'
+	DISPLAY_LOGINFAIL DB 10,13,'The username or password u entered might be wrong, please try again!',10,13,'$'
+	DISPLAY_LOGINS DB 10,13,'Login Successfull!',10,13,'$'
 
 	;---admin login success
-	DALOGINS DB 'Welcome! $'
-	DA DB '1. Display',10,13,'2. Back to Menu',10,13,'3. Exit$'
+	DISPLAY_LOGINSUCCESS_ADMINPAGE DB 'Welcome! $'
+	DISPLAY_ADMINROLE DB '1. Display',10,13,'2. Back to Menu',10,13,'3. Exit$'
 
 
 	;---User Menu
-	DUWELCOME DB 10,13,'Welcome to User page!',10,13,'$'
-	DUSTATUS DB '1. Login',10,13,'2. Back to Menu',10,13,'3. Exit',10,13,'$'
-	UCHOICE DB ?
+	DISPLAY_WELCOME_USERPAGE DB 10,13,'Welcome to User page!',10,13,'$'
+	DISPLAY_ROLE_USERPAGE DB '1. Login',10,13,'2. Back to Menu',10,13,'3. Exit',10,13,'$'
+	CHOICE_USERPAGE DB ?
 
 	;---user login page
 	
 
 	;---user login success
-	DULOGINS DB 'Welcome! $'
-	DU DB '1. Display',10,13,'2. Back to Menu',10,13,'3. Exit$'
+	DISPLAY_LOGINSUCCESS_USERPAGE DB 'Welcome! $'
+	DISPLAY_USERROLE DB '1. Display',10,13,'2. Back to Menu',10,13,'3. Exit$'
 
 	;---user register
 
 
 
 	;---exit
-	DEXIT DB 10,13,'Thank you, see you next time.$'
+	DISPLAY_EXIT DB 10,13,'Thank you, see you next time.$'
 
 	;---invalid selection
 	INVALIDSELECTION_MSG DB 10,13,'Invalid Selection. Try Again',10,13,'$'
@@ -122,10 +121,9 @@ MAIN PROC
 
 		CALL ADMINLOGIN
 
-		;---show login successful
-		CALL LOGINSUCCESS
-
 		AMENU:
+			;---show login successful
+			CALL LOGINSUCCESS
 
 			CALL BORDER
 			
@@ -149,9 +147,11 @@ MAIN PROC
 	ULOGIN:
 		CALL BORDER
 		
-		CALL LOGINSUCCESS
+		CALL USERLOGIN
 		
 		UMENU:
+			CALL LOGINSUCCESS
+			
 			CALL BORDER
 		
 			CALL USERMENU
@@ -165,7 +165,7 @@ MAIN PROC
 	
 	;-----exit	
 	MOV AH,09H
-	LEA DX, DEXIT
+	LEA DX, DISPLAY_EXIT
 	INT 21H
 		
 	MOV AX,4C00H
@@ -189,12 +189,12 @@ BORDER ENDP
 MAINMENU PROC
 ;-----display menu
 MOV AH,09H
-LEA DX, DWELCOME
+LEA DX, DISPLAY_WELCOME_MAINPAGE
 INT 21H
 	
 ;-----display role
 MOV AH,09H
-LEA DX, DROLE
+LEA DX, DISPLAY_ROLE_MAINPAGE
 INT 21H
 
 RETN
@@ -204,7 +204,7 @@ MAINMENU ENDP
 SELECTROLE PROC
 ;-----select role
 MOV AH,09H
-LEA DX, DSROLE
+LEA DX, DISPLAY_SELECTION
 INT 21H
 
 MOV AH,01H;---input
@@ -236,12 +236,12 @@ SELECTROLE ENDP
 ADMINPAGE PROC
 
 MOV AH,09H
-LEA DX, DAWELCOME
+LEA DX, DISPLAY_WELCOME_ADMINPAGE
 INT 21H
 	
 ;-----login
 MOV AH,09H
-LEA DX, DASTATUS
+LEA DX, DISPLAY_ROLE_ADMINPAGE
 INT 21H 	
 
 RETN 	
@@ -250,14 +250,14 @@ ADMINPAGE ENDP
 ADMINSELECT PROC
 ;-----select role
 MOV AH,09H
-LEA DX, DSROLE
+LEA DX, DISPLAY_SELECTION
 INT 21H
 
 ;-----input
 MOV AH,01H
 INT 21H
 SUB AL,30H
-MOV ACHOICE, AL
+MOV CHOICE_ADMINPAGE, AL
 		
 CALL ACMPLOGIN
 
@@ -275,31 +275,29 @@ RETN
 ADMINSELECT ENDP
 
 ;=========================================================================
-LOGINFAILED PROC
+ADISPLAY_LOGINFAILED PROC
 ;-----invalid username or password
 MOV AH, 09H
-LEA DX, LOGINFAIL
+LEA DX, DISPLAY_LOGINFAIL
 INT 21H
-JMP ALOGIN
 
 RETN
-LOGINFAILED ENDP
+ADISPLAY_LOGINFAILED ENDP
 
-ULOGINFAILED PROC
+UDISPLAY_LOGINFAILED PROC
 ;-----invalid username or password
 MOV AH, 09H
-LEA DX, LOGINFAIL
+LEA DX, DISPLAY_LOGINFAIL
 INT 21H
-MOV BX,0
-CALL USERLOGIN
+JMP USERLOGIN
 
 RETN
-ULOGINFAILED ENDP
+UDISPLAY_LOGINFAILED ENDP
 
 ;=========================================================================
 LOGINSUCCESS PROC
 MOV AH, 09H
-LEA DX, DLOGINS
+LEA DX, DISPLAY_LOGINS
 INT 21H
 
 RETN
@@ -309,48 +307,71 @@ LOGINSUCCESS ENDP
 ADMINLOGIN PROC
 ;----ask to enter username
 		MOV AH, 09H
-		LEA DX, DENAME
+		LEA DX, DISPLAY_ENTER_USERNAME
 		INT 21H
 		
 		;---input username STRING
 		MOV AH, 0AH
-		LEA DX, AIUSERNAME
+		LEA DX, ADMIN_INPUT_USERNAME
 		INT 21H
 
 
 		;-----ask to enter password
 		MOV AH, 09H
-		LEA DX, DEPSW
+		LEA DX, DISPLAY_ENTER_PASSWORD
 		INT 21H
 		
 		;-----input password STRING
 		MOV AH, 0AH
-		LEA DX, AIPASSWORD
+		LEA DX, ADMIN_INPUT_PASSWORD
 		INT 21H
 
 		;---actual number of username
-		MOV CX,0
-		MOV CL,AUSERNAMEACTN
-		MOV SI,0
+		MOV CL,ADMIN_INPUT_USERNAME[1]
+		MOV SI,2
+		MOV DI, OFFSET ADMIN_USERNAME
 
 		;-----validate username
 		ADMINUSERNAME:
 
-			MOV BL,AOUSERNAME[SI]
-			CMP BL,AUSERNAME[SI]
-			JNE INVALID
-			
-			MOV BL,AOPASSWORD[SI]
-			CMP BL,APASSWORD[SI]
-			JNE INVALID
+			MOV BL,ADMIN_INPUT_USERNAME[SI]
+			CMP BL,[DI]
+			JNE INVALIDADMINUSERNAME
 	
 			INC SI
+			INC DI
 		LOOP ADMINUSERNAME
-		JMP PASSADMINLOGIN
 		
-		INVALID:
-			CALL LOGINFAILED
+		; Validate if the input username has been fully matched
+		CMP BYTE PTR [DI], '$'                
+		JNE INVALIDADMINUSERNAME
+		
+		;-----validate password
+		MOV CL, ADMIN_INPUT_PASSWORD[1]       ; Get the length of the password input
+		MOV SI, 2                             ; Start comparing from the second byte of the buffer
+		MOV DI, OFFSET ADMIN_PASSWORD         ; Point to the stored password
+
+		ADMINPASSWORD:
+			MOV BL, ADMIN_INPUT_PASSWORD[SI]  ; Get the next input character
+			CMP BL, [DI]                      ; Compare with the stored password character
+			JNE INVALIDADMINPASSWORD          ; If not equal, jump to invalid password
+
+			INC SI
+			INC DI
+			LOOP ADMINPASSWORD                ; Continue looping through the length of the input password
+
+		; Validate if the input password has been fully matched
+		CMP BYTE PTR [DI], '$'                ; Check if we reached the end of the stored password
+		JNE INVALIDADMINPASSWORD              ; If not, jump to invalid password
+
+		JMP PASSADMINLOGIN         
+		
+		INVALIDADMINUSERNAME:
+		INVALIDADMINPASSWORD:
+			CALL ADISPLAY_LOGINFAILED
+			JMP ALOGIN
 PASSADMINLOGIN:
+JMP AMENU
 RETN 
 ADMINLOGIN ENDP
 
@@ -358,12 +379,12 @@ ADMINLOGIN ENDP
 ADMINMENU PROC
 ;---WELCOME
 	MOV AH, 09H
-	LEA DX, DALOGINS
+	LEA DX, DISPLAY_LOGINSUCCESS_ADMINPAGE
 	INT 21H
 
 	;---USERNAME
 	MOV AH, 09H
-	LEA DX, AOUSERNAME
+	LEA DX, ADMIN_OUTPUT_USERNAME
 	INT 21H
 	
 	MOV AH,09H
@@ -372,14 +393,18 @@ ADMINMENU PROC
 	
 	;---MENUS
 	MOV AH, 09H
-	LEA DX, DA
+	LEA DX, DISPLAY_ADMINROLE
+	INT 21H
+	
+	MOV AH,09H
+	LEA DX, DISPLAY_SELECTION
 	INT 21H
 
 	;---ENTER CHOICE
 	MOV AH, 01H
 	INT 21H
 	SUB AL, 30H
-	MOV ACHOICE, AL
+	MOV CHOICE_ADMINPAGE, AL
 
 	;---SELECT CHOICE
 	CALL AMCMPDISPLAYBOOK
@@ -400,11 +425,11 @@ ADMINMENU ENDP
 ;=========================================================================
 USERPAGE PROC
 MOV AH,09H
-LEA DX,DUWELCOME
+LEA DX,DISPLAY_WELCOME_USERPAGE
 INT 21H
 
 MOV AH,09H
-LEA DX,DUSTATUS
+LEA DX,DISPLAY_ROLE_USERPAGE
 INT 21H
 
 RETN
@@ -413,13 +438,13 @@ USERPAGE ENDP
 USERSELECTROLE PROC
 ;-----select role
 	MOV AH,09H
-	LEA DX, DSROLE
+	LEA DX, DISPLAY_SELECTION
 	INT 21H
 
 	MOV AH,01H
 	INT 21H
 	SUB AL, 30H
-	MOV UCHOICE,AL
+	MOV CHOICE_USERPAGE,AL
 
 		
 	CALL UCMPLOGIN
@@ -438,9 +463,8 @@ RETN
 USERSELECTROLE ENDP
 
 UCMPLOGIN PROC
-CMP UCHOICE,1
+CMP CHOICE_USERPAGE,1
 JNE BACKMENU
-CALL USERLOGIN
 JMP ULOGIN
 
 BACKMENU:
@@ -448,7 +472,7 @@ RETN
 UCMPLOGIN ENDP
 
 UCMPMENU PROC
-CMP UCHOICE,2
+CMP CHOICE_USERPAGE,2
 JNE BCKEXIT
 JMP MENU
 
@@ -457,7 +481,7 @@ RETN
 UCMPMENU ENDP
 
 UCMPEXIT PROC
-CMP UCHOICE,3
+CMP CHOICE_USERPAGE,3
 JNE OTHERS
 JMP FIN
 
@@ -466,60 +490,84 @@ RETN
 UCMPEXIT ENDP
 
 USERLOGIN PROC
-MOV AH, 09H
-		LEA DX, DENAME
-		INT 21H
-		
-		;---input username STRING
-		MOV AH, 0AH
-		LEA DX, UIUSERNAME
-		INT 21H
+    ;----ask to enter username
+    MOV AH, 09H
+    LEA DX, DISPLAY_ENTER_USERNAME
+    INT 21H
+    
+    ;---input username STRING
+    MOV AH, 0AH
+    LEA DX, USER_INPUT_USERNAME
+    INT 21H
 
+    ;-----ask to enter password
+    MOV AH, 09H
+    LEA DX, DISPLAY_ENTER_PASSWORD
+    INT 21H
+    
+    ;-----input password STRING
+    MOV AH, 0AH
+    LEA DX, USER_INPUT_PASSWORD
+    INT 21H
 
-		;-----ask to enter password
-		MOV AH, 09H
-		LEA DX, DEPSW
-		INT 21H
-		
-		;-----input password STRING
-		MOV AH, 0AH
-		LEA DX, UIPASSWORD
-		INT 21H
+    ;---validate username
+    MOV CL, USER_INPUT_USERNAME[1]  ; Get the length of the input username (second byte of buffer)
+    MOV SI, 2                       ; Start comparing from the second byte (after the length byte)
+    MOV DI, OFFSET USER_USERNAME     ; Point to the stored username
 
-		;---actual number of username
-		MOV CX,0
-		MOV CL,UUSERNAMEACTN
-		MOV SI,0
-		MOV BL,0
+    USERUSERNAME:
+        MOV BL, USER_INPUT_USERNAME[SI]  ; Get the next input character from the user
+        CMP BL, [DI]                    ; Compare with stored username character
+        JNE UINVALID                    ; If not equal, jump to invalid
 
-		;-----validate username
-		USERUSERNAME:
-			MOV BL,UOUSERNAME[SI]
-			CMP BL,UUSERNAME[SI]
-			JNE UINVALID
-			
-			MOV BL,UOPASSWORD[SI]
-			CMP BL,UPASSWORD[SI]
-			JNE UINVALID
-	
-			INC SI
-		LOOP USERUSERNAME
-		JMP PASSUSERLOGIN
-		
-		UINVALID:
-			CALL ULOGINFAILED
+        INC SI
+        INC DI
+        LOOP USERUSERNAME                ; Loop through the length of the username
+
+    ; Validate if the input username has been fully matched
+    CMP BYTE PTR [DI], '$'               ; Check if we reached the end of the stored username
+    JNE UINVALID                         ; If not, jump to invalid
+
+    ;---validate password
+    MOV CL, USER_INPUT_PASSWORD[1]       ; Get the length of the input password (second byte of buffer)
+    MOV SI, 2                            ; Start comparing from the second byte
+    MOV DI, OFFSET USER_PASSWORD         ; Point to the stored password
+
+    USERPASSWORD:
+        MOV BL, USER_INPUT_PASSWORD[SI]  ; Get the next input character from the user
+        CMP BL, [DI]                     ; Compare with stored password character
+        JNE UINVALID                     ; If not equal, jump to invalid
+
+        INC SI
+        INC DI
+        LOOP USERPASSWORD                ; Loop through the length of the password
+
+    ; Validate if the input password has been fully matched
+    CMP BYTE PTR [DI], '$'               ; Check if we reached the end of the stored password
+    JNE UINVALID                         ; If not, jump to invalid
+
+    ; If both username and password are valid, jump to success
+    JMP PASSUSERLOGIN
+
+UINVALID:
+    CALL UDISPLAY_LOGINFAILED            ; Display login failed
+    JMP USERLOGIN                        ; Go back to the user login process
+
 PASSUSERLOGIN:
-RETN
+    ; Proceed to the user menu after successful login
+	JMP UMENU
+    RETN
 USERLOGIN ENDP
 
+
 USERMENU PROC
-MOV AH, 09H
-			LEA DX, DALOGINS
+			MOV AH, 09H
+			LEA DX, DISPLAY_LOGINSUCCESS_ADMINPAGE
 			INT 21H
 
 			;---USERNAME
 			MOV AH, 09H
-			LEA DX, UOUSERNAME
+			LEA DX, USER_OUTPUT_USERNAME
 			INT 21H
 			
 			;---NL
@@ -529,20 +577,20 @@ MOV AH, 09H
 			
 			;---MENUS
 			MOV AH, 09H
-			LEA DX, DU
+			LEA DX, DISPLAY_USERROLE
 			INT 21H
 			
 			USERSELECT:
 			;-----select role
 			MOV AH,09H
-			LEA DX, DSROLE
+			LEA DX, DISPLAY_SELECTION
 			INT 21H
 
 			;---ENTER CHOICE
 			MOV AH, 01H
 			INT 21H
 			SUB AL, 30H
-			MOV UCHOICE, AL
+			MOV CHOICE_USERPAGE, AL
 
 			;---SELECT CHOICE
 			CALL UMCMPDISPLAYBOOK
@@ -565,9 +613,9 @@ USERMENU ENDP
 ;=========================================================================
 CMPADMIN PROC
 CMP VSROLE, 1
-JNE ENDADMIN
+JNE ENDISPLAY_ADMINROLEDMIN
 JMP ADMIN
-ENDADMIN:
+ENDISPLAY_ADMINROLEDMIN:
 RETN
 CMPADMIN ENDP
 
@@ -591,79 +639,79 @@ CMPEXIT ENDP
 
 ;=========================================================================
 ACMPLOGIN PROC
-CMP ACHOICE, 1
-JNE ENDACMPLOGIN
+CMP CHOICE_ADMINPAGE, 1
+JNE ENDISPLAY_ADMINROLECMPLOGIN
 JMP ALOGIN
-ENDACMPLOGIN:
+ENDISPLAY_ADMINROLECMPLOGIN:
 RETN
 ACMPLOGIN ENDP
 
 ;=========================================================================
 ACMPMENU PROC
-CMP ACHOICE, 2
-JNE ENDACMPMENU
+CMP CHOICE_ADMINPAGE, 2
+JNE ENDISPLAY_ADMINROLECMPMENU
 JMP MENU
-ENDACMPMENU:
+ENDISPLAY_ADMINROLECMPMENU:
 RETN
 ACMPMENU ENDP
 
 ;=========================================================================
 ACMPEXIT PROC
-CMP ACHOICE, 3
-JNE ENDACMPEXIT
+CMP CHOICE_ADMINPAGE, 3
+JNE ENDISPLAY_ADMINROLECMPEXIT
 JMP FIN
-ENDACMPEXIT:
+ENDISPLAY_ADMINROLECMPEXIT:
 RETN
 ACMPEXIT ENDP
 
 ;=========================================================================
 AMCMPDISPLAYBOOK PROC
-CMP ACHOICE, 1
-JNE ENDAMCMPDISPLAYBOOK
+CMP CHOICE_ADMINPAGE, 1
+JNE ENDISPLAY_ADMINROLEMCMPDISPLAYBOOK
 JMP DISPLAYBOOKS
-ENDAMCMPDISPLAYBOOK:
+ENDISPLAY_ADMINROLEMCMPDISPLAYBOOK:
 RETN
 AMCMPDISPLAYBOOK ENDP
 
 ;=========================================================================
 AMCMPMENU PROC
-CMP ACHOICE, 2
-JNE ENDAMCMPMENU
+CMP CHOICE_ADMINPAGE, 2
+JNE ENDISPLAY_ADMINROLEMCMPMENU
 JMP MENU
-ENDAMCMPMENU:
+ENDISPLAY_ADMINROLEMCMPMENU:
 RETN
 AMCMPMENU ENDP
 
 ;=========================================================================
 AMCMPEXIT PROC
-CMP ACHOICE, 3
-JNE ENDAMCMPEXIT
+CMP CHOICE_ADMINPAGE, 3
+JNE ENDISPLAY_ADMINROLEMCMPEXIT
 JMP FIN
-ENDAMCMPEXIT:
+ENDISPLAY_ADMINROLEMCMPEXIT:
 RETN
 AMCMPEXIT ENDP
 
 ;=========================================================================
 UMCMPDISPLAYBOOK PROC
-CMP UCHOICE, 1
-JNE ENDUMCMPDISPLAYBOOK
+CMP CHOICE_USERPAGE, 1
+JNE ENDISPLAY_USERROLEMCMPDISPLAYBOOK
 JMP UDISPLAYBOOKS
-ENDUMCMPDISPLAYBOOK:
+ENDISPLAY_USERROLEMCMPDISPLAYBOOK:
 RETN
 UMCMPDISPLAYBOOK ENDP
 
 ;=========================================================================
 UMCMPMENU PROC
-CMP UCHOICE, 2
-JNE ENDUMCMPMENU
+CMP CHOICE_USERPAGE, 2
+JNE ENDISPLAY_USERROLEMCMPMENU
 JMP MENU
-ENDUMCMPMENU:
+ENDISPLAY_USERROLEMCMPMENU:
 RETN
 UMCMPMENU ENDP
 
 ;=========================================================================
 UMCMPEXIT PROC
-CMP UCHOICE, 3
+CMP CHOICE_USERPAGE, 3
 JNE ENDD
 JMP FIN
 ENDD:
