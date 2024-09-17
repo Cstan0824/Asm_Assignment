@@ -1089,7 +1089,7 @@
 
 
     ;GAN PART
-    EDIT_BOOK PROC
+   EDIT_BOOK PROC
 
         CALL DISPLAY_BOOK_CATALOG
         CALL NEW_LINE
@@ -1110,7 +1110,7 @@
         CMP AL , 2
         JE DOUBLE_BOOK_ID
 
-        CALL FINISH
+        RET
 
         SINGLE_BOOK_ID:
             MOV BL , EDIT_BOOKID_INPUT[2]         ;GET THE FIRST DIGIT 
@@ -1156,6 +1156,15 @@
         BOOK_FOUND:
             CALL NEW_LINE
 
+            ;CHECK WHETHER THE BOOK IS AVAILABLE TO EDIT AVOID ANY NOT YET ADDED BOOK CAN BE EDIT
+            LEA DI , BOOK_NAME_ARRAY
+            MOV AX , SI
+            MUL BOOK_SIZE
+            ADD DI , AX
+
+            CMP BYTE PTR [DI] , '$'
+            JE BOOK_NOT_EXISTED_YET
+
             MOV AH, 09H
             LEA DX, EDIT_FIELD_PROMPT
             INT 21H
@@ -1176,7 +1185,16 @@
             LEA DX, EDIT_UNAVAILABLE_CHOICE
             INT 21H
 
-            CALL FINISH
+            RET             ;CAN ALSO RETURN TO BOOK FOUND
+
+        BOOK_NOT_EXISTED_YET:
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, BOOKNOTFOUND
+            INT 21H
+
+            RET
         
         EDIT_BOOK_NAME:
             CALL NEW_LINE
@@ -1217,11 +1235,7 @@
                 INC DI
             LOOP REPLACE_BOOKNAME
 
-            CALL NEW_LINE
-
-            CALL DISPLAY_BOOK_CATALOG
-
-            CALL  FINISH
+            RET
 
         EDIT_BOOK_AUTHOR:
             CALL NEW_LINE
@@ -1262,11 +1276,7 @@
                 INC DI
             LOOP REPLACE_BOOK_AUTHOR
 
-            CALL NEW_LINE
-
-            CALL DISPLAY_BOOK_CATALOG
-
-            CALL FINISH
+            RET
 
     EDIT_BOOK ENDP
 
