@@ -697,15 +697,17 @@
                 LEA DX, NEW_BOOKNAME_INPUT              ;store user input to NEW_BOOKNAME_INPUT
                 INT 21H
 
+                LEA BX, NEW_BOOKNAME
+
                 ;check if the input is empty
-                MOV BL, NEW_BOOKNAME[0]
-                CMP BL, 0DH
+                MOV AL, byte ptr [BX]
+                CMP AL, 0DH
                 JE TEMP_NEW_NAME_EMPTY
             
                 MOV CX, 0                               ;reset CX
                 MOV CL, INPUT_BOOKNAME_SIZE             ;store the actual input size to CL
                 SAVE_TO_BOOKNAME_ARRAY:
-                    MOV AL, NEW_BOOKNAME[BX]            
+                    MOV AL, byte ptr [BX]       
                     MOV [SI], AL                        ;store the input to BOOK_NAME_ARRAY
                     INC SI
                     INC BX
@@ -723,16 +725,17 @@
                 LEA DX, NEW_BOOKAUTHORS_INPUT           ;store user input to NEW_BOOKAUTHORS_INPUT
                 INT 21H
 
+                LEA BX, NEW_BOOKAUTHORS 
+
                 ;check if the input is empty
-                MOV BL, NEW_BOOKAUTHORS[0]
-                CMP BL, 0DH
+                MOV AL, byte ptr [BX]
+                CMP AL, 0DH
                 JE TEMP_NEW_NAME_EMPTY
 
                 MOV CX, 0                               ;reset CX
                 MOV CL, INPUT_BOOKAUTHORS_SIZE          ;store the actual input size to CL
-                XOR BX,BX
                 SAVE_TO_BOOKAUTHORS_ARRAY:
-                    MOV AL, NEW_BOOKAUTHORS[BX]         
+                    MOV AL, byte ptr [BX]       
                     MOV [DI], AL                        ;store the input to BOOK_AUTHORS
                     INC DI
                     INC BX
@@ -749,13 +752,16 @@
                 MOV AH, 09H
                 LEA DX, PROMPT_NEW_BOOKNAME             ;display new book name  
                 INT 21H
+                MOV AH, 09H
                 LEA DX, NEW_BOOKNAME
                 INT 21H
                 
                 CALL NEW_LINE
 
+                MOV AH, 09H
                 LEA DX, PROMPT_NEW_BOOKAUTHOR           ;display new book author
                 INT 21H
+                MOV AH, 09H
                 LEA DX, NEW_BOOKAUTHORS
                 INT 21H
 
@@ -1012,10 +1018,6 @@
             lea dx, WRITTEN_BY          ; Print "written by"
             int 21h
 
-            mov ah, 02h
-            mov dl, 20h                 ; Print a space
-            int 21h
-
             ; Replace author with '$'
             mov al, BOOK_ID_POSITION
             dec al
@@ -1055,7 +1057,8 @@
             ; Print new line
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            jmp end_delete_book
+            CALL NEW_LINE
+            jmp GET_BOOK_ID
 
         book_borrowed:
             ; Print error message if book is borrowed
@@ -1077,7 +1080,8 @@
             ; Print new line
             CAll NEW_LINE
             CALL SYSTEM_PAUSE
-            jmp end_delete_book
+            CALL NEW_LINE
+            jmp get_book_id
 
         end_delete_book:
             RET
