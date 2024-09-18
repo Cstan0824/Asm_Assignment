@@ -39,7 +39,7 @@
 	;---Main Menu Displays
 	;---D = Display
 	NL DB 0AH,0DH,"$"
-	LINE DB 10,13,"===============================================",10,13,"$"
+	LINE DB 0AH,0DH,"===============================================",10,13,"$"
 	DISPLAY_WELCOME_MAINPAGE DB 10,13,"Welcome to our library system!",10,13,"$"
 
 
@@ -245,6 +245,8 @@ LEA DX, DISPLAY_ROLE_ADMINPAGE
 INT 21H 	
 
 RETN 	
+
+
 ADMINPAGE ENDP
 
 ADMINSELECT PROC
@@ -549,14 +551,14 @@ USERLOGIN PROC
     ; If both username and password are valid, jump to success
     JMP PASSUSERLOGIN
 
-UINVALID:
-    CALL UDISPLAY_LOGINFAILED            ; Display login failed
-    JMP USERLOGIN                        ; Go back to the user login process
+	UINVALID:
+		CALL UDISPLAY_LOGINFAILED            ; Display login failed
+		JMP USERLOGIN                        ; Go back to the user login process
 
-PASSUSERLOGIN:
-    ; Proceed to the user menu after successful login
-	JMP UMENU
-    RETN
+	PASSUSERLOGIN:
+		; Proceed to the user menu after successful login
+		JMP UMENU
+		RETN
 USERLOGIN ENDP
 
 

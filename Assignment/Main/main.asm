@@ -2,13 +2,12 @@
 .STACK 100
 
 .DATA
-
+    ;MENU
     MAIN_MENU   DB "1. Admin ", 0DH, 0AH
                 DB "2. User ", 0DH, 0AH
                 DB "3. Exit ", 0DH, 0AH
                 DB "$"
 
-    ;MENU
     ADMIN_MENU  DB "1. Add Book ", 0DH, 0AH
                 DB "2. Edit Book ", 0DH, 0AH
                 DB "3. Delete Book ", 0DH, 0AH
@@ -22,14 +21,34 @@
                 DB "3. Logout ", 0DH, 0AH
                 DB "$"
 
-    PENALTY_MENU DB "1. Change Penalty Charge ", 0DH, 0AH
-    DB "2. Change Penalty Extra Charge Rate ", 0DH, 0AH
-    DB "3. Change Penalty Maximum Charge ", 0DH, 0AH
-    DB "4. Back ", 0DH, 0AH
-    DB "$"
+    PENALTY_MENU    DB "1. Change Penalty Charge ", 0DH, 0AH
+                    DB "2. Change Penalty Extra Charge Rate ", 0DH, 0AH
+                    DB "3. Change Penalty Maximum Charge ", 0DH, 0AH
+                    DB "4. Back ", 0DH, 0AH
+                    DB "$"
+
+    LOGIN_MENU  DB "1. Login",0DH, 0AH
+                            DB "2. Back to Menu",0DH, 0AH
+                            DB "$"
             
 
-    NL DB 0DH, 0AH, '$'
+    NL DB 0AH,0DH,"$"
+	LINE DB 0AH,0DH,"===============================================",0DH, 0AH,"$"
+	DISPLAY_WELCOME_MAINPAGE DB 0DH, 0AH,"Welcome to our library system!",0DH, 0AH,"$"
+
+	;---Admin Menu
+	DISPLAY_WELCOME_ADMINPAGE DB 0DH, 0AH,"Welcome to Admin page!",0DH, 0AH,"$"
+	;---User Menu
+	DISPLAY_WELCOME_USERPAGE DB 0DH, 0AH,"Welcome to User page!",0DH, 0AH,"$"
+
+	;---login page displays
+	DISPLAY_LOGIN DB 0DH, 0AH,"LOGIN$"
+	DISPLAY_ENTER_USERNAME DB 0DH, 0AH,"Please enter your username: $"
+	DISPLAY_ENTER_PASSWORD DB 0DH, 0AH,"Please enter your password: $"
+	DISPLAY_LOGINFAIL DB 0DH, 0AH,"The username or password u entered might be wrong, please try again!",0DH, 0AH,"$"
+	DISPLAY_LOGINS DB 0DH, 0AH,"Login Successfull!",0DH, 0AH,"$"
+
+	
 
     ;MESSAGE
     CHOICE_MSG DB "Enter your choice: $"
@@ -39,6 +58,7 @@
     AVALIABLE_MSG DB "Available$"
     ;---exit
 	DISPLAY_EXIT DB 0DH, 0AH,"Thank you, see you next time.$"
+    INVALIDSELECTION_MSG DB 0DH, 0AH,"Invalid Selection. Try Again",0DH, 0AH,"$"
 
     ;Borrow, Return Book
     NOT_AVALIABLE_MSG DB "Book Not Available to borrow$"
@@ -310,28 +330,77 @@
             CALL GET_CHOICE
 
             CMP AX, 1
-            JE LOGIN_AS_ADMIN 
+            JE ADMIN_LOGIN_PAGE 
             CMP AX, 2
-            JE LOGIN_AS_USER
+            JE USER_LOGIN_PAGE
             CMP AX, 3
             JE EXIT_PROGRAM
 
+        ADMIN_LOGIN_PAGE:
+            ;ADMIN LOGIN - YY PART
+            CALL CLEAR_SCREEN
+		    CALL BORDER
+            CALL DISPLAY_ADMIN_LOGIN_MENU
+            CALL NEW_LINE
+
+            MOV BX, '2'   ;Maximum value for user input
+            CALL GET_CHOICE
+            CMP AX, 1
+            JE LOGIN_AS_ADMIN
+            CMP AX, 2
+            JE START_MAIN_MENU
+        
+        USER_LOGIN_PAGE:
+            ;USER LOGIN - YY PART
+            CALL CLEAR_SCREEN
+		    CALL BORDER
+            CALL DISPLAY_USER_LOGIN_MENU
+            CALL NEW_LINE
+
+            MOV BX, '2'   ;Maximum value for user input
+            CALL GET_CHOICE
+            CMP AX, 1
+            JE LOGIN_AS_USER
+            CMP AX, 2
+            JE START_MAIN_MENU  
+        
         LOGIN_AS_ADMIN:
             ;ADMIN LOGIN - YY PART
+            CALL CLEAR_SCREEN
+            CALL BORDER
+
+            CALL ADMIN_LOGIN
+            CALL LOGINSUCCESS
+
+			CALL BORDER
+            CALL SYSTEM_PAUSE 
+            CALL CLEAR_SCREEN
+
             JMP REDIRECT_TO_ADMIN_MODULES ; JUMP TO ADMIN MODULES if login is successful
+        
         LOGIN_AS_USER:
             ;USER LOGIN - YY PART
+            CALL CLEAR_SCREEN
+            CALL BORDER
+
+            CALL USER_LOGIN
+            CALL LOGINSUCCESS
+
+			CALL BORDER
+            CALL SYSTEM_PAUSE 
+            CALL CLEAR_SCREEN
+
             JMP REDIRECT_TO_USER_MODULES ; JUMP TO USER MODULES if login is successful
-        
 
         REDIRECT_TO_ADMIN_MODULES:
-            ;LOGIN
             CALL CLEAR_SCREEN
             CALL ADMIN_MODULES
+
             JMP START_MAIN_MENU
         REDIRECT_TO_USER_MODULES:
             CALL CLEAR_SCREEN
             CALL USER_MODULES
+
             JMP START_MAIN_MENU
 
         EXIT_PROGRAM:
@@ -344,13 +413,62 @@
         INT 21H
     MAIN ENDP
 
-    ;Display Main Menu - Role Selection - yy part
+    ;Display Main Menu - Role Selection 
     DISPLAY_MAIN_MENU PROC
         MOV AH, 09H
         LEA DX, MAIN_MENU
         INT 21H
         RET
     DISPLAY_MAIN_MENU ENDP
+
+    DISPLAY_ADMIN_LOGIN_MENU PROC
+        CALL BORDER
+
+        MOV AH,09H
+        LEA DX, DISPLAY_WELCOME_ADMINPAGE
+        INT 21H
+            
+        ;-----login
+        MOV AH,09H
+        LEA DX, LOGIN_MENU
+        INT 21H 
+        CALL BORDER
+        RET
+    DISPLAY_ADMIN_LOGIN_MENU ENDP
+
+    DISPLAY_USER_LOGIN_MENU PROC
+        CALL BORDER
+        MOV AH,09H
+        LEA DX, DISPLAY_WELCOME_USERPAGE
+        INT 21H
+            
+        ;-----login
+        MOV AH,09H
+        LEA DX, LOGIN_MENU
+        INT 21H 
+        CALL BORDER
+        RET
+    DISPLAY_USER_LOGIN_MENU ENDP
+
+    ADMIN_LOGIN PROC
+        ;ADMIN LOGIN - YY PART
+        ;Handle login at here if success continue to admin modules else ask user to try again
+        RET
+    ADMIN_LOGIN ENDP
+
+    USER_LOGIN PROC 
+        ;USER LOGIN - YY PART
+        ;Handle login at here if success continue to user modules else ask user to try again
+        RET
+    USER_LOGIN ENDP 
+
+    LOGINSUCCESS PROC
+        MOV AH, 09H
+        LEA DX, DISPLAY_LOGINS
+        INT 21H
+
+        RET
+    LOGINSUCCESS ENDP
 
     ;login as admin 
     ADMIN_MODULES PROC
@@ -2985,4 +3103,12 @@
 
         RET
     GET_CONFIRMATION ENDP
+
+    ;---display border line
+    BORDER PROC
+        MOV AH,09H
+        LEA DX,LINE
+        INT 21H
+        RET
+    BORDER ENDP
 END MAIN
