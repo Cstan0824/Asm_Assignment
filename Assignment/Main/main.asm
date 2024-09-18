@@ -208,8 +208,10 @@
 
     ;ADD_BOOK VARIABLES
     ADD_UNAVAILABLE DB "No more slot available to add new books. $"
-    PROMPT_INPUT_BOOKNAME DB "Enter new book name: $"
-    PROMPT_INPUT_BOOKAUTHOR DB "Enter book author for the new book: $"
+    PROMPT_INPUT_BOOKNAME_P1 DB "Enter new book name (cannot input '$"
+    PROMPT_INPUT_BOOKNAME_P2 DB "'): $"
+    PROMPT_INPUT_BOOKAUTHOR_P1 DB "Enter book author for the new book (cannot input '$"
+    PROMPT_INPUT_BOOKAUTHOR_P2 DB "'): $"
     PROMPT_NEW_BOOKNAME DB "New Book Name: $"
     PROMPT_NEW_BOOKAUTHOR DB "New Book Author: $"
     PROMPT_ADDED_BOOK DB "New book has been added to the catalog. $"
@@ -676,6 +678,7 @@
 
         ;CHECK IF THERES EMPTY SLOT
         MOV CX, 20                                      ;loop 20 books
+        MOV BOOK_ID_POSITION, 1
         XOR BX, BX                                      ;reset BX
             
         CHECK_EMPTY_SLOT:
@@ -689,6 +692,7 @@
             MOV AL, BOOK_SIZE                           
             ADD SI, AX                                  ;move to next book name
             ADD DI, AX                                  ;move to next book author
+            INC BOOK_ID_POSITION
         LOOP CHECK_EMPTY_SLOT
 
         JMP FULL_ERROR_MSG
@@ -697,8 +701,16 @@
             INPUT_NEW_BOOKNAME:
                 CALL NEW_LINE
                 MOV AH, 09H
-                LEA DX, PROMPT_INPUT_BOOKNAME             ;prompt user to input new book name
+                LEA DX, PROMPT_INPUT_BOOKNAME_P1             ;prompt user to input new book name
                 INT 21H
+
+                MOV AH, 02h
+                MOV DL, '$'
+                INT 21H
+
+                MOV AH, 09H
+                LEA DX, PROMPT_INPUT_BOOKNAME_P2
+                int 21h             
 
                 MOV AH, 0AH
                 LEA DX, NEW_BOOKNAME_INPUT              ;store user input to NEW_BOOKNAME_INPUT
@@ -709,10 +721,22 @@
                 ;check if the input is empty
                 MOV AL, byte ptr [BX]
                 CMP AL, 0DH
-                JE TEMP_NEW_NAME_EMPTY
+                JE TEMP_NEW_NAME_ERROR
             
                 MOV CX, 0                               ;reset CX
+                XOR AX, AX
                 MOV CL, INPUT_BOOKNAME_SIZE             ;store the actual input size to CL
+                VALIDATE_BOOKNAME_INPUT:
+                    MOV AL, BYTE PTR [BX]
+                    CMP AL, '$'
+                    JE TEMP_NEW_NAME_ERROR
+                    INC BX
+                LOOP VALIDATE_BOOKNAME_INPUT
+
+                ;IF NO ERRORS
+                LEA BX, NEW_BOOKNAME
+                MOV CX, 0 
+                MOV CL, INPUT_BOOKNAME_SIZE 
                 SAVE_TO_BOOKNAME_ARRAY:
                     MOV AL, byte ptr [BX]       
                     MOV [SI], AL                        ;store the input to BOOK_NAME_ARRAY
@@ -725,8 +749,16 @@
             INPUT_NEW_BOOKAUTHORS:
                 
                 MOV AH, 09H
-                LEA DX, PROMPT_INPUT_BOOKAUTHOR          ;prompt user to input new book author
+                LEA DX, PROMPT_INPUT_BOOKAUTHOR_P1          ;prompt user to input new book author
                 INT 21H
+
+                MOV AH, 02h
+                MOV DL, '$'
+                INT 21H
+
+                MOV AH, 09H
+                LEA DX, PROMPT_INPUT_BOOKNAME_P2    
+                int 21h
 
                 MOV AH, 0AH
                 LEA DX, NEW_BOOKAUTHORS_INPUT           ;store user input to NEW_BOOKAUTHORS_INPUT
@@ -737,10 +769,22 @@
                 ;check if the input is empty
                 MOV AL, byte ptr [BX]
                 CMP AL, 0DH
-                JE TEMP_NEW_NAME_EMPTY
+                JE TEMP_NEW_NAME_ERROR
 
                 MOV CX, 0                               ;reset CX
                 MOV CL, INPUT_BOOKAUTHORS_SIZE          ;store the actual input size to CL
+
+                VALIDATE_BOOKAUTHORS_INPUT:
+                    MOV AL, BYTE PTR [BX]
+                    CMP AL, '$'
+                    JE TEMP_NEW_NAME_ERROR
+                    INC BX
+                LOOP VALIDATE_BOOKAUTHORS_INPUT
+
+                ;IF NO ERRORS
+                LEA BX, NEW_BOOKAUTHORS
+                MOV CX, 0
+                MOV CL, INPUT_BOOKAUTHORS_SIZE
                 SAVE_TO_BOOKAUTHORS_ARRAY:
                     MOV AL, byte ptr [BX]       
                     MOV [DI], AL                        ;store the input to BOOK_AUTHORS
@@ -752,8 +796,8 @@
             CALL NEW_LINE
             JMP DISPLAY_NEW_BOOK
 
-            TEMP_NEW_NAME_EMPTY:
-                JMP NEW_NAME_EMPTY
+            TEMP_NEW_NAME_ERROR:
+                JMP NEW_NAME_ERROR
 
             DISPLAY_NEW_BOOK:
                 MOV AH, 09H
@@ -791,13 +835,44 @@
             CALL SYSTEM_PAUSE
             JMP QUIT_ADD_BOOK
 
-        NEW_NAME_EMPTY:
+        NEW_NAME_ERROR:
+            XOR AX, AX
+            MOV AL, BOOK_ID_POSITION
+            DEC AL
+            MOV CL, BOOK_SIZE
+            MUL CL
+            LEA SI, BOOK_NAME_ARRAY
+            ADD SI, AX
+
+            MOV CX, 30
+            REMOVE_ADDED_NEW_BOOKNAME:
+                MOV AL, '$'
+                MOV [SI], AL
+                INC SI
+            LOOP REMOVE_ADDED_NEW_BOOKNAME
+
+            XOR AX, AX
+            MOV AL, BOOK_ID_POSITION
+            DEC AL
+            MOV CL, BOOK_SIZE
+            MUL CL
+            LEA SI, BOOK_AUTHORS
+            ADD SI, AX
+
+            MOV CX, 30
+            REMOVE_ADDED_NEW_BOOKAUTHOR:
+                MOV AL, '$'
+                MOV [SI], AL
+                INC SI
+            LOOP REMOVE_ADDED_NEW_BOOKAUTHOR
+
             CALL NEW_LINE
             MOV AH, 09H
             LEA DX, INVALID_INPUT
             INT 21H
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
+
             JMP QUIT_ADD_BOOK
 
         QUIT_ADD_BOOK:

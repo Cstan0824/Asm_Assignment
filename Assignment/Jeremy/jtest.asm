@@ -2,970 +2,256 @@
 .STACK 100
 
 .DATA
-    ;MESSAGE
-    NL DB 0DH, 0AH, '$'
+    USER_MENU   DB "1. Borrow Book ", 0DH, 0AH
+                DB "2. Return Book ", 0DH, 0AH
+                DB "3. Logout ", 0DH, 0AH
+                DB "$"
+
     CHOICE_MSG DB "Enter your choice: $"
+    NL DB 0DH, 0AH, '$'
     INVALID_INPUT DB "Invalid Input! Please try again. $"
     COLOR_REMARK_MSG DB "Green: Book is not available to borrow$"
     SYSTEM_PAUSE_MSG DB "Press any key to continue...$"
+    overtime_msg db "Overtime!$"
+    not_overtime_msg db "Not Overtime!$"
+
+    ;Borrow, Return Book
     AVALIABLE_MSG DB "Available$"
+    NOT_AVALIABLE_MSG DB "Book Not Available to borrow$"
+    BOOK_RETURNED_MSG DB "Book Returned Successfully$"
+    BOOK_RETURN_FAILED DB "Book Return Failed$"
+    RETURN_BOOK_MSG DB "Do you want to return the book", 63, " (Y/N): $"
+    USER_NOT_AVALIABLE_MSG DB "User not available to borrow!$"
+    BORROW_RECORED_NOT_FOUND_MSG DB "Borrow Record not found!$"
+    BOOK_ID_NOT_EXISTS_MSG DB "Book ID not Exists$"
+
+    ;Penalty Payment
+    PAYMENT_MSG DB "Do you want to proceed payment", 63, " (Y/N): $"
+    PAYMENT_COMPLETE DB "Payment Complete$"
+    PAYMENT_FAILED DB "Payment Failed$"
+    PENALTY_CHARGE_MSG DB "Penalty Charge = $" 
+    PENALTY_CHARGE_FORMAT DB "               = $"
+    PENALTY_BASIC_RATE_INFO DB " (Penalty Basic Rate) $"
+    ;exp:  PENALTY CHARGE: RM 5.00 (Penalty Basic Rate) x 10 (Exceed Days) x 110% = RM 55.00 (Penalty Charge, MAX: RM 100.00)
+    PENALTY_RATE_INFO DB " (Penalty Rate) $"
+    DIFF_DAY_INFO DB " (Exceed Days) $"
+    RM DB "RM $"
+    ROUNDED_DECIMAL DB ".00$"
+    PENALTY_CHARGE_INFO DB " (Penalty Charge, MAX: RM 100.00) $"
 
 
     BOOK_NAME DB "Book: $"
     AUTHOR DB "Author: $"
-    RET_DATE DB "Return Date: $"
+    RET_DATE DB  "Return Date : $"
     CURR_DATE DB "Current Date: $"
-    WRITTEN_BY DB "written by $" 
     YEAR DB "2024$"
     DATE_DELIMETER DB '/'
 
     TEN DB 10
+	HUNDRED DB 100
     BOOK_SIZE DB 30
     USER_ID_SIZE DB 40
     DATE_SIZE DB 11
 
-    ;MENU
-    ADMIN_MENU  DB "1. Add Book ", 0DH, 0AH
-                DB "2. Edit Book ", 0DH, 0AH
-                DB "3. Delete Book ", 0DH, 0AH
-                DB "4. View Book[Borrow Record] ", 0DH, 0AH
-                DB "5. Logout ", 0DH, 0AH
-                DB "$"
-
     ;TABLE HDR
     BOOK_CATALOG_HEADER DB "| ID | Book Name", 20 DUP(" "), " | Author $"
-    BORROW_RECORD_HEADER DB "| ID | Book Name", 20 DUP(" "), " | Author",13 DUP(" ")," | Borrow By$"
-	BORROW_RECORD_LINE DB 79 DUP("=") , "$"
+    BORROW_RECORD_HEADER DB "| ID | Book Name", 20 DUP(" "), " | Author",23 DUP(" ")," | Borrow By $"
+	BORROW_RECORD_LINE DB 90 DUP("=") , "$"
     BOOK_CATALOG_LINE DB 70 DUP("=") , "$"
-    
-    ;DATA
-    ;Book Details
-	BOOK_COUNT DW 0
 
     ;Book ID
+    BOOK_COUNT DW 0
     BOOK_ID_ARRAY DB 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
+
     ;Book Name
     BOOK_NAME_ARRAY DB "To Kill a Mockingbird$", 8 DUP('$')
-	    DB "1984$", 25 DUP('$')
-	    DB "Pride and Prejudice$", 10 DUP('$')
-	    DB "The Great Gatsby$", 13 DUP('$')
-	    DB "Moby - Dick$", 18 DUP('$')
-	    DB "The Catcher in the Rye$", 7 DUP('$')
-	    DB "The Lord of the Rings$", 8 DUP('$')
-	    DB "The Alchemist$", 16 DUP('$')
-	    DB "Sapiens$", 22 DUP('$')
-	    DB "The Da Vinci Code$", 12 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-	;Author
-	BOOK_AUTHORS DB "Harper Lee$", 19 DUP('$')
-	    DB "George Orwell$", 16 DUP('$')
-	    DB "Jane Austen$", 18 DUP('$')
-	    DB "F. Scott Fitzgerald$", 10 DUP('$')
-	    DB "Herman Melville$", 14 DUP('$')
-	    DB "J.D. Salinger$", 16 DUP('$')
-	    DB "J.R.R. Tolkien$", 15 DUP('$')
-	    DB "Paulo Coelho$", 17 DUP('$')
-	    DB "Yuval Noah Harari$", 12 DUP('$')
-	    DB "Dan Brown$", 20 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
+	                DB "1984$", 25 DUP('$')
+	                DB "Pride and Prejudice$", 10 DUP('$')
+	                DB "The Great Gatsby$", 13 DUP('$')
+	                DB "Moby - Dick$", 18 DUP('$')
+	                DB "The Catcher in the Rye$", 7 DUP('$')
+	                DB "The Lord of the Rings$", 8 DUP('$')
+	                DB "The Alchemist$", 16 DUP('$')
+	                DB "Sapiens$", 22 DUP('$')
+	                DB "The Da Vinci Code$", 12 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
 
+	;Author
+	BOOK_AUTHORS    DB "Harper Lee$", 19 DUP('$')
+	                DB "George Orwell$", 16 DUP('$')
+	                DB "Jane Austen$", 18 DUP('$')
+	                DB "F. Scott Fitzgerald$", 10 DUP('$')
+	                DB "Herman Melville$", 14 DUP('$')
+	                DB "J.D. Salinger$", 16 DUP('$')
+	                DB "J.R.R. Tolkien$", 15 DUP('$')
+	                DB "Paulo Coelho$", 17 DUP('$')
+	                DB "Yuval Noah Harari$", 12 DUP('$')
+	                DB "Dan Brown$", 20 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
+                    DB 30 DUP('$')
 
     ;User Details
-    USER_ID_ARRAY DB "ALI_BABA$", 31 DUP('$')
-        DB "THE_BEST_DOGGAN$", 24 DUP('$')
-        DB "ABG_CHIN$", 31 DUP('$')
-        DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
-        DB "CSTANTAN$", 31 DUP('$')
-        DB "CSTAN$", 34 DUP('$')
-        DB "LIM_ZHI_PING$", 37 DUP('$')
-        DB "G.E.M.$", 33 DUP('$')
-        DB "JAY_CHOU$", 31 DUP('$')
-        DB "COLDPLAY$", 31 DUP('$')
-        
-    ;Borrow Status
-    BORROW_BY_ARRAY DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB "CSTAN$", 34 DUP('$')
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB "THE_BEST_DOGGAN$", 24 DUP('$')
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
+    USER_ID_ARRAY   DB "ALI_BABA$", 31 DUP('$')
+                    DB "THE_BEST_DOGGAN$", 24 DUP('$')
+                    DB "ABG_CHIN$", 31 DUP('$')
+                    DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
+                    DB "CSTANTAN$", 31 DUP('$')
+                    DB "CSTAN$", 34 DUP('$')
+                    DB "LIM_ZHI_PING$", 37 DUP('$')
+                    DB "G.E.M.$", 33 DUP('$')
+                    DB "JAY_CHOU$", 31 DUP('$')
+                    DB "COLDPLAY$", 31 DUP('$')
 
-    
+    ;Borrow Status
+     ;Borrow Status
+    BORROW_BY_ARRAY DB 40 DUP("$")
+                    DB "CSTAN$", 34 DUP('$')
+                    DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB "THE_BEST_DOGGAN$", 44 DUP('$')
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+        
     CURR_USER_ID DB "CSTAN$", 34 DUP('$')
 
     ;DATE
     DATE DB 11 DUP('$')
-    RET_DATE_ARRAY DB "01/09/2024$", "02/09/2024$","03/09/2024$","04/09/2024$","05/09/2024$","06/09/2024$","07/09/2024$", "08/09/2024$","09/09/2024$","10/09/2024$"
+    RET_DATE_ARRAY DB 11 DUP("$")
+                   DB "19/09/2024$"
+                   DB "30/06/2024$"
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB "30/05/2024$"
+                   DB 11 DUP("$") 
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
 	DAY_OF_MONTH DB 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-	
+
+	;current date
 	CURR_MONTH DB 0
 	CURR_DAY DB 0
+    CURR_YEAR DW 0
+
+    ;return date
 	RET_MONTH DB 0
 	RET_DAY DB 0
-
-    ;ADD_BOOK VARIABLES
-    ADD_UNAVAILABLE DB "No more slot available to add new books. $"
-
-    PROMPT_INPUT_BOOKNAME DB "Enter new book name: $"
-    PROMPT_INPUT_BOOKAUTHOR DB "Enter book author for the new book: $"
-    PROMPT_NEW_BOOKNAME DB "New Book Name: $"
-    PROMPT_NEW_BOOKAUTHOR DB "New Book Author: $"
-    PROMPT_ADDED_BOOK DB "New book has been added to the catalog. $"
+    RET_YEAR DW 0
+    ;diff day
+	DIFF_DAY DW 0
 
 
-    NEW_BOOKNAME_INPUT LABEL BYTE                   ;STRING INPUT
-    MAX_BOOKNAME_SIZE DB 30                         ;MAXIMUM BOOKNAME SIZE
-    INPUT_BOOKNAME_SIZE DB ?                        ;BOOKNAME ACTUAL INPUT SIZE
-    NEW_BOOKNAME DB 30 DUP('$')                     ;STORE BOOKNAME VARIABLE
+    PENALTY_CHARGE DB 5
+    HAS_PENALTY_CHARGE DB 0 ; 0 - no penalty charge, 1 - has penalty charge
+	PENALTY_EXTRA_RATE DB 10 ; extra 10% charge if the diff days exceed 14 days
+    MAX_PENALTY_CHARGE DB 100
+	PENALTY DB 7 DUP("$") ; stores the penalty charge - 100.00 (maximum)
 
-    NEW_BOOKAUTHORS_INPUT LABEL BYTE                ;STRING INPUT
-    MAX_BOOKAUTHORS_SIZE DB 40                      ;MAXIMUM BOOKAUTHORS SIZE
-    INPUT_BOOKAUTHORS_SIZE DB ?                     ;BOOKAUTHORS ACTUAL INPUT SIZE
-    NEW_BOOKAUTHORS DB 40 DUP('$')                  ;STORE BOOKAUTHORS VARIABLE
+    ;PENALTY MANAGEMENT VARIABLES
+    PENALTY_EXTRA_CHARGE_RATE_MSG DB "Enter the new penalty extra charge rate (extra 1% - 10%): $"
+    PENALTY_MAXIMUM_CHARGE_MSG DB "Enter the new penalty maximum charge (RM 80 - RM 100): $"
 
-    ;DELETE_BOOK VARIABLES
-    AVAILABLE_BOOKID_ARRAY DB 20 DUP(0)      ; Array to store indices of valid books
-
-    PROMPT_INPUT_DELETE_BOOKID DB "Enter the book ID to delete: $"
-    DELETE_BOOKID_INPUTBUFFER LABEL BYTE             
-    MAX_DELETE_BUFFER DB 3                      
-    ACTUAL_DELETE_BUFFER DB 0                
-    DELETE_BOOKID_BUFFER DB 3 DUP(0)                  
-    
-    DELETE_MULTIPLICANT DW ?
-    BOOK_ID_POSITION DB 0
-
-    PROMPT_BOOKID_ERROR DB "Invalid book ID. Please try again. $"
-    PROMPT_BOOK_ISDELETED DB " is deleted successfully! $"
-    PROMPT_BOOK_NOT_AVAILABLE DB "Book is currently borrowed, cannot delete!$"
-    PROMPT_BOOK_NOT_FOUND DB "Book not found! Please try again. $"
-    PROMPT_DELETE_BOOK_CONFIRMATION DB "Are you sure you want to delete this book? (Y/N) $"
-
-
-      
-
+    CURR_PENALTY_CHARGE_MSG DB "Current penalty charge (RM/DAY): RM $"
+    CURR_PENALTY_EXTRA_CHARGE_RATE_MSG DB "Penalty extra rate after 14 days (%): extra $"
+    CURR_PENALTY_MAXIMUM_CHARGE_MSG DB "Current penalty maximum charge: RM $"
+    PENALTY_CAUTION_MSG DB "==================== CAUTION ===================== $"
 .CODE
 
-    ;main function
     MAIN PROC
+
         MOV AX, @DATA
         MOV DS, AX
-        JMP START_ADMIN_MENU
-        START_MENU: 
-            ;MAIN MENU
-            JMP FIN
-            JMP FIN
 
-        
-            JMP FIN 
+        CALL GET_DATE
 
-        
-        START_ADMIN_MENU:
-        CALL DISPLAY_ADMIN_MENU
+        ;display date
+        LEA DX, DATE
+        MOV AH, 09H
+        INT 21H
 
-        MOV BX, '5'   ;Maximum value for user input
-        CALL GET_CHOICE
-        MOV BX, AX 
         CALL NEW_LINE
 
-        ;the length will only be in between 1 to 5
-        CMP BX , 1
-        JE ADD_BOOK_TO_CATALOG
-        CMP BX , 2
-        JE EDIT_BOOK_FROM_CATALOG
-        CMP BX , 3
-        JE DELETE_BOOK_FROM_CATALOG
-        CMP BX , 4
-        JE VIEW_BOOK_FROM_CATALOG
-        CMP BX , 5
-        JE BACK_TO_MAIN_MENU
+        LEA SI, BORROW_BY_ARRAY
 
+        XOR BX, BX
+        MOV CX, 20
 
+        DISPLAY_BORROWED_BOOK:
+            push cx
 
-        ADD_BOOK_TO_CATALOG:
-            CALL CLEAR_SCREEN
-            CALL ADD_BOOK
-            CALL CLEAR_SCREEN
-            JMP START_ADMIN_MENU
+            CMP byte ptr [SI], '$'
+            JE display_next_book
 
-        EDIT_BOOK_FROM_CATALOG:
-            CALL CLEAR_SCREEN
-            CALL EDIT_BOOK
-            CALL CLEAR_SCREEN
-            JMP START_ADMIN_MENU
+            CALL CALCULATE_DIFF_DAY
 
-        DELETE_BOOK_FROM_CATALOG:
-            CALL CLEAR_SCREEN
-            CALL REMOVE_BOOK
-            CALL CLEAR_SCREEN
-            JMP START_ADMIN_MENU
+            cmp diff_day, 30
+            jg display_overtime
 
-        VIEW_BOOK_FROM_CATALOG:
-            CALL CLEAR_SCREEN
-            CALL VIEW_BORROW_RECORD
-            CALL CLEAR_SCREEN
-            JMP START_ADMIN_MENU
+            mov ah, 09H
+            lea dx, not_overtime_msg
+            int 21H
 
-        BACK_TO_MAIN_MENU:
-            JMP START_MENU
+            jmp display_next_book
+
+            display_overtime:
+                mov ah, 09H
+                lea dx, overtime_msg
+                int 21H
+
+            display_next_book:
+                pop cx
+                inc bx
+                xor ax, ax
+                mov al, 40
+                add si, ax
+        LOOP DISPLAY_BORROWED_BOOK
+
 
         FIN:
         MOV AX, 4C00H
         INT 21H
+
     MAIN ENDP
-
-
-    DISPLAY_ADMIN_MENU PROC 
-        MOV AH, 09H
-        LEA DX, ADMIN_MENU
-        INT 21H
-        RET
-    DISPLAY_ADMIN_MENU ENDP
-
-    GET_CHOICE PROC 
-        INPUT_CHOICE:
-            MOV AH, 09H
-            LEA DX, CHOICE_MSG
-            INT 21H
-
-            MOV AH, 01H 
-            INT 21H
-
-            CMP AL, '1'
-            JB INVALID_CHOICE
-            CMP AL, BL ; maximum value is stored in BX
-            JA INVALID_CHOICE
-
-            JMP RET_CHOICE
-
-        INVALID_CHOICE:
-            CALL NEW_LINE
-
-            MOV AH, 09H
-            LEA DX, INVALID_INPUT
-            INT 21H
-
-            CALL NEW_LINE
-            JMP INPUT_CHOICE
-        RET_CHOICE:
-            XOR AH, AH
-            SUB AL, 30H
-        RET 
-    GET_CHOICE ENDP
-
-;============================================================================================================================================================================================================
-
-   ;JEREMY PART
-    ADD_BOOK PROC
-
-        ;Point to array
-        LEA SI, BOOK_NAME_ARRAY
-        LEA DI, BOOK_AUTHORS
-
-        ;CHECK IF THERES EMPTY SLOT
-        MOV CX, 20                                      ;loop 20 books
-        XOR BX, BX                                      ;reset BX
-            
-        CHECK_EMPTY_SLOT:
-            CMP byte ptr [SI], '$'                      ;check if book name is empty
-            JNE SKIP_CHECK_NEXT                         ;if not empty, skip to next slot
-            CMP byte ptr [DI], '$'                      ;check if book author is empty
-            JE ADD_BOOK_DETAILS                         ;if empty, add new book details
-    
-            SKIP_CHECK_NEXT:
-            MOV AX, 0                                   ;reset AX
-            MOV AL, BOOK_SIZE                           
-            ADD SI, AX                                  ;move to next book name
-            ADD DI, AX                                  ;move to next book author
-        LOOP CHECK_EMPTY_SLOT
-
-        JMP FULL_ERROR_MSG
-
-        ADD_BOOK_DETAILS:
-            INPUT_NEW_BOOKNAME:
-                CALL NEW_LINE
-                MOV AH, 09H
-                LEA DX, PROMPT_INPUT_BOOKNAME             ;prompt user to input new book name
-                INT 21H
-
-                MOV AH, 0AH
-                LEA DX, NEW_BOOKNAME_INPUT              ;store user input to NEW_BOOKNAME_INPUT
-                INT 21H
-
-                ;check if the input is empty
-                MOV BL, NEW_BOOKNAME[0]
-                CMP BL, 0DH
-                JE TEMP_NEW_NAME_EMPTY
-            
-                MOV CX, 0                               ;reset CX
-                MOV CL, INPUT_BOOKNAME_SIZE             ;store the actual input size to CL
-                SAVE_TO_BOOKNAME_ARRAY:
-                    MOV AL, NEW_BOOKNAME[BX]            
-                    MOV [SI], AL                        ;store the input to BOOK_NAME_ARRAY
-                    INC SI
-                    INC BX
-                LOOP SAVE_TO_BOOKNAME_ARRAY
-        
-            CALL NEW_LINE
-
-            INPUT_NEW_BOOKAUTHORS:
-                
-                MOV AH, 09H
-                LEA DX, PROMPT_INPUT_BOOKAUTHOR          ;prompt user to input new book author
-                INT 21H
-
-                MOV AH, 0AH
-                LEA DX, NEW_BOOKAUTHORS_INPUT           ;store user input to NEW_BOOKAUTHORS_INPUT
-                INT 21H
-
-                ;check if the input is empty
-                MOV BL, NEW_BOOKAUTHORS[0]
-                CMP BL, 0DH
-                JE TEMP_NEW_NAME_EMPTY
-
-                MOV CX, 0                               ;reset CX
-                MOV CL, INPUT_BOOKAUTHORS_SIZE          ;store the actual input size to CL
-                XOR BX,BX
-                SAVE_TO_BOOKAUTHORS_ARRAY:
-                    MOV AL, NEW_BOOKAUTHORS[BX]         
-                    MOV [DI], AL                        ;store the input to BOOK_AUTHORS
-                    INC DI
-                    INC BX
-                LOOP SAVE_TO_BOOKAUTHORS_ARRAY
-            CALL NEW_LINE
-            CALL NEW_LINE
-            CALL NEW_LINE
-            JMP DISPLAY_NEW_BOOK
-
-            TEMP_NEW_NAME_EMPTY:
-                JMP NEW_NAME_EMPTY
-
-            DISPLAY_NEW_BOOK:
-                MOV AH, 09H
-                LEA DX, PROMPT_NEW_BOOKNAME             ;display new book name  
-                INT 21H
-                LEA DX, NEW_BOOKNAME
-                INT 21H
-                
-                CALL NEW_LINE
-
-                LEA DX, PROMPT_NEW_BOOKAUTHOR           ;display new book author
-                INT 21H
-                LEA DX, NEW_BOOKAUTHORS
-                INT 21H
-
-                CALL NEW_LINE
-                CALL NEW_LINE
-                LEA DX, PROMPT_ADDED_BOOK               ;display new book added to catalog
-                INT 21H
-
-            CALL NEW_LINE
-            CALL NEW_LINE
-            CALL SYSTEM_PAUSE
-            JMP QUIT_ADD_BOOK
-
-        FULL_ERROR_MSG:
-            CALL NEW_LINE
-            MOV AH, 09H
-            LEA DX, ADD_UNAVAILABLE                          ;display error message
-            INT 21H
-            CALL NEW_LINE
-            CALL SYSTEM_PAUSE
-            JMP QUIT_ADD_BOOK
-
-        NEW_NAME_EMPTY:
-            CALL NEW_LINE
-            MOV AH, 09H
-            LEA DX, INVALID_INPUT
-            INT 21H
-            CALL NEW_LINE
-            CALL SYSTEM_PAUSE
-            JMP QUIT_ADD_BOOK
-
-        QUIT_ADD_BOOK:
-            RET
-    ADD_BOOK ENDP
-
-    ;JEREMY PART
-    REMOVE_BOOK PROC
-
-        CALL DISPLAY_BOOK_CATALOG
-        CALL NEW_LINE
-
-        get_book_id:
-            ; Prompt user to enter Book ID
-            mov ah, 09h
-            lea dx, PROMPT_INPUT_DELETE_BOOKID
-            int 21h
-
-            mov ah, 0Ah
-            lea dx, DELETE_BOOKID_INPUTBUFFER
-            int 21H
-
-            
-        process_input:
-            lea si, DELETE_BOOKID_BUFFER
-            xor ax, ax
-
-            mov al, byte ptr [si]               ; Get the first digit  
-            cmp al, 0Dh                         ; Check if Enter was pressed
-            je temp_invalid_input               ; If Enter was pressed too early, it's invalid input
-            sub al, 30H                         ; Convert ASCII '0'-'9' to 0-9
-            mov bl, al                          ; Store the first digit
-
-            inc si                              ; Move to the next character
-            mov al, byte ptr [si]               ; Get the next character (second digit or Enter)
-            cmp al, 0Dh                         ; Check if Enter was pressed for single digit
-            je one_digit_book_id                ; If Enter, we have a single-digit input
-
-            sub al, 30H                         ; Convert ASCII '0'-'9' to 0-9
-            mov bh, al                          ; Store the second digit in bh
-
-            ; Combine the digits into a two-digit number
-            xor ax, ax
-            mov al, bl
-            mul TEN
-            add al, bh                          ; Combine the digits into a two-digit number
-            jmp process_input_into_bookid        ; Skip the single digit case
-
-        one_digit_book_id:
-            ; If it's a single digit, store it in al
-            xor ax, ax                      ; Clear ax
-            mov al, bl                      ; Store the single digit in al
-
-        process_input_into_bookid:
-            ; Validate the range (1-20)
-            cmp al, 1                           ; Check if Book ID is at least 1
-            jl temp_invalid_input               ; Invalid if less than 1
-            cmp al, 20                          ; Check if Book ID is less than or equal to 20
-            jg temp_invalid_input               ; Invalid if greater than 20
-            
-            mov BOOK_ID_POSITION, al            ; Store the valid Book ID
-            jmp check_book_availability         ; Continue to check the availability of the book
-
-
-        temp_invalid_input:
-            ; If invalid input, jump to invalid input handler
-            jmp invalid_bookid_input
-
-        ;if valid input, check if book is borrowed
-        check_book_availability:
-            ;check if the book name is not empty
-            check_book_name:
-            mov al, BOOK_ID_POSITION
-            dec al                  ; Book ID starts at 1, so subtract 1 to get the correct index
-            mov cl, BOOK_SIZE       ; 30 bytes for each book name
-            mul cl                  ; al = al * 30
-            lea SI, BOOK_NAME_ARRAY     
-            add SI, ax              ; Point to the correct book name
-
-            cmp byte ptr [SI], '$'
-            je temp_no_book_found        ; If book name is empty, the book does not exist
-            jmp check_borrow_status
-
-            temp_no_book_found:
-                jmp no_book_found
-
-            ; Check if the book is borrowed
-            check_borrow_status:
-            mov al, BOOK_ID_POSITION
-            dec al                  ; Book ID starts at 1, so subtract 1 to get the correct index
-            mov cl, USER_ID_SIZE    ; 40 bytes for each borrow status
-            mul cl                  ; al = al * 40
-            lea SI, BORROW_BY_ARRAY
-            add SI, ax              ; Point to the correct borrow status
-
-            cmp byte ptr [SI], '$'
-            jne temp_book_borrowed       ; If the book is borrowed, display error message
-            jmp display_book_information
-
-        temp_book_borrowed:
-            jmp book_borrowed
-
-        display_book_information:
-            call new_line
-            CALL NEW_LINE
-
-            ; Display book name
-            mov ah, 09h
-            lea dx, BOOK_NAME
-            int 21h
-
-            ;display space
-            mov ah, 02h
-            mov dl, 20h
-            int 21h
-
-            mov al, BOOK_ID_POSITION
-            dec al
-            mov cl, 30        ; 30 bytes for each book name/author
-            mul cl            ; al = al * 30
-            lea SI, BOOK_NAME_ARRAY
-            add SI, ax        ; Point to the correct book name
-
-            mov cx, 30
-            display_book_name:
-                mov ah, 02H
-                cmp byte ptr[SI], '$'
-                je skip_next_bn
-                mov dl, byte ptr[SI]
-                int 21H
-                skip_next_bn:
-                    inc SI
-            loop display_book_name
-
-            call new_line
-
-            ; Display book author
-            mov ah, 09h
-            lea dx, AUTHOR
-            int 21h
-
-            ;display space
-            mov ah, 02h
-            mov dl, 20h
-            int 21h
-
-            mov al, BOOK_ID_POSITION
-            dec al
-            mov cl, 30
-            mul cl
-            lea SI, BOOK_AUTHORS
-            add SI, ax        ; Point to the correct author
-
-            mov cx, 30
-            display_book_author:
-                mov ah, 02H
-                cmp byte ptr[SI], '$'
-                je skip_next_ba
-                mov dl, byte ptr[SI]
-                int 21H
-                skip_next_ba:
-                    inc SI
-            loop display_book_author
-
-            ; Display new line
-            CALL NEW_LINE
-            CALL NEW_LINE
-
-            jmp delete_confirmation
-
-        delete_confirmation:
-            ; Print confirmation message
-            mov ah, 09h
-            lea dx, PROMPT_DELETE_BOOK_CONFIRMATION
-            int 21h
-
-            ; Get user input
-            mov ah, 01h
-            int 21h
-
-            cmp al, 'Y'
-            je execute_delete
-            cmp al, 'y'
-            je execute_delete
-            cmp al, 'N'
-            jmp end_delete_book
-            cmp al, 'n'
-            jmp end_delete_book
-
-            CALL NEW_LINE
-            mov ah, 09h
-            lea dx, INVALID_INPUT
-            jmp delete_confirmation
-
-        execute_delete:
-            CALL NEW_LINE
-            CALL NEW_LINE
-            ; Delete book: replace book name and author with '$'
-            mov al, BOOK_ID_POSITION
-            dec al
-            mov cl, 30        ; 30 bytes for each book name/author
-            mul cl            ; al = al * 30
-            lea SI, BOOK_NAME_ARRAY
-            add SI, ax        ; Point to the correct book name
-
-            ; Replace book name with '$'
-            mov cx, 30
-            del_name:
-                mov ah, 02H
-                cmp byte ptr[SI], '$'
-                je delete_next_alphabet
-                mov dl, byte ptr[SI]
-                int 21H
-                delete_next_alphabet:
-                    mov byte ptr [SI], '$'
-                    inc SI
-            loop del_name
-
-            ;print written by
-            mov ah, 02h
-            mov dl, 20h                 ; Print a space
-            int 21h
-
-            mov ah, 09h
-            lea dx, WRITTEN_BY          ; Print "written by"
-            int 21h
-
-            mov ah, 02h
-            mov dl, 20h                 ; Print a space
-            int 21h
-
-            ; Replace author with '$'
-            mov al, BOOK_ID_POSITION
-            dec al
-            mov cl, 30
-            mul cl
-            lea SI, BOOK_AUTHORS
-            add SI, ax        ; Point to the correct author
-
-            mov cx, 30
-            del_author:
-                mov ah, 02H
-                cmp byte ptr[SI], '$'
-                je delete_next_alphabet1
-                mov dl, byte ptr[SI]
-                int 21H
-                delete_next_alphabet1:
-                    mov byte ptr [SI], '$'
-                    inc SI
-            loop del_author
-
-            ; Print success message
-            lea dx, PROMPT_BOOK_ISDELETED
-            mov ah, 09h
-            int 21h
-
-            ; Print new line
-            CALL NEW_LINE
-            CALL SYSTEM_PAUSE
-            jmp end_delete_book
-
-        no_book_found:
-            ; Print error message if book is not found
-            lea dx, PROMPT_BOOK_NOT_FOUND
-            mov ah, 09h
-            int 21h
-
-            ; Print new line
-            CALL NEW_LINE
-            CALL SYSTEM_PAUSE
-            jmp end_delete_book
-
-        book_borrowed:
-            ; Print error message if book is borrowed
-            lea dx, PROMPT_BOOK_NOT_AVAILABLE
-            mov ah, 09h
-            int 21h
-
-            ; Print new line
-            CALL NEW_LINE
-            CALL SYSTEM_PAUSE
-            jmp end_delete_book
-
-        invalid_bookid_input:
-            ; Print error message for invalid input
-            mov ah, 09h
-            lea dx, PROMPT_BOOKID_ERROR
-            int 21h
-
-            ; Print new line
-            CAll NEW_LINE
-            CALL SYSTEM_PAUSE
-            jmp end_delete_book
-
-        end_delete_book:
-            RET
-    REMOVE_BOOK ENDP
-
-;============================================================================================================================================================================================================
-    ;GAN PART
-    EDIT_BOOK PROC
-        RET
-    EDIT_BOOK ENDP
-
-;============================================================================================================================================================================================================
-
-    ;CSTAN PART - View Borrow Details , buat pagination kalau ada masa 
-    VIEW_BORROW_RECORD PROC 
-        ;Point to array
-        LEA SI, BOOK_NAME_ARRAY
-        LEA DI, BOOK_AUTHORS
-
-        CALL NEW_LINE
-        
-        ;DISPLAY HEADER
-        MOV AH, 09H
-        LEA DX, BORROW_RECORD_HEADER    
-        INT 21H
-
-        CALL NEW_LINE
-        
-        ;DISPLAY LINE
-        MOV AH, 09H
-        LEA DX, BORROW_RECORD_LINE
-        INT 21H
-
-        CALL NEW_LINE
-        
-        MOV CX, 20
-        XOR BX, BX
-        MOV BOOK_COUNT, 0
-        DISPLAY_BOOKS:
-            CMP BYTE PTR [SI], '$' ; check if the book name exists
-            JNE CURRENT_BOOK
-
-            JMP NEXT_BOOK
-            CURRENT_BOOK:
-                PUSH BX
-                ;Check if book is available to borrow
-                MOV AX, BX 
-                MUL USER_ID_SIZE 
-                MOV BX, AX
-                INC BX ; idk why need this but it works
-                CMP BORROW_BY_ARRAY[BX], '$'   ;Book available to borrow if this return true
-                JE BOOK_AVAILABLE_TO_BORROW
-                PUSH CX ;store the value of CX to stack temporarily
-                ;Display Read is not available - ez chatgpt
-                mov ah, 09h          ; BIOS function to write character and attributes
-                mov al, ' '          ; Character to display
-                mov bh, 0            ; Page number (usually 0)
-                mov bl, 02h          ; Attribute byte (foreground: yellow, background: black)
-                mov CX, 80          ; Number of times to print the character
-                int 10h              ; Call BIOS interrupt
-
-                POP CX ; get back the cx value from stack
-            BOOK_AVAILABLE_TO_BORROW:
-            POP BX ; get back the value of BX[index] from stack 
-            PUSH BX ; store the value of BX to stack again for future use temporarily  
-            
-            ;Delimeter
-            MOV AH, 02H
-            MOV DL, '|'
-            INT 21H
-            
-            ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
-            
-            ;Book_ID
-            MOV AX, 0
-            MOV AL, BOOK_ID_ARRAY[BX]
-            DIV TEN
-            MOV BX, AX
-            
-            MOV AH, 02H
-            MOV DL, BL
-            ADD DL, 30H
-            INT 21H
-            
-            MOV AH, 02H
-            MOV DL, BH
-            ADD DL, 30H
-            INT 21H
-            
-            ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
-            
-            ;Delimeter
-            MOV AH, 02H
-            MOV DL, '|'
-            INT 21H
-
-            ;Space
-            MOV AH, 02H
-            MOV DL, ' '
-            INT 21H
-            
-            ;Book_Name
-            MOV AH, 09H
-            LEA DX, [SI]
-            INT 21H
-
-            
-            
-            MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
-            
-            ;Count the string length
-            COUNT_BOOK_NAME_SPACES:
-                CMP BYTE PTR [SI], '$' ; apa ini
-                JE DONE_BOOK_NAME_SPACES
-                DEC BX
-                INC SI
-                JMP COUNT_BOOK_NAME_SPACES
-            DONE_BOOK_NAME_SPACES:
-                MOV AH, 02H
-                ;EXP: SI(original SI) = SI(currnet SI) - (29(total length) - BX(space length))
-                ADD SI, BX 
-                SUB SI, 29
-
-            ADD_SPACES_AFTER_NAME:
-                CMP BX, 0
-                JE DONE_ADD_BOOK_NAME_SPACES
-                MOV DL, ' '
-                INT 21H
-                DEC BX
-            
-                JMP ADD_SPACES_AFTER_NAME
-
-            DONE_ADD_BOOK_NAME_SPACES:
-            
-            
-                ;Space
-                MOV AH, 02H
-                MOV DL, ' '
-                INT 21H
-                
-                ;Delimeter
-                MOV AH, 02H
-                MOV DL, '|'
-                INT 21H
-
-                ;Space
-                MOV AH, 02H
-                MOV DL, ' '
-                INT 21H
-                
-                ;Author
-                MOV AH, 09H
-                LEA DX, [DI]
-                INT 21H 
-
-                MOV BX, 20 ;should use 29 but since not enough space for borrow by user so i use 20 instead
-                ;suspose to be 30 but 1 is for delimeter - from copilot
-                
-            ;Count the string length
-            COUNT_AUTHOR_SPACES:
-                CMP BYTE PTR [DI], '$' ; apa ini
-                JE DONE_AUTHOR_SPACES
-                DEC BX
-                INC DI
-                JMP COUNT_AUTHOR_SPACES
-            DONE_AUTHOR_SPACES:
-                MOV AH, 02H
-                ;EXP: DI(original DI) = DI(currnet DI) - (29(total length) - BX(space length))
-                ADD DI, BX 
-                SUB DI, 20
-
-            ADD_SPACES_AFTER_AUTHOR:
-                CMP BX, 0
-                JE DONE_ADD_AUTHOR_SPACES
-                MOV DL, ' '
-                INT 21H
-                DEC BX
-                JMP ADD_SPACES_AFTER_AUTHOR
-
-            DONE_ADD_AUTHOR_SPACES:
-
-                ;Delimeter
-                MOV AH, 02H
-                MOV DL, '|'
-                INT 21H
-
-                ;Space
-                MOV AH, 02H
-                MOV DL, ' '
-                INT 21H
-
-                ;Borrow By
-                MOV AX, BOOK_COUNT
-                MUL USER_ID_SIZE
-                MOV BX , AX
-                MOV AL , BORROW_BY_ARRAY[BX]
-                CMP AL , '$'
-                JE AVAILABLE_TO_BORROW
-
-                MOV AH, 09H
-                LEA DX, BORROW_BY_ARRAY[BX]
-                INT 21H
-
-                JMP DONE_DISPLAY_BORROW_STATUS
-
-
-            AVAILABLE_TO_BORROW:
-                MOV AH, 09H
-                LEA DX, AVALIABLE_MSG
-                INT 21H
-
-            DONE_DISPLAY_BORROW_STATUS:
-            
-            CALL NEW_LINE
-
-            ;jmp to next value
-            POP BX ; get back the value of BX from stack
-            INC BOOK_COUNT
-            NEXT_BOOK:
-
-                XOR AX, AX
-                MOV AL, BOOK_SIZE
-                ADD SI, AX
-                ADD DI, AX
-
-                INC BX
-
-                DEC CX
-                CMP CX, 0
-            JE END_DISPLAY_BOOKS
-
-        JMP DISPLAY_BOOKS
-
-        END_DISPLAY_BOOKS:
-
-            CALL NEW_LINE
-
-            ;Display red
-            MOV AH,09H 
-            MOV AL, ' ' 
-            MOV BH, 0
-            MOV BL, 02H 
-            MOV CX, 5 
-            INT 10H
-            
-            
-            MOV AH, 09H 
-            LEA DX, COLOR_REMARK_MSG
-            INT 21H
-            
-            CALL NEW_LINE
-            CALL SYSTEM_PAUSE
-
-            RET
-    VIEW_BORROW_RECORD ENDP
 
     ;New Line
     NEW_LINE PROC
@@ -991,5 +277,170 @@
         RET
     SYSTEM_PAUSE ENDP
 
-    
+    CALCULATE_DIFF_DAY PROC
+        MOV DIFF_DAY, 0
+        LEA SI, RET_DATE_ARRAY
+
+        ;move to selected book's return date
+        ;new SI = old SI + (selected Index * sizeOf(value))
+        XOR AX, AX
+        MOV AL, BL ;get BX - user currently borrowed book
+        MUL DATE_SIZE
+        ADD SI, AX  
+
+        ;get return day
+        MOV AL, [SI]
+        SUB AL, 30H
+        MUL TEN
+        MOV RET_DAY, AL
+
+        INC SI
+
+        MOV AL, [SI]
+        SUB AL, 30H
+        ADD RET_DAY, AL
+
+        ADD SI, 2
+
+        ;get return month
+        MOV AL, [SI]
+        SUB AL, 30H
+        MUL TEN
+        MOV RET_MONTH, AL
+
+        INC SI
+
+        MOV AL, [SI]
+        SUB AL, 30H
+        ADD RET_MONTH, AL
+
+        XOR BX, BX
+        XOR CX, CX  
+        XOR AX, AX
+
+        ;Count Difference Day
+        LEA SI, DAY_OF_MONTH
+        MOV BL, CURR_DAY
+
+        MOV CL, CURR_MONTH
+        DEC CX 
+        CMP CX, 0 ;add day only if January
+        JE END_COUNT_CURR_DAY_OF_MONTHS   
+        COUNT_CURR_DAY_OF_MONTHS:
+            MOV AL, [SI]  
+            ADD BX, AX
+            INC SI
+        LOOP COUNT_CURR_DAY_OF_MONTHS   
+        END_COUNT_CURR_DAY_OF_MONTHS:
+
+        LEA SI, DAY_OF_MONTH
+        MOV AL, RET_DAY
+        SUB BX, AX
+        MOV CL, RET_MONTH
+        DEC CX
+        CMP CX, 0 ;add day only if January
+        JE END_COUNT_RET_DAY_OF_MONTHS
+        COUNT_RET_DAY_OF_MONTHS:
+            MOV AL, [SI]
+            SUB BX, AX
+            CMP BX, 0
+            JS NOT_EXCEED_RET_DATE    
+            INC SI
+        LOOP COUNT_RET_DAY_OF_MONTHS
+
+        END_COUNT_RET_DAY_OF_MONTHS:
+            ;store the difference day to DIFF_DAY
+            XOR CX, CX
+            MOV DIFF_DAY, BX
+
+        NOT_EXCEED_RET_DATE:
+        RET
+    CALCULATE_DIFF_DAY ENDP
+
+    ;get current date and store it to DATE
+    GET_DATE PROC
+        ;Get current date
+        ;DL - day
+        ;DH - month
+        MOV AH, 2Ah
+        INT 21h 
+        ;MOV DL, 14 ; TESTING
+        ;MOV DH, 9 ; TESTING
+        MOV CURR_MONTH, DH
+        MOV CURR_DAY, DL
+        MOV CURR_YEAR, CX
+
+
+
+        LEA SI, DATE      
+
+        ;Store Day
+        XOR AX, AX
+        MOV AL, DL
+        DIV TEN
+        MOV BX, AX
+
+        ADD BL, 30H
+        MOV [SI], BL
+        INC SI
+
+        ADD BH, 30H
+        MOV [SI], BH
+        INC SI
+
+        ; Store '/'
+        MOV BL, DATE_DELIMETER
+        MOV [SI], BL
+        INC SI
+
+        ;Store month
+        XOR AX, AX
+        MOV AL, DH
+        DIV TEN
+        MOV BX, AX 
+
+        ADD BL, 30H
+        MOV [SI], BL
+        INC SI
+
+        ADD BH, 30H
+        MOV [SI], BH
+        INC SI
+
+        ;Store '/'
+        MOV BL, DATE_DELIMETER
+        MOV [SI], BL
+        INC SI
+
+        ;Store year
+        XOR BX, BX
+        MOV AX, CURR_YEAR
+        XOR CX, CX
+        READ_CURR_YEAR:
+            INC CX
+            DIV TEN
+            MOV BX, AX
+
+            XOR AL, AL ; clear integral part and push remainder only to stack
+            PUSH AX 
+
+            CMP BL, 0
+            JE END_READ_CURR_YEAR
+
+            XOR BH, BH ; clear remainder part and calculate only integral part
+            MOV AX, BX 
+        JMP READ_CURR_YEAR
+
+        END_READ_CURR_YEAR:
+
+        STORE_CURR_YEAR:
+            POP BX
+            ADD BH, 30H
+            MOV [SI], BH 
+            INC SI
+        LOOP STORE_CURR_YEAR
+        RET
+    GET_DATE ENDP
+
+
 END MAIN
