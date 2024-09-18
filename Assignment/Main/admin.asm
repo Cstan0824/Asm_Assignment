@@ -1163,7 +1163,9 @@
 
 
     ;GAN PART
-   EDIT_BOOK PROC
+  EDIT_BOOK PROC
+
+    EDIT_BOOK_START:
 
         CALL DISPLAY_BOOK_CATALOG
         CALL NEW_LINE
@@ -1184,7 +1186,7 @@
         CMP AL , 2
         JE DOUBLE_BOOK_ID
 
-        RET
+        JMP EDIT_BOOK_START
 
         SINGLE_BOOK_ID:
             MOV BL , EDIT_BOOKID_INPUT[2]         ;GET THE FIRST DIGIT 
@@ -1225,7 +1227,7 @@
             LEA DX, BOOKNOTFOUND
             INT 21H
 
-            RET
+            JMP EDIT_BOOK_START
 
         BOOK_FOUND:
             CALL NEW_LINE
@@ -1251,7 +1253,7 @@
             JE EDIT_BOOK_NAME
 
             CMP EDIT_FIELD_CHOICE, 'A'
-            JE EDIT_BOOK_AUTHOR
+            JE HOLD_EDIT_BOOK_AUTHOR
 
             CALL NEW_LINE 
 
@@ -1259,7 +1261,10 @@
             LEA DX, EDIT_UNAVAILABLE_CHOICE
             INT 21H
 
-            RET             ;CAN ALSO RETURN TO BOOK FOUND
+            JMP BOOK_FOUND            ;CAN ALSO RETURN TO BOOK FOUND
+
+        HOLD_EDIT_BOOK_AUTHOR:
+            JMP EDIT_BOOK_AUTHOR    
 
         BOOK_NOT_EXISTED_YET:
             CALL NEW_LINE
@@ -1268,7 +1273,7 @@
             LEA DX, BOOKNOTFOUND
             INT 21H
 
-            RET
+            JMP EDIT_BOOK_START
         
         EDIT_BOOK_NAME:
             CALL NEW_LINE
@@ -1281,8 +1286,25 @@
             LEA DX, EDITED_NEW_BOOKNAME
             INT 21H
 
+            MOV AL, EDITED_NEW_BOOKNAME[1]   ; Length of the entered string
+            CMP AL, 0                        ; Check if the length is 0
+            JE INVALID_BOOK_NAME_EDIT             ; If 0, jump to the error handler
+
+            LEA BX  , EDITED_NEW_BOOKNAME[2]
+            MOV CL , EDITED_NEW_BOOKNAME[1]
+
+            VALIDATE_BOOK_NAME:
+                MOV AL , [BX]
+                CMP AL , '$'
+                JE INVALID_BOOK_NAME_EDIT
+                INC BX
+                DEC CL 
+            JNZ VALIDATE_BOOK_NAME
+
+
+
             MOV AX , SI 
-            MUL BOOK_SIZE       ;POTENTIAL PROBLEM
+            MUL BOOK_SIZE      
 
             LEA DI , BOOK_NAME_ARRAY
             ADD DI , AX
@@ -1311,6 +1333,14 @@
 
             RET
 
+        INVALID_BOOK_NAME_EDIT:
+            ; Handle invalid book name (empty or contains '$')
+            CALL NEW_LINE
+            MOV AH, 09H
+            LEA DX, INVALID_INPUT
+            INT 21H
+            JMP EDIT_BOOK_NAME                ; Re-prompt the user to enter a valid name
+
         EDIT_BOOK_AUTHOR:
             CALL NEW_LINE
 
@@ -1321,6 +1351,23 @@
             MOV AH, 0AH
             LEA DX, EDITED_NEW_AUTHOR
             INT 21H
+
+            MOV AL, EDITED_NEW_AUTHOR[1]   ; Length of the entered string
+            CMP AL, 0                        ; Check if the length is 0
+            JE INVALID_AUTHOR_EDIT             ; If 0, jump to the error handler
+
+            LEA BX  , EDITED_NEW_AUTHOR[2]
+            MOV CL , EDITED_NEW_AUTHOR[1]
+
+            VALIDATE_AUTHOR:
+                MOV AL , [BX]
+                CMP AL , '$'
+                JE INVALID_AUTHOR_EDIT
+                INC BX
+                DEC CL
+            JNZ VALIDATE_AUTHOR
+
+
 
             MOV AX , SI
             MUL BOOK_SIZE
@@ -1351,6 +1398,15 @@
             LOOP REPLACE_BOOK_AUTHOR
 
             RET
+
+            INVALID_AUTHOR_EDIT:
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, INVALID_INPUT
+            INT 21H
+
+            JMP EDIT_BOOK_AUTHOR              ; Re-prompt the user to enter a valid author name
 
     EDIT_BOOK ENDP
 
