@@ -28,7 +28,6 @@
     DB "4. Back ", 0DH, 0AH
     DB "$"
             
-    CHOICE_MSG DB "Enter your choice: $"
 
     NL DB 0DH, 0AH, '$'
 
@@ -40,7 +39,6 @@
     AVALIABLE_MSG DB "Available$"
 
     ;Borrow, Return Book
-    AVALIABLE_MSG DB "Available$"
     NOT_AVALIABLE_MSG DB "Book Not Available to borrow$"
     BOOK_RETURNED_MSG DB "Book Returned Successfully$"
     BOOK_RETURN_FAILED DB "Book Return Failed$"
@@ -75,21 +73,6 @@
     BOOK_SIZE DB 30
     USER_ID_SIZE DB 40
     DATE_SIZE DB 11
-
-    ;MENU
-    ADMIN_MENU  DB "1. Add Book ", 0DH, 0AH
-                DB "2. Edit Book ", 0DH, 0AH
-                DB "3. Delete Book ", 0DH, 0AH
-                DB "4. View Book[Borrow Record] ", 0DH, 0AH
-                DB "5. Penalty Management ", 0DH, 0AH
-                DB "6. Logout ", 0DH, 0AH
-                DB "$"
-
-    PENALTY_MENU DB "1. Change Penalty Charge ", 0DH, 0AH
-                DB "2. Change Penalty Extra Charge Rate ", 0DH, 0AH
-                DB "3. Change Penalty Maximum Charge ", 0DH, 0AH
-                DB "4. Back ", 0DH, 0AH
-                DB "$"
 
     ;TABLE HDR
     BOOK_CATALOG_HEADER DB "| ID | Book Name", 20 DUP(" "), " | Author $"
@@ -186,7 +169,26 @@
 
     ;DATE
     DATE DB 11 DUP('$')
-    RET_DATE_ARRAY DB "01/09/2024$", "02/09/2024$","03/09/2024$","04/09/2024$","05/09/2024$","06/09/2024$","07/09/2024$", "08/09/2024$","09/09/2024$","10/09/2024$"
+    RET_DATE_ARRAY DB 11 DUP("$")
+                   DB "29/08/2024$"
+                   DB "03/09/2024$"
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB "07/09/2024$"
+                   DB 11 DUP("$") 
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
 	DAY_OF_MONTH DB 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 	
 	CURR_MONTH DB 0
@@ -200,7 +202,7 @@
     ;diff day
 	DIFF_DAY DW 0
 
-    
+    SELECT_BOOK_ID_TO_BORROW_MSG DB "Select the book ID you want to borrow: $"
 
     ;ADD_BOOK VARIABLES
     ADD_UNAVAILABLE DB "No more slot available to add new books. $"
@@ -275,9 +277,9 @@
     INTEGER DW 0
 
     ;PENALTY MANAGEMENT VARIABLES
-    PENALTY_CHARGE_MSG DB "Enter the new penalty charge (RM 1 - RM 5): $"
-    PENALTY_EXTRA_CHARGE_RATE_MSG DB "Enter the new penalty extra charge rate (extra 1% - 10%): $"
-    PENALTY_MAXIMUM_CHARGE_MSG DB "Enter the new penalty maximum charge (RM 80 - RM 100): $"
+    CHANGE_PENALTY_CHARGE_MSG DB "Enter the new penalty charge (RM 1 - RM 5): $"
+    CHANGE_PENALTY_EXTRA_RATE_MSG DB "Enter the new penalty extra charge rate (extra 1% - 10%): $"
+    CHANGE_PENALTY_MAXIMUM_CHARGE_MSG DB "Enter the new penalty maximum charge (RM 80 - RM 100): $"
 
     CURR_PENALTY_CHARGE_MSG DB "Current penalty charge (RM/DAY): RM $"
     CURR_PENALTY_EXTRA_CHARGE_RATE_MSG DB "Penalty extra rate after 14 days (%): extra $"
@@ -298,7 +300,9 @@
         MOV DS, AX
 
         START_MAIN_MENU:
+        CALL CLEAR_SCREEN
         CALL DISPLAY_MAIN_MENU
+        MOV BX, '3'   ;Maximum value for user input
         CALL GET_CHOICE
 
         CMP AX, 1
@@ -318,9 +322,11 @@
 
         REDIRECT_TO_ADMIN_MODULES:
             ;LOGIN
+            CALL CLEAR_SCREEN
             CALL ADMIN_MODULES
             JMP START_MAIN_MENU
         REDIRECT_TO_USER_MODULES:
+            CALL CLEAR_SCREEN
             CALL USER_MODULES
             JMP START_MAIN_MENU
 
@@ -359,7 +365,7 @@
         CMP BX , 5
         JE CHANGE_PENALTY_DETAILS
         CMP BX , 6
-        JE BACK_TO_MAIN_MENU
+        JE ADMIN_BACK_TO_MAIN_MENU
 
 
 
@@ -393,7 +399,8 @@
             CALL CLEAR_SCREEN
             JMP START_ADMIN_MENU
 
-        BACK_TO_MAIN_MENU:
+        ADMIN_BACK_TO_MAIN_MENU:
+            CALL CLEAR_SCREEN
             RET
     ADMIN_MODULES ENDP
 
@@ -415,6 +422,7 @@
 
 
     PENALTY_MANAGEMENT PROC 
+        START_PENALTY_MANAGEMENT:
         CALL DISPLAY_CURR_PENALTY_DET
         CALL NEW_LINE
         CALL NEW_LINE
@@ -427,23 +435,26 @@
         CMP BX, 1
         JE CHANGE_PENALTY_CHARGE
         CMP BX, 2
-        JE CHANGE_PENALTY_EXTRA_CHARGE_RATE
+        JE CHANGE_PENALTY_EXTRA_RATE
         CMP BX, 3
         JE REDIRECT_TO_CHANGE_PENALTY_MAXIMUM_CHARGE
         ;CMP BX, 4
-        RET ; return back to main menu
+        ;JE END_PENALTY_MANAGEMENT - resolve jmp out of range - use RET to terminate the function instead
+        RET 
 
         REDIRECT_TO_CHANGE_PENALTY_MAXIMUM_CHARGE:
             JMP CHANGE_PENALTY_MAXIMUM_CHARGE ; resolve jmp out of range
 
         CHANGE_PENALTY_CHARGE:
             START_CHANGE_PENALTY_CHARGE:
-
                 ;only between 1 to 5
                 CALL CLEAR_SCREEN 
+                CALL DISPLAY_CURR_PENALTY_DET
+                CALL NEW_LINE
+                CALL NEW_LINE
 
                 MOV AH, 09H 
-                LEA DX, PENALTY_CHARGE_MSG
+                LEA DX, CHANGE_PENALTY_CHARGE_MSG
                 INT 21H
                 CALL GET_INTEGER
                 
@@ -454,28 +465,33 @@
                 JMP END_CHANGE_PENALTY_CHARGE 
                 
                 INVALID_PENALTY_CHARGE_RANGE:
-                MOV AH, 09H 
-                LEA DX, INVALID_INPUT
-                INT 21H
-                CALL NEW_LINE
-                CALL SYSTEM_PAUSE 
+                    CALL NEW_LINE 
+                    MOV AH, 09H 
+                    LEA DX, INVALID_INPUT
+                    INT 21H
+                    CALL NEW_LINE
+                    CALL SYSTEM_PAUSE 
 
             JMP START_CHANGE_PENALTY_CHARGE
 
             END_CHANGE_PENALTY_CHARGE:
                 MOV BX, INTEGER 
                 MOV PENALTY_CHARGE, BL
-                JMP END_PENALTY_MANAGEMENT
+                JMP START_PENALTY_MANAGEMENT
         
-        CHANGE_PENALTY_EXTRA_CHARGE_RATE:
+        CHANGE_PENALTY_EXTRA_RATE:
             START_CHANGE_PENALTY_EXTRA_RATE:
                 ; only between 1 to 10
                 CALL CLEAR_SCREEN 
-                MOV AH, 09H 
-                LEA DX, PENALTY_EXTRA_CHARGE_RATE_MSG
-                INT 21H
+                CALL DISPLAY_CURR_PENALTY_DET
+                CALL NEW_LINE
+                CALL NEW_LINE
 
+                MOV AH, 09H 
+                LEA DX, CHANGE_PENALTY_EXTRA_RATE_MSG
+                INT 21H
                 CALL GET_INTEGER  
+
                 CMP INTEGER, 0
                 JBE INVALID_PENALTY_EXTRA_RATE
                 CMP INTEGER, 10
@@ -484,28 +500,32 @@
                 JMP END_CHANGE_PENALTY_EXTRA_RATE
                 
                 INVALID_PENALTY_EXTRA_RATE:
-                MOV AH, 09H 
-                LEA DX, INVALID_INPUT
-                INT 21H
-                CALL NEW_LINE
-                CALL SYSTEM_PAUSE 
+                    CALL NEW_LINE 
+                    MOV AH, 09H 
+                    LEA DX, INVALID_INPUT
+                    INT 21H
+                    CALL NEW_LINE
+                    CALL SYSTEM_PAUSE 
             JMP START_CHANGE_PENALTY_EXTRA_RATE
 
             END_CHANGE_PENALTY_EXTRA_RATE:
                 MOV BX, INTEGER 
                 MOV PENALTY_EXTRA_RATE, BL
-                JMP END_PENALTY_MANAGEMENT
+                JMP START_PENALTY_MANAGEMENT
 
         CHANGE_PENALTY_MAXIMUM_CHARGE:
             START_CHANGE_PENALTY_MAXIMUM_CHARGE:
                 ;only between 80 - 100
                 CALL CLEAR_SCREEN 
+                CALL DISPLAY_CURR_PENALTY_DET
+                CALL NEW_LINE
+                CALL NEW_LINE
 
                 MOV AH, 09H 
-                LEA DX, PENALTY_MAXIMUM_CHARGE_MSG
+                LEA DX, CHANGE_PENALTY_MAXIMUM_CHARGE_MSG
                 INT 21H
-                
                 CALL GET_INTEGER 
+
                 CMP INTEGER, 80
                 JB INVALID_PENALTY_MAXIMUM_CHARGE
                 CMP INTEGER, 100
@@ -513,6 +533,7 @@
                 JMP END_CHANGE_PENALTY_MAXIMUM_CHARGE
 
                 INVALID_PENALTY_MAXIMUM_CHARGE:
+                    CALL NEW_LINE 
                     MOV AH, 09H 
                     LEA DX, INVALID_INPUT
                     INT 21H
@@ -523,8 +544,8 @@
             END_CHANGE_PENALTY_MAXIMUM_CHARGE:
                 MOV BX, INTEGER
                 MOV MAX_PENALTY_CHARGE, BL
-                JMP END_PENALTY_MANAGEMENT
-        END_PENALTY_MANAGEMENT:
+                JMP START_PENALTY_MANAGEMENT
+            END_PENALTY_MANAGEMENT:
         RET 
     PENALTY_MANAGEMENT ENDP
 
@@ -640,19 +661,612 @@
         RET
     DISPLAY_CURR_PENALTY_DET ENDP
 
-    ;JEREMY PART
+   ;JEREMY PART
     ADD_BOOK PROC
-        RET
+        ;Point to array
+        LEA SI, BOOK_NAME_ARRAY
+        LEA DI, BOOK_AUTHORS
+
+        ;CHECK IF THERES EMPTY SLOT
+        MOV CX, 20                                      ;loop 20 books
+        XOR BX, BX                                      ;reset BX
+            
+        CHECK_EMPTY_SLOT:
+            CMP byte ptr [SI], '$'                      ;check if book name is empty
+            JNE SKIP_CHECK_NEXT                         ;if not empty, skip to next slot
+            CMP byte ptr [DI], '$'                      ;check if book author is empty
+            JE ADD_BOOK_DETAILS                         ;if empty, add new book details
+    
+            SKIP_CHECK_NEXT:
+            MOV AX, 0                                   ;reset AX
+            MOV AL, BOOK_SIZE                           
+            ADD SI, AX                                  ;move to next book name
+            ADD DI, AX                                  ;move to next book author
+        LOOP CHECK_EMPTY_SLOT
+
+        JMP FULL_ERROR_MSG
+
+        ADD_BOOK_DETAILS:
+            INPUT_NEW_BOOKNAME:
+                CALL NEW_LINE
+                MOV AH, 09H
+                LEA DX, PROMPT_INPUT_BOOKNAME             ;prompt user to input new book name
+                INT 21H
+
+                MOV AH, 0AH
+                LEA DX, NEW_BOOKNAME_INPUT              ;store user input to NEW_BOOKNAME_INPUT
+                INT 21H
+
+                LEA BX, NEW_BOOKNAME
+
+                ;check if the input is empty
+                MOV AL, byte ptr [BX]
+                CMP AL, 0DH
+                JE TEMP_NEW_NAME_EMPTY
+            
+                MOV CX, 0                               ;reset CX
+                MOV CL, INPUT_BOOKNAME_SIZE             ;store the actual input size to CL
+                SAVE_TO_BOOKNAME_ARRAY:
+                    MOV AL, byte ptr [BX]       
+                    MOV [SI], AL                        ;store the input to BOOK_NAME_ARRAY
+                    INC SI
+                    INC BX
+                LOOP SAVE_TO_BOOKNAME_ARRAY
+        
+            CALL NEW_LINE
+
+            INPUT_NEW_BOOKAUTHORS:
+                
+                MOV AH, 09H
+                LEA DX, PROMPT_INPUT_BOOKAUTHOR          ;prompt user to input new book author
+                INT 21H
+
+                MOV AH, 0AH
+                LEA DX, NEW_BOOKAUTHORS_INPUT           ;store user input to NEW_BOOKAUTHORS_INPUT
+                INT 21H
+
+                LEA BX, NEW_BOOKAUTHORS 
+
+                ;check if the input is empty
+                MOV AL, byte ptr [BX]
+                CMP AL, 0DH
+                JE TEMP_NEW_NAME_EMPTY
+
+                MOV CX, 0                               ;reset CX
+                MOV CL, INPUT_BOOKAUTHORS_SIZE          ;store the actual input size to CL
+                SAVE_TO_BOOKAUTHORS_ARRAY:
+                    MOV AL, byte ptr [BX]       
+                    MOV [DI], AL                        ;store the input to BOOK_AUTHORS
+                    INC DI
+                    INC BX
+                LOOP SAVE_TO_BOOKAUTHORS_ARRAY
+            CALL NEW_LINE
+            CALL NEW_LINE
+            CALL NEW_LINE
+            JMP DISPLAY_NEW_BOOK
+
+            TEMP_NEW_NAME_EMPTY:
+                JMP NEW_NAME_EMPTY
+
+            DISPLAY_NEW_BOOK:
+                MOV AH, 09H
+                LEA DX, PROMPT_NEW_BOOKNAME             ;display new book name  
+                INT 21H
+                MOV AH, 09H
+                LEA DX, NEW_BOOKNAME
+                INT 21H
+                
+                CALL NEW_LINE
+
+                MOV AH, 09H
+                LEA DX, PROMPT_NEW_BOOKAUTHOR           ;display new book author
+                INT 21H
+                MOV AH, 09H
+                LEA DX, NEW_BOOKAUTHORS
+                INT 21H
+
+                CALL NEW_LINE
+                CALL NEW_LINE
+                LEA DX, PROMPT_ADDED_BOOK               ;display new book added to catalog
+                INT 21H
+
+            CALL NEW_LINE
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            JMP QUIT_ADD_BOOK
+
+        FULL_ERROR_MSG:
+            CALL NEW_LINE
+            MOV AH, 09H
+            LEA DX, ADD_UNAVAILABLE                          ;display error message
+            INT 21H
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            JMP QUIT_ADD_BOOK
+
+        NEW_NAME_EMPTY:
+            CALL NEW_LINE
+            MOV AH, 09H
+            LEA DX, INVALID_INPUT
+            INT 21H
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            JMP QUIT_ADD_BOOK
+
+        QUIT_ADD_BOOK:
+            RET
     ADD_BOOK ENDP
 
     ;JEREMY PART
     REMOVE_BOOK PROC
-        RET
+        CALL DISPLAY_BOOK_CATALOG
+        CALL NEW_LINE
+
+        get_book_id:
+            ; Prompt user to enter Book ID
+            mov ah, 09h
+            lea dx, PROMPT_INPUT_DELETE_BOOKID
+            int 21h
+
+            mov ah, 0Ah
+            lea dx, DELETE_BOOKID_INPUTBUFFER
+            int 21H
+
+            
+        process_input:
+            lea si, DELETE_BOOKID_BUFFER
+            xor ax, ax
+
+            mov al, byte ptr [si]               ; Get the first digit  
+            cmp al, 0Dh                         ; Check if Enter was pressed
+            je temp_invalid_input               ; If Enter was pressed too early, it's invalid input
+            sub al, 30H                         ; Convert ASCII '0'-'9' to 0-9
+            mov bl, al                          ; Store the first digit
+
+            inc si                              ; Move to the next character
+            mov al, byte ptr [si]               ; Get the next character (second digit or Enter)
+            cmp al, 0Dh                         ; Check if Enter was pressed for single digit
+            je one_digit_book_id                ; If Enter, we have a single-digit input
+
+            sub al, 30H                         ; Convert ASCII '0'-'9' to 0-9
+            mov bh, al                          ; Store the second digit in bh
+
+            ; Combine the digits into a two-digit number
+            xor ax, ax
+            mov al, bl
+            mul TEN
+            add al, bh                          ; Combine the digits into a two-digit number
+            jmp process_input_into_bookid        ; Skip the single digit case
+
+        one_digit_book_id:
+            ; If it's a single digit, store it in al
+            xor ax, ax                      ; Clear ax
+            mov al, bl                      ; Store the single digit in al
+
+        process_input_into_bookid:
+            ; Validate the range (1-20)
+            cmp al, 1                           ; Check if Book ID is at least 1
+            jl temp_invalid_input               ; Invalid if less than 1
+            cmp al, 20                          ; Check if Book ID is less than or equal to 20
+            jg temp_invalid_input               ; Invalid if greater than 20
+            
+            mov BOOK_ID_POSITION, al            ; Store the valid Book ID
+            jmp check_book_availability         ; Continue to check the availability of the book
+
+
+        temp_invalid_input:
+            ; If invalid input, jump to invalid input handler
+            jmp invalid_bookid_input
+
+        ;if valid input, check if book is borrowed
+        check_book_availability:
+            ;check if the book name is not empty
+            check_book_name:
+            mov al, BOOK_ID_POSITION
+            dec al                  ; Book ID starts at 1, so subtract 1 to get the correct index
+            mov cl, BOOK_SIZE       ; 30 bytes for each book name
+            mul cl                  ; al = al * 30
+            lea SI, BOOK_NAME_ARRAY     
+            add SI, ax              ; Point to the correct book name
+
+            cmp byte ptr [SI], '$'
+            je temp_no_book_found        ; If book name is empty, the book does not exist
+            jmp check_borrow_status
+
+            temp_no_book_found:
+                jmp no_book_found
+
+            ; Check if the book is borrowed
+            check_borrow_status:
+            mov al, BOOK_ID_POSITION
+            dec al                  ; Book ID starts at 1, so subtract 1 to get the correct index
+            mov cl, USER_ID_SIZE    ; 40 bytes for each borrow status
+            mul cl                  ; al = al * 40
+            lea SI, BORROW_BY_ARRAY
+            add SI, ax              ; Point to the correct borrow status
+
+            cmp byte ptr [SI], '$'
+            jne temp_book_borrowed       ; If the book is borrowed, display error message
+            jmp display_book_information
+
+        temp_book_borrowed:
+            jmp book_borrowed
+
+        display_book_information:
+            call new_line
+            CALL NEW_LINE
+
+            ; Display book name
+            mov ah, 09h
+            lea dx, BOOK_NAME
+            int 21h
+
+            ;display space
+            mov ah, 02h
+            mov dl, 20h
+            int 21h
+
+            mov al, BOOK_ID_POSITION
+            dec al
+            mov cl, 30        ; 30 bytes for each book name/author
+            mul cl            ; al = al * 30
+            lea SI, BOOK_NAME_ARRAY
+            add SI, ax        ; Point to the correct book name
+
+            mov cx, 30
+            display_book_name:
+                mov ah, 02H
+                cmp byte ptr[SI], '$'
+                je skip_next_bn
+                mov dl, byte ptr[SI]
+                int 21H
+                skip_next_bn:
+                    inc SI
+            loop display_book_name
+
+            call new_line
+
+            ; Display book author
+            mov ah, 09h
+            lea dx, AUTHOR
+            int 21h
+
+            ;display space
+            mov ah, 02h
+            mov dl, 20h
+            int 21h
+
+            mov al, BOOK_ID_POSITION
+            dec al
+            mov cl, 30
+            mul cl
+            lea SI, BOOK_AUTHORS
+            add SI, ax        ; Point to the correct author
+
+            mov cx, 30
+            display_book_author:
+                mov ah, 02H
+                cmp byte ptr[SI], '$'
+                je skip_next_ba
+                mov dl, byte ptr[SI]
+                int 21H
+                skip_next_ba:
+                    inc SI
+            loop display_book_author
+
+            ; Display new line
+            CALL NEW_LINE
+            CALL NEW_LINE
+
+            jmp delete_confirmation
+
+        delete_confirmation:
+            ; Print confirmation message
+            mov ah, 09h
+            lea dx, PROMPT_DELETE_BOOK_CONFIRMATION
+            int 21h
+
+            ; Get user input
+            CALL GET_CONFIRMATION ; only accept Y or N - ignore cases
+
+            cmp al, 'Y'
+            je execute_delete
+            cmp al, 'y'
+            je execute_delete
+            RET ; terminate this function and return back to menu if user enter 'N' or 'n'
+
+        execute_delete:
+            CALL NEW_LINE
+            CALL NEW_LINE
+            ; Delete book: replace book name and author with '$'
+            mov al, BOOK_ID_POSITION
+            dec al
+            mov cl, 30        ; 30 bytes for each book name/author
+            mul cl            ; al = al * 30
+            lea SI, BOOK_NAME_ARRAY
+            add SI, ax        ; Point to the correct book name
+
+            ; Replace book name with '$'
+            mov cx, 30
+            del_name:
+                mov ah, 02H
+                cmp byte ptr[SI], '$'
+                je delete_next_alphabet
+                mov dl, byte ptr[SI]
+                int 21H
+                delete_next_alphabet:
+                    mov byte ptr [SI], '$'
+                    inc SI
+            loop del_name
+
+            ;print written by
+            mov ah, 02h
+            mov dl, 20h                 ; Print a space
+            int 21h
+
+            mov ah, 09h
+            lea dx, WRITTEN_BY          ; Print "written by"
+            int 21h
+
+            ; Replace author with '$'
+            mov al, BOOK_ID_POSITION
+            dec al
+            mov cl, 30
+            mul cl
+            lea SI, BOOK_AUTHORS
+            add SI, ax        ; Point to the correct author
+
+            mov cx, 30
+            del_author:
+                mov ah, 02H
+                cmp byte ptr[SI], '$'
+                je delete_next_alphabet1
+                mov dl, byte ptr[SI]
+                int 21H
+                delete_next_alphabet1:
+                    mov byte ptr [SI], '$'
+                    inc SI
+            loop del_author
+
+            ; Print success message
+            lea dx, PROMPT_BOOK_ISDELETED
+            mov ah, 09h
+            int 21h
+
+            ; Print new line
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            jmp end_delete_book
+
+        no_book_found:
+            ; Print error message if book is not found
+            lea dx, PROMPT_BOOK_NOT_FOUND
+            mov ah, 09h
+            int 21h
+
+            ; Print new line
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL NEW_LINE
+            jmp GET_BOOK_ID
+
+        book_borrowed:
+            ; Print error message if book is borrowed
+            lea dx, PROMPT_BOOK_NOT_AVAILABLE
+            mov ah, 09h
+            int 21h
+
+            ; Print new line
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            jmp end_delete_book
+
+        invalid_bookid_input:
+            ; Print error message for invalid input
+            mov ah, 09h
+            lea dx, PROMPT_BOOKID_ERROR
+            int 21h
+
+            ; Print new line
+            CAll NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL NEW_LINE
+            jmp get_book_id
+
+        end_delete_book:
+            RET
     REMOVE_BOOK ENDP
+
 
     ;GAN PART
     EDIT_BOOK PROC
+
+        CALL DISPLAY_BOOK_CATALOG
+        CALL NEW_LINE
+
+        MOV AH, 09H
+        LEA DX, PROMPT_INPUT_BOOKID
+        INT 21H
+
+        MOV AH, 0AH
+        LEA DX, EDIT_BOOKID_INPUT
+        INT 21H
+
+        MOV AL , EDIT_BOOKID_INPUT[1]
+
+        CMP AL , 1 
+        JE SINGLE_BOOK_ID
+
+        CMP AL , 2
+        JE DOUBLE_BOOK_ID
+
         RET
+
+        SINGLE_BOOK_ID:
+            MOV BL , EDIT_BOOKID_INPUT[2]         ;GET THE FIRST DIGIT 
+            SUB BL , "0"                          ;CONVERT ASCII TO INTEGER
+            JMP PROCESS_EDIT_BOOK                 ;JUMP TO PROCESS_EDIT_BOOK
+
+        DOUBLE_BOOK_ID:
+            MOV AL , EDIT_BOOKID_INPUT[2]        ; Get the first digit
+            SUB AL, '0'                          ; Convert ASCII to integer
+            MOV BL, AL                           ; Store first digit in BL
+
+            MOV AL,  EDIT_BOOKID_INPUT[3]       ; Get the second digit
+            SUB AL, '0'                         ; Convert ASCII to integer
+            MOV BH, AL                          ; Store second digit in BH
+
+            ;COBINATION OF TWO DIGIT    
+            MOV AL, BL                          ; Move the first digit to AL
+            MOV CX, 10                          ; Move 10 to CX
+            MUL CX                              ; Multiply AL by CX, MULTIPLY BECAUSE WE WANT TO GET THE ACTUAL VALUE
+            ADD AL, BH                          ; Add BH to AL
+            MOV BL, AL                          ; Store the result in BL
+
+            JMP PROCESS_EDIT_BOOK   
+
+        PROCESS_EDIT_BOOK:
+            MOV SI , 0 
+            MOV CX , 20
+
+        SEARCH_BOOK:
+            CMP BOOK_ID_ARRAY[SI] , BL
+            JE BOOK_FOUND
+            INC SI
+        LOOP SEARCH_BOOK
+
+            CALL NEW_LINE 
+
+            MOV AH, 09H
+            LEA DX, BOOKNOTFOUND
+            INT 21H
+
+            RET
+
+        BOOK_FOUND:
+            CALL NEW_LINE
+
+            ;CHECK WHETHER THE BOOK IS AVAILABLE TO EDIT AVOID ANY NOT YET ADDED BOOK CAN BE EDIT
+            LEA DI , BOOK_NAME_ARRAY
+            MOV AX , SI
+            MUL BOOK_SIZE
+            ADD DI , AX
+
+            CMP BYTE PTR [DI] , '$'
+            JE BOOK_NOT_EXISTED_YET
+
+            MOV AH, 09H
+            LEA DX, EDIT_FIELD_PROMPT
+            INT 21H
+
+            MOV AH, 01H
+            INT 21H
+            MOV EDIT_FIELD_CHOICE, AL
+
+            CMP EDIT_FIELD_CHOICE, 'N'
+            JE EDIT_BOOK_NAME
+
+            CMP EDIT_FIELD_CHOICE, 'A'
+            JE EDIT_BOOK_AUTHOR
+
+            CALL NEW_LINE 
+
+            MOV AH, 09H
+            LEA DX, EDIT_UNAVAILABLE_CHOICE
+            INT 21H
+
+            RET             ;CAN ALSO RETURN TO BOOK FOUND
+
+        BOOK_NOT_EXISTED_YET:
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, BOOKNOTFOUND
+            INT 21H
+
+            RET
+        
+        EDIT_BOOK_NAME:
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, PROMPT_EDIT_BOOKNAME
+            INT 21H
+
+            MOV AH, 0AH
+            LEA DX, EDITED_NEW_BOOKNAME
+            INT 21H
+
+            MOV AX , SI 
+            MUL BOOK_SIZE       ;POTENTIAL PROBLEM
+
+            LEA DI , BOOK_NAME_ARRAY
+            ADD DI , AX
+
+            ;CLEAR THE BOOK NAME 
+            MOV CX , 30
+            CLEAR_BOOKNAME:
+                MOV BYTE PTR [DI] , '$'
+                INC DI
+            LOOP CLEAR_BOOKNAME
+
+            ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
+            SUB DI , 30
+
+            ;PERFORM EDIT BOOK NAME
+            LEA SI , EDITED_NEW_BOOKNAME[2]
+
+            XOR CX , CX
+            MOV CL , EDITED_NEW_BOOKNAME[1]
+            REPLACE_BOOKNAME:
+                MOV AL , [SI]
+                MOV [DI] , AL
+                INC SI
+                INC DI
+            LOOP REPLACE_BOOKNAME
+
+            RET
+
+        EDIT_BOOK_AUTHOR:
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, PROMPT_EDIT_AUTHOR
+            INT 21H
+
+            MOV AH, 0AH
+            LEA DX, EDITED_NEW_AUTHOR
+            INT 21H
+
+            MOV AX , SI
+            MUL BOOK_SIZE
+
+            LEA DI , BOOK_AUTHORS
+            ADD DI , AX
+
+            ;CLEAR THE BOOK AUTHOR
+            MOV CX , 30
+            CLEAR_BOOKAUTHOR:
+                MOV BYTE PTR [DI] , '$'
+                INC DI
+            LOOP CLEAR_BOOKAUTHOR
+
+            ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
+            SUB DI , 30
+
+            ;PERFORM EDIT BOOK AUTHOR
+            LEA SI , EDITED_NEW_AUTHOR[2]
+
+            XOR CX , CX
+            MOV CL , EDITED_NEW_AUTHOR[1]
+            REPLACE_BOOK_AUTHOR:
+                MOV AL , [SI]
+                MOV [DI] , AL
+                INC SI
+                INC DI
+            LOOP REPLACE_BOOK_AUTHOR
+
+            RET
     EDIT_BOOK ENDP
 
     ;CSTAN PART - View Borrow Details , buat pagination kalau ada masa 
@@ -918,17 +1532,22 @@
         CMP BX, 2
         JE RETURN_BOOK_TO_CATALOG
         CMP BX, 3
-        JE BACK_TO_MAIN_MENU
+        JE USER_BACK_TO_MAIN_MENU
 
         BORROW_BOOK_FROM_CATALOG:
+            CALL CLEAR_SCREEN
             CALL BORROW_BOOK
+            CALL CLEAR_SCREEN
             JMP START_USER_MENU
         
         RETURN_BOOK_TO_CATALOG:
+            CALL CLEAR_SCREEN
             CALL RETURN_BOOK
+            CALL CLEAR_SCREEN
             JMP START_USER_MENU
         
-        BACK_TO_MAIN_MENU:
+        USER_BACK_TO_MAIN_MENU:
+            CALL CLEAR_SCREEN
             RET
     USER_MODULES ENDP
     
@@ -963,54 +1582,79 @@
         USER_AVAILABLE_TO_BORROW:
         ;DISPLAY BOOK CATALOG
         START_BORROW_BOOK:
-        CALL DISPLAY_BOOK_CATALOG
-        CALL NEW_LINE
+            CALL CLEAR_SCREEN 
+            CALL DISPLAY_BOOK_CATALOG
+            CALL NEW_LINE 
 
-        MOV BX, BOOK_COUNT 
-        ADD BX, 30H
-        CALL GET_CHOICE 
-        MOV BX, AX 
-        DEC BX
+            ;select book from list
+            MOV BX, BOOK_COUNT 
 
-        PUSH BX ; store index to stack temp
-        ;Check if the book exists (not empty/not deleted)
-        MOV AX, BX
-        MUL BOOK_SIZE
-        MOV BX , AX 
-        CMP BOOK_NAME_ARRAY[BX], '$'
-        JNE CHECK_AVAILABILITY ;Book not available to borrow if true
-        POP BX ; get back value from stack
-        
-        MOV AH, 09H 
-        LEA DX, BOOK_ID_NOT_EXISTS_MSG
-        INT 21H
+            MOV AH, 09H 
+            LEA DX, SELECT_BOOK_ID_TO_BORROW_MSG
+            INT 21H 
+            CALL GET_INTEGER
+            
+            CMP INTEGER, 0
+            JA CHECK_BOOK_EXISTENCE
+            CMP INTEGER, BX
+            JBE CHECK_BOOK_EXISTENCE
 
-        CALL NEW_LINE
-        CALL SYSTEM_PAUSE
-        CALL CLEAR_SCREEN
+            CALL NEW_LINE
+
+            MOV AH, 09H
+            LEA DX, INVALID_INPUT
+            INT 21H
+
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+
         JMP START_BORROW_BOOK
+
+        CHECK_BOOK_EXISTENCE:
+            MOV BX, INTEGER 
+            DEC BX ; decrement by 1 to get the correct index
+            PUSH BX ; store index to stack temp
+            ;Check if the book exists (not empty/not deleted)
+            MOV AX, BX
+            MUL BOOK_SIZE
+            MOV BX , AX 
+            CMP BOOK_NAME_ARRAY[BX], '$'
+            JNE CHECK_AVAILABILITY ;Book not available to borrow if true
+            POP BX ; get back value from stack
+            
+            CALL NEW_LINE 
+            MOV AH, 09H 
+            LEA DX, BOOK_ID_NOT_EXISTS_MSG
+            INT 21H
+
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+            JMP START_BORROW_BOOK
         
         CHECK_AVAILABILITY:
-        POP BX ; get index from stack 
-        PUSH BX ; store index to stack temp
-        ;Check if the book is available to borrow
-        MOV AX, BX 
-        MUL USER_ID_SIZE 
-        MOV BX, AX
-        CMP BORROW_BY_ARRAY[BX], '$'
-        JE BOOK_AVAILABLE_TO_BORROW ;Book Available to borrow if true
-        ;Book not available to borrow
-        POP BX ; clear stack
+            POP BX ; get index from stack 
+            PUSH BX ; store index to stack temp
+            ;Check if the book is available to borrow
+            MOV AX, BX 
+            MUL USER_ID_SIZE 
+            MOV BX, AX
+            CMP BORROW_BY_ARRAY[BX], '$'
+            JE BOOK_AVAILABLE_BORROW ;Book Available to borrow if true
+            ;Book not available to borrow
+            POP BX ; clear stack
 
-        MOV AH, 09H 
-        LEA DX, NOT_AVALIABLE_MSG
-        INT 21H
-        CALL NEW_LINE
-        CALL SYSTEM_PAUSE
-        CALL CLEAR_SCREEN
-        JMP START_BORROW_BOOK
+            CALL NEW_LINE
+            MOV AH, 09H 
+            LEA DX, NOT_AVALIABLE_MSG
+            INT 21H
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+            JMP START_BORROW_BOOK
 
-        BOOK_AVAILABLE_TO_BORROW:
+        BOOK_AVAILABLE_BORROW:
             CALL CLEAR_SCREEN
             POP BX ; get index from stack
             CALL SET_BORROW_STATUS
@@ -1042,6 +1686,7 @@
         PUSH BX  ;store the index to stack temp 
         CALL GET_DATE
         POP BX    ;get the index from stack
+
         LEA SI, RET_DATE_ARRAY
         LEA DI, DAY_OF_MONTH
         XOR AX, AX
@@ -1049,8 +1694,6 @@
         MUL BX 
         ADD SI, AX 
         
-      
-
         XOR AX, AX
         MOV AL, CURR_MONTH
         ADD DI, AX
@@ -1251,7 +1894,7 @@
         FAILED_TO_PAY_PENALTY:
             ;doesnt proceed payment 
             POP BX ;clear stack
-            CALL NEW_LINE
+            CALL CLEAR_SCREEN
 
             MOV AH, 09H
             LEA DX, PAYMENT_FAILED
@@ -1260,7 +1903,6 @@
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
             RET
-        
         FAILED_TO_RETURN_BOOK:
             POP BX ;clear stack 
             CALL NEW_LINE
@@ -1384,7 +2026,7 @@
             ADD SI, BX ;JUMP TO NEXT USER_ID
 
             INC CX 
-            CMP CX, 9
+            CMP CX, 19
             JA USER_ID_NOT_EXISTS
 
         JMP CHECK_USER_ID_EXISTENCE
@@ -1420,86 +2062,14 @@
     ;the final result will be stored in PENALTY as string with 2 decimal places
     CALCULATE_PENALTY PROC
         MOV HAS_PENALTY_CHARGE, 0
-        MOV DIFF_DAY, 0
-        LEA SI, RET_DATE_ARRAY
-
-        ;move to selected book's return date
-        ;new SI = old SI + (selected Index * sizeOf(value))
-        XOR AX, AX
-        MOV AL, BL ;get BX - user currently borrowed book
-        MUL DATE_SIZE
-        ADD SI, AX  
-
-        ;get return day
-        MOV AL, [SI]
-        SUB AL, 30H
-        MUL TEN
-        MOV RET_DAY, AL
-
-        INC SI
-
-        MOV AL, [SI]
-        SUB AL, 30H
-        ADD RET_DAY, AL
-
-        ADD SI, 2
-
-        ;get return month
-        MOV AL, [SI]
-        SUB AL, 30H
-        MUL TEN
-        MOV RET_MONTH, AL
-
-        INC SI
-
-        MOV AL, [SI]
-        SUB AL, 30H
-        ADD RET_MONTH, AL
-
-        XOR BX, BX
-        XOR CX, CX  
-        XOR AX, AX
-
-        ;Count Difference Day
-        LEA SI, DAY_OF_MONTH
-        MOV BL, CURR_DAY
-
-        MOV CL, CURR_MONTH
-        DEC CX 
-        CMP CX, 0 ;add day only if January
-        JE END_COUNT_CURR_DAY_OF_MONTHS   
-        COUNT_CURR_DAY_OF_MONTHS:
-            MOV AL, [SI]  
-            ADD BX, AX
-            INC SI
-        LOOP COUNT_CURR_DAY_OF_MONTHS   
-        END_COUNT_CURR_DAY_OF_MONTHS:
-
-        LEA SI, DAY_OF_MONTH
-        MOV AL, RET_DAY
-        SUB BX, AX
-        MOV CL, RET_MONTH
-        DEC CX
-        CMP CX, 0 ;add day only if January
-        JE END_COUNT_RET_DAY_OF_MONTHS
-        COUNT_RET_DAY_OF_MONTHS:
-            MOV AL, [SI]
-            SUB BX, AX
-            CMP BX, 0
-            JS NOT_EXCEED_RET_DATE    
-            INC SI
-        LOOP COUNT_RET_DAY_OF_MONTHS
-        JMP END_COUNT_RET_DAY_OF_MONTHS
-        NOT_EXCEED_RET_DATE:
-            JMP NO_PENALTY_CHARGE  
-        END_COUNT_RET_DAY_OF_MONTHS:
-
-        ;store the difference day to DIFF_DAY
-        XOR CX, CX
-        MOV DIFF_DAY, BX
+        CALL CALCULATE_DIFF_DAY
         
         CMP DIFF_DAY, 0 ; if does not exceed the return date will not stores the difference day to DIFF_DAY
-        JE NOT_EXCEED_RET_DATE ;calculate penalty if current date exceeds return date
+        JA CALC_PENALTY_CHARGE ;calculate penalty if current date exceeds return date
+        
+        JMP NO_PENALTY_CHARGE
+        
+        CALC_PENALTY_CHARGE:
         ; PENALTY_EXTRA_RATE (10) / PENALTY_CHARGE (5) = 2 ( diff_day * 2 = PENALTY_EXTRA_RATE (10))
         XOR AX, AX
         MOV AL, PENALTY_EXTRA_RATE
@@ -1555,7 +2125,6 @@
         PUSH AX ; store the value to stack temp - since need to use AX for read and store penalty
         
         LEA SI, PENALTY
-        ;need to clear PENALTY before store the new value - _UPDATE
         XOR AH,AH ; get only integral part 
         XOR CX, CX
         READ_PENALTY:  
@@ -1620,7 +2189,94 @@
             MOV HAS_PENALTY_CHARGE, 1
         NO_PENALTY_CHARGE:	
         RET
-    CALCULATE_PENALTY ENDP 
+    CALCULATE_PENALTY ENDP
+
+    ;Calculate the difference between return date and current date
+    ; CURRENT = Calculate the total days from 1/1 to current date
+    ; RETURN = Calculate the total days from 1/1 to return date
+    ; DIFF_DAY = MAX(CURRENT - RETURN, 0) - indicate that if the DIFF_DAY will be overplaced by 0 if the value is negative
+    CALCULATE_DIFF_DAY PROC
+        MOV DIFF_DAY, 0
+        LEA SI, RET_DATE_ARRAY
+
+        ;move to selected book's return date
+        ;new SI = old SI + (selected Index * sizeOf(value))
+        XOR AX, AX
+        MOV AL, BL ;get BX - user currently borrowed book
+        MUL DATE_SIZE
+        ADD SI, AX  
+
+        ;get return day
+        MOV AL, [SI]
+        SUB AL, 30H
+        MUL TEN
+        MOV RET_DAY, AL
+
+        INC SI
+
+        MOV AL, [SI]
+        SUB AL, 30H
+        ADD RET_DAY, AL
+
+        ADD SI, 2
+
+        ;get return month
+        MOV AL, [SI]
+        SUB AL, 30H
+        MUL TEN
+        MOV RET_MONTH, AL
+
+        INC SI
+
+        MOV AL, [SI]
+        SUB AL, 30H
+        ADD RET_MONTH, AL
+
+        XOR BX, BX
+        XOR CX, CX  
+        XOR AX, AX
+
+        ;Count Difference Day
+        ;CURRENT = get the total days from 1/1 to current date
+        LEA SI, DAY_OF_MONTH
+        MOV BL, CURR_DAY ;add day
+
+        MOV CL, CURR_MONTH
+        DEC CX 
+        CMP CX, 0 ;add day only if January
+        JE END_COUNT_CURR_DAY_OF_MONTHS  
+        COUNT_CURR_DAY_OF_MONTHS:
+            MOV AL, [SI]  
+            ADD BX, AX
+            INC SI
+        LOOP COUNT_CURR_DAY_OF_MONTHS   
+        END_COUNT_CURR_DAY_OF_MONTHS:
+
+        ;RETURN = get the total days from 1/1 to return date
+        LEA SI, DAY_OF_MONTH
+        MOV AL, RET_DAY
+        SUB BX, AX
+        MOV CL, RET_MONTH
+        DEC CX
+        CMP CX, 0 ;add day only if January
+        JE END_COUNT_RET_DAY_OF_MONTHS
+        ;subtract the total days from 1/1 to return date 
+        COUNT_RET_DAY_OF_MONTHS:
+            MOV AL, [SI]
+            SUB BX, AX
+            CMP BX, 0
+            JS NOT_EXCEED_RET_DATE    
+            INC SI
+        LOOP COUNT_RET_DAY_OF_MONTHS
+
+        END_COUNT_RET_DAY_OF_MONTHS:
+            ;store the difference day to DIFF_DAY
+            XOR CX, CX
+            MOV DIFF_DAY, BX
+
+        NOT_EXCEED_RET_DATE:
+        RET
+    CALCULATE_DIFF_DAY ENDP
 
     ;Display Penalty Charge Details
     ;Show how the penalty charge is calculated 
@@ -1775,6 +2431,7 @@
         RET
     DISPLAY_PENALTY_CHARGE_DET ENDP
 
+   
     ;Display list of books in the catalog
     DISPLAY_BOOK_CATALOG PROC
         ;Point to array
@@ -2064,7 +2721,7 @@
             MOV AL, '$'
             MOV [SI], AL
             INC SI
-        LOOP CLEAR_INTEGER_BUFFER 
+        LOOP CLEAR_INTEGER_BUFFER
 
         XOR AX, AX
         MOV AL, MAXN_DIGIT
@@ -2246,5 +2903,4 @@
 
         RET
     GET_CONFIRMATION ENDP
-
 END MAIN
