@@ -35,6 +35,7 @@
     CHOICE_MSG DB "Enter your choice: $"
     INVALID_INPUT DB "Invalid Input! Please try again. $"
     COLOR_REMARK_MSG DB "Green: Book is not available to borrow$"
+    OVERTIME_COLOR_REMARK_MSG DB "Red: Book has not been returned more than 30 days from return date$"
     SYSTEM_PAUSE_MSG DB "Press any key to continue...$"
     AVALIABLE_MSG DB "Available$"
     ;---exit
@@ -308,7 +309,6 @@
     
         ;Point to array
         LEA SI, BOOK_NAME_ARRAY
-        LEA BP, BOOK_AUTHORS
         LEA DI, BORROW_BY_ARRAY
 
         CALL NEW_LINE
@@ -330,42 +330,42 @@
         XOR BX, BX
         MOV BOOK_ID_POSITION, 1
         MOV CX, 20
-        DISPLAY_BORROW_RECORD:
+        DISPLAY_OVERTIME_RECORD:
             CMP CX, 0
-            JZ TEMP_END_DISPLAY_BORROW_RECORD
+            JZ TEMP_END_DISPLAY_OVERTIME_RECORD
             JMP PROCEED_LOOP
 
-            TEMP_END_DISPLAY_BORROW_RECORD:
-                JMP END_DISPLAY_BORROW_RECORD
+            TEMP_END_DISPLAY_OVERTIME_RECORD:
+                JMP END_DISPLAY_OVERTIME_RECORD
 
             PROCEED_LOOP:
             CMP byte ptr [DI], '$' ; Check if this book is not borrowed (indicated by '$')
             JE TEMP_SKIP_BOOK ; Skip this book if it is not borrowed
-            JMP CURRENT_BORROW_RECORD
+            JMP CURRENT_OVERTIME_RECORD
 
             TEMP_SKIP_BOOK:
                 JMP SKIP_BOOK
-            CURRENT_BORROW_RECORD:
+            CURRENT_OVERTIME_RECORD:
                 PUSH BX
                 PUSH CX
                 PUSH SI
 
-                CALL CALCULATE_DIFF_DAY
+                CALL CALCULATE_OVERTIME_DIFF_DAY
                 
-                POP CX
                 POP SI
+                POP CX
                 CMP DIFF_DAY, 30
                 JB BOOK_NOT_OVERTIME
 
                 ;Display red
                 PUSH CX ;store the value of CX to stack temporarily
                 ;Display Read is not available - ez chatgpt
-                mov ah, 09h          ; BIOS function to write character and attributes
-                mov al, ' '          ; Character to display
-                mov bh, 0            ; Page number (usually 0)
-                mov bl, 02h          ; Attribute byte (foreground: yellow, background: black)
-                mov CX, 80          ; Number of times to print the character
-                int 10h              ; Call BIOS interrupt
+                MOV AH, 09H        ; BIOS function to write character and attributes
+                MOV AL, ' '        ; Character to display (e.g., space or any other character)
+                MOV BH, 0          ; Page number (usually 0)
+                MOV BL, 0Ch        ; Attribute byte: Foreground red (4), background black (0Fh)
+                MOV CX, 80          ; Number of times to print the character (5 spaces)
+                INT 10H            ; Call BIOS interrupt to print with attributes
 
                 POP CX ; get back the cx value from stack
             
@@ -384,6 +384,11 @@
             INT 21H
             
             ;Book_ID
+            MOV AX, 0
+            MOV AL, BOOK_ID_POSITION
+            DEC AL
+            XOR BX, BX
+            MOV BX , AX
             MOV AX, 0
             MOV AL, BOOK_ID_ARRAY[BX]
             DIV TEN
@@ -424,28 +429,28 @@
             MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
             
             ;Count the string length
-            COUNT_BOOK_NAME_SPACES_1:
+            COUNTOVERTIME_BOOK_NAME_SPACES_1:
                 CMP BYTE PTR [SI], '$' ; apa ini
-                JE DONE_BOOK_NAME_SPACES_1
+                JE DONEOVERTIME_BOOK_NAME_SPACES_1
                 DEC BX
                 INC SI
-                JMP COUNT_BOOK_NAME_SPACES_1
-            DONE_BOOK_NAME_SPACES_1:
+                JMP COUNTOVERTIME_BOOK_NAME_SPACES_1
+            DONEOVERTIME_BOOK_NAME_SPACES_1:
                 MOV AH, 02H
                 ;EXP: SI(original SI) = SI(currnet SI) - (29(total length) - BX(space length))
                 ADD SI, BX 
                 SUB SI, 29
 
-            ADD_SPACES_AFTER_NAME_1:
+            ADDOVERTIME_SPACES_AFTER_NAME_1:
                 CMP BX, 0
-                JE DONE_ADD_BOOK_NAME_SPACES_1
+                JE DONE_ADDOVERTIME_BOOK_NAME_SPACES_1
                 MOV DL, ' '
                 INT 21H
                 DEC BX
 
-                JMP ADD_SPACES_AFTER_NAME_1
+                JMP ADDOVERTIME_SPACES_AFTER_NAME_1
 
-            DONE_ADD_BOOK_NAME_SPACES_1:
+            DONE_ADDOVERTIME_BOOK_NAME_SPACES_1:
             
                 ;Space
                 MOV AH, 02H
@@ -461,38 +466,52 @@
                 MOV AH, 02H
                 MOV DL, ' '
                 INT 21H
-                
+
+                ;BX * 30 = BOOK AUTHOR POSITION
+                XOR AX, AX
+                MOV AL, BOOK_ID_POSITION
+                DEC AL      
+                MUL BOOK_SIZE
+                MOV BX, AX
                 ;Author
+                XOR AX, AX
                 MOV AH, 09H
-                LEA DX, [BP]
+                LEA DX, BOOK_AUTHORS[BX]
                 INT 21H 
 
-                MOV BX, 20 ;should use 29 but since not enough space for borrow by user so i use 20 instead
-                ;suspose to be 30 but 1 is for delimeter - from copilot
-                
-            ;Count the string length
-            COUNT_AUTHOR_SPACES:
-                CMP BYTE PTR [BP], '$' ; apa ini
-                JE DONE_AUTHOR_SPACES
-                DEC BX
-                INC BP
-                JMP COUNT_AUTHOR_SPACES
-            DONE_AUTHOR_SPACES:
-                MOV AH, 02H
-                ;EXP: DI(original DI) = DI(currnet DI) - (29(total length) - BX(space length))
-                ADD BP, BX 
-                SUB BP, 20
+            PUSH CX
 
-            ADD_SPACES_AFTER_AUTHOR:
-                CMP BX, 0
-                JE DONE_ADD_AUTHOR_SPACES
+                MOV CX, 20 ;should use 29 but since not enough space for borrow by user so i use 20 instead
+                ;suspose to be 30 but 1 is for delimeter - from copilot
+                ;MOVE THE BOOK AUTHOR POSITION TO BX
+                XOR AX, AX
+                MOV AL, BOOK_ID_POSITION
+                DEC AL
+                MUL BOOK_SIZE
+                MOV BX, AX
+                XOR AX, AX
+            ;Count the string length
+            COUNTOVERTIME_AUTHOR_SPACES:
+                CMP BOOK_AUTHORS[BX], '$' ; apa ini
+                JE DONEOVERTIME_AUTHOR_SPACES
+                DEC CX
+                INC BX
+                JMP COUNTOVERTIME_AUTHOR_SPACES
+            DONEOVERTIME_AUTHOR_SPACES:
+                MOV AH, 02H
+                ADD BX, CX
+                SUB BX, 20
+
+            ADDOVERTIME_SPACES_AFTER_AUTHOR:
+                CMP CX, 0
+                JE DONE_ADDOVERTIME_AUTHOR_SPACES
                 MOV DL, ' '
                 INT 21H
-                DEC BX
-                JMP ADD_SPACES_AFTER_AUTHOR
+                DEC CX
+                JMP ADDOVERTIME_SPACES_AFTER_AUTHOR
 
-            DONE_ADD_AUTHOR_SPACES:
-
+            DONE_ADDOVERTIME_AUTHOR_SPACES:
+            POP CX ; get back the value of CX from stack
                 ;Delimeter
                 MOV AH, 02H
                 MOV DL, '|'
@@ -504,26 +523,15 @@
                 INT 21H
 
                 ;Borrow By
-                MOV AX, BOOK_COUNT
+                MOV AX, 0
+                MOV AL, BOOK_ID_POSITION
+                DEC AL
                 MUL USER_ID_SIZE
+                XOR BX, BX
                 MOV BX , AX
-                MOV AL , BORROW_BY_ARRAY[BX]
-                CMP AL , '$'
-                JE AVAILABLE_TO_BORROW
-
                 MOV AH, 09H
                 LEA DX, BORROW_BY_ARRAY[BX]
                 INT 21H
-
-                JMP DONE_DISPLAY_BORROW_STATUS
-
-
-            AVAILABLE_TO_BORROW:
-                MOV AH, 09H
-                LEA DX, AVALIABLE_MSG
-                INT 21H
-
-            DONE_DISPLAY_BORROW_STATUS:
             
             CALL NEW_LINE
 
@@ -535,36 +543,33 @@
                 XOR AX, AX
                 MOV AL, BOOK_SIZE
                 ADD SI, AX
-                ADD BP, AX
                 ADD DI, 40
 
                 INC BOOK_ID_POSITION
                 INC BX
                 DEC CX
-            JMP DISPLAY_BORROW_RECORD
+            JMP DISPLAY_OVERTIME_RECORD
 
-        END_DISPLAY_BORROW_RECORD:
+        END_DISPLAY_OVERTIME_RECORD:
 
             CALL NEW_LINE
 
             ;Display red
-            MOV AH,09H 
-            MOV AL, ' ' 
-            MOV BH, 0
-            MOV BL, 02H 
-            MOV CX, 5 
-            INT 10H
+            MOV AH, 09H        ; BIOS function to write character and attributes
+            MOV AL, ' '        ; Character to display (e.g., space or any other character)
+            MOV BH, 0          ; Page number (usually 0)
+            MOV BL, 0Ch        ; Attribute byte: Foreground red (4), background black (0Fh)
+            MOV CX, 5          ; Number of times to print the character (5 spaces)
+            INT 10H            ; Call BIOS interrupt to print with attributes
             
             
             MOV AH, 09H 
-            LEA DX, COLOR_REMARK_MSG
+            LEA DX, OVERTIME_COLOR_REMARK_MSG
             INT 21H
             
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
             
-
-
 
         FIN:
             MOV AX, 4C00H
@@ -606,7 +611,7 @@
         RET 
     SPACE ENDP
 
-    CALCULATE_DIFF_DAY PROC
+    CALCULATE_OVERTIME_DIFF_DAY PROC
         MOV DIFF_DAY, 0
 
         ;move to selected book's return date
@@ -655,13 +660,13 @@
         MOV CL, CURR_MONTH
         DEC CX 
         CMP CX, 0 ;add day only if January
-        JE END_COUNT_CURR_DAY_OF_MONTHS   
-        COUNT_CURR_DAY_OF_MONTHS:
+        JE END_COUNTOVERTIME_CURR_DAY_OF_MONTHS   
+        COUNTOVERTIME_CURR_DAY_OF_MONTHS:
             MOV AL, [SI]  
             ADD BX, AX
             INC SI
-        LOOP COUNT_CURR_DAY_OF_MONTHS   
-        END_COUNT_CURR_DAY_OF_MONTHS:
+        LOOP COUNTOVERTIME_CURR_DAY_OF_MONTHS   
+        END_COUNTOVERTIME_CURR_DAY_OF_MONTHS:
 
         LEA SI, DAY_OF_MONTH
         MOV AL, RET_DAY
@@ -669,23 +674,23 @@
         MOV CL, RET_MONTH
         DEC CX
         CMP CX, 0 ;add day only if January
-        JE END_COUNT_RET_DAY_OF_MONTHS
-        COUNT_RET_DAY_OF_MONTHS:
+        JE END_COUNTOVERTIME_RET_DAY_OF_MONTHS
+        COUNTOVERTIME_RET_DAY_OF_MONTHS:
             MOV AL, [SI]
             SUB BX, AX
             CMP BX, 0
-            JS NOT_EXCEED_RET_DATE    
+            JS NOT_EXCEED_RET_DATE_OVERTIME    
             INC SI
-        LOOP COUNT_RET_DAY_OF_MONTHS
+        LOOP COUNTOVERTIME_RET_DAY_OF_MONTHS
 
-        END_COUNT_RET_DAY_OF_MONTHS:
+        END_COUNTOVERTIME_RET_DAY_OF_MONTHS:
             ;store the difference day to DIFF_DAY
             XOR CX, CX
             MOV DIFF_DAY, BX
 
-        NOT_EXCEED_RET_DATE:
+        NOT_EXCEED_RET_DATE_OVERTIME:
         RET
-    CALCULATE_DIFF_DAY ENDP
+    CALCULATE_OVERTIME_DIFF_DAY ENDP
 
     ;Get current date and store it to DATE, CURR_DAY, CURR_MONTH, CURR_YEAR
     ;DATE is stored as string, DATE format: DD/MM/YYYY

@@ -7,6 +7,7 @@
     CHOICE_MSG DB "Enter your choice: $"
     INVALID_INPUT DB "Invalid Input! Please try again. $"
     COLOR_REMARK_MSG DB "Green: Book is not available to borrow$"
+    OVERTIME_COLOR_REMARK_MSG DB "Red: Book has not been returned more than 30 days from return date$"
     SYSTEM_PAUSE_MSG DB "Press any key to continue...$"
     AVALIABLE_MSG DB "Available$"
 
@@ -108,12 +109,12 @@
         
     ;Borrow Status
     BORROW_BY_ARRAY DB 40 DUP("$")
-        DB 40 DUP("$")
+        DB "THE_BEST_DOGGAN$", 24 DUP('$')
         DB "CSTAN$", 34 DUP('$')
         DB 40 DUP("$")
         DB 40 DUP("$")
         DB 40 DUP("$")
-        DB "THE_BEST_DOGGAN$", 24 DUP('$')
+        DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
         DB 40 DUP("$")
         DB 40 DUP("$")
         DB 40 DUP("$")
@@ -133,13 +134,38 @@
 
     ;DATE
     DATE DB 11 DUP('$')
-    RET_DATE_ARRAY DB "01/09/2024$", "02/09/2024$","03/09/2024$","04/09/2024$","05/09/2024$","06/09/2024$","07/09/2024$", "08/09/2024$","09/09/2024$","10/09/2024$"
+    RET_DATE_ARRAY DB 11 DUP("$")
+                   DB "18/09/2024$"
+                   DB "03/05/2024$"
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB "07/06/2024$"
+                   DB 11 DUP("$") 
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
+                   DB 11 DUP("$")
 	DAY_OF_MONTH DB 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 	
 	CURR_MONTH DB 0
 	CURR_DAY DB 0
+    CURR_YEAR DW 0
+
+    ;return date
 	RET_MONTH DB 0
 	RET_DAY DB 0
+    RET_YEAR DW 0
+    ;diff day
+	DIFF_DAY DW 0
 
     
 
@@ -1161,55 +1187,325 @@
             RET
     REMOVE_BOOK ENDP
 
+    ;JEREMY PART
+    REMOVE_OVERTIME_BOOK PROC
+
+        CALL GET_DATE
+    
+        ;Point to array
+        LEA SI, BOOK_NAME_ARRAY
+        LEA DI, BORROW_BY_ARRAY
+
+        CALL NEW_LINE
+        
+        ;DISPLAY HEADER
+        MOV AH, 09H
+        LEA DX, BORROW_RECORD_HEADER    
+        INT 21H
+
+        CALL NEW_LINE
+        
+        ;DISPLAY LINE
+        MOV AH, 09H
+        LEA DX, BORROW_RECORD_LINE
+        INT 21H
+
+        CALL NEW_LINE
+        
+        XOR BX, BX
+        MOV BOOK_ID_POSITION, 1
+        MOV CX, 20
+        DISPLAY_OVERTIME_RECORD:
+            CMP CX, 0
+            JZ TEMP_END_DISPLAY_OVERTIME_RECORD
+            JMP PROCEED_LOOP
+
+            TEMP_END_DISPLAY_OVERTIME_RECORD:
+                JMP END_DISPLAY_OVERTIME_RECORD
+
+            PROCEED_LOOP:
+            CMP byte ptr [DI], '$' ; Check if this book is not borrowed (indicated by '$')
+            JE TEMP_SKIP_BOOK ; Skip this book if it is not borrowed
+            JMP CURRENT_OVERTIME_RECORD
+
+            TEMP_SKIP_BOOK:
+                JMP SKIP_BOOK
+            CURRENT_OVERTIME_RECORD:
+                PUSH BX
+                PUSH CX
+                PUSH SI
+
+                CALL CALCULATE_OVERTIME_DIFF_DAY
+                
+                POP SI
+                POP CX
+                CMP DIFF_DAY, 30
+                JB BOOK_NOT_OVERTIME
+
+                ;Display red
+                PUSH CX ;store the value of CX to stack temporarily
+                ;Display Read is not available - ez chatgpt
+                MOV AH, 09H        ; BIOS function to write character and attributes
+                MOV AL, ' '        ; Character to display (e.g., space or any other character)
+                MOV BH, 0          ; Page number (usually 0)
+                MOV BL, 0Ch        ; Attribute byte: Foreground red (4), background black (0Fh)
+                MOV CX, 80          ; Number of times to print the character (5 spaces)
+                INT 10H            ; Call BIOS interrupt to print with attributes
+
+                POP CX ; get back the cx value from stack
+            
+            BOOK_NOT_OVERTIME: 
+            POP BX ; get back the value of BX[index] from stack 
+            PUSH BX ; store the value of BX to stack again for future use temporarily 
+            
+            ;Delimeter
+            MOV AH, 02H
+            MOV DL, '|'
+            INT 21H
+            
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Book_ID
+            MOV AX, 0
+            MOV AL, BOOK_ID_POSITION
+            DEC AL
+            XOR BX, BX
+            MOV BX , AX
+            MOV AX, 0
+            MOV AL, BOOK_ID_ARRAY[BX]
+            DIV TEN
+            MOV BX, AX
+            
+            MOV AH, 02H
+            MOV DL, BL
+            ADD DL, 30H
+            INT 21H
+            
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+            
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Delimeter
+            MOV AH, 02H
+            MOV DL, '|'
+            INT 21H
+
+            ;Space
+            MOV AH, 02H
+            MOV DL, ' '
+            INT 21H
+            
+            ;Book_Name
+            MOV AH, 09H
+            LEA DX, [SI]
+            INT 21H
+
+            
+            
+            MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
+            
+            ;Count the string length
+            COUNTOVERTIME_BOOK_NAME_SPACES_1:
+                CMP BYTE PTR [SI], '$' ; apa ini
+                JE DONEOVERTIME_BOOK_NAME_SPACES_1
+                DEC BX
+                INC SI
+                JMP COUNTOVERTIME_BOOK_NAME_SPACES_1
+            DONEOVERTIME_BOOK_NAME_SPACES_1:
+                MOV AH, 02H
+                ;EXP: SI(original SI) = SI(currnet SI) - (29(total length) - BX(space length))
+                ADD SI, BX 
+                SUB SI, 29
+
+            ADDOVERTIME_SPACES_AFTER_NAME_1:
+                CMP BX, 0
+                JE DONE_ADDOVERTIME_BOOK_NAME_SPACES_1
+                MOV DL, ' '
+                INT 21H
+                DEC BX
+
+                JMP ADDOVERTIME_SPACES_AFTER_NAME_1
+
+            DONE_ADDOVERTIME_BOOK_NAME_SPACES_1:
+            
+                ;Space
+                MOV AH, 02H
+                MOV DL, ' '
+                INT 21H
+                
+                ;Delimeter
+                MOV AH, 02H
+                MOV DL, '|'
+                INT 21H
+
+                ;Space
+                MOV AH, 02H
+                MOV DL, ' '
+                INT 21H
+
+                ;BX * 30 = BOOK AUTHOR POSITION
+                XOR AX, AX
+                MOV AL, BOOK_ID_POSITION
+                DEC AL      
+                MUL BOOK_SIZE
+                MOV BX, AX
+                ;Author
+                XOR AX, AX
+                MOV AH, 09H
+                LEA DX, BOOK_AUTHORS[BX]
+                INT 21H 
+
+            PUSH CX
+
+                MOV CX, 20 ;should use 29 but since not enough space for borrow by user so i use 20 instead
+                ;suspose to be 30 but 1 is for delimeter - from copilot
+                ;MOVE THE BOOK AUTHOR POSITION TO BX
+                XOR AX, AX
+                MOV AL, BOOK_ID_POSITION
+                DEC AL
+                MUL BOOK_SIZE
+                MOV BX, AX
+                XOR AX, AX
+            ;Count the string length
+            COUNTOVERTIME_AUTHOR_SPACES:
+                CMP BOOK_AUTHORS[BX], '$' ; apa ini
+                JE DONEOVERTIME_AUTHOR_SPACES
+                DEC CX
+                INC BX
+                JMP COUNTOVERTIME_AUTHOR_SPACES
+            DONEOVERTIME_AUTHOR_SPACES:
+                MOV AH, 02H
+                ADD BX, CX
+                SUB BX, 20
+
+            ADDOVERTIME_SPACES_AFTER_AUTHOR:
+                CMP CX, 0
+                JE DONE_ADDOVERTIME_AUTHOR_SPACES
+                MOV DL, ' '
+                INT 21H
+                DEC CX
+                JMP ADDOVERTIME_SPACES_AFTER_AUTHOR
+
+            DONE_ADDOVERTIME_AUTHOR_SPACES:
+            POP CX ; get back the value of CX from stack
+                ;Delimeter
+                MOV AH, 02H
+                MOV DL, '|'
+                INT 21H
+
+                ;Space
+                MOV AH, 02H
+                MOV DL, ' '
+                INT 21H
+
+                ;Borrow By
+                MOV AX, 0
+                MOV AL, BOOK_ID_POSITION
+                DEC AL
+                MUL USER_ID_SIZE
+                XOR BX, BX
+                MOV BX , AX
+                MOV AH, 09H
+                LEA DX, BORROW_BY_ARRAY[BX]
+                INT 21H
+            
+            CALL NEW_LINE
+
+            ;jmp to next value
+            POP BX ; get back the value of BX from stack
+            INC BOOK_COUNT
+            SKIP_BOOK:
+
+                XOR AX, AX
+                MOV AL, BOOK_SIZE
+                ADD SI, AX
+                ADD DI, 40
+
+                INC BOOK_ID_POSITION
+                INC BX
+                DEC CX
+            JMP DISPLAY_OVERTIME_RECORD
+
+        END_DISPLAY_OVERTIME_RECORD:
+
+            CALL NEW_LINE
+
+            ;Display red
+            MOV AH, 09H        ; BIOS function to write character and attributes
+            MOV AL, ' '        ; Character to display (e.g., space or any other character)
+            MOV BH, 0          ; Page number (usually 0)
+            MOV BL, 0Ch        ; Attribute byte: Foreground red (4), background black (0Fh)
+            MOV CX, 5          ; Number of times to print the character (5 spaces)
+            INT 10H            ; Call BIOS interrupt to print with attributes
+            
+            
+            MOV AH, 09H 
+            LEA DX, OVERTIME_COLOR_REMARK_MSG
+            INT 21H
+            
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+
+        RET
+    REMOVE_OVERTIME_BOOK ENDP
 
     ;GAN PART
-  EDIT_BOOK PROC
+    EDIT_BOOK PROC
 
-    EDIT_BOOK_START:
+        EDIT_BOOK_START:
 
-        CALL DISPLAY_BOOK_CATALOG
-        CALL NEW_LINE
+            CALL DISPLAY_BOOK_CATALOG
+            CALL NEW_LINE
 
-        MOV AH, 09H
-        LEA DX, PROMPT_INPUT_BOOKID
-        INT 21H
+            MOV AH, 09H
+            LEA DX, PROMPT_INPUT_BOOKID
+            INT 21H
 
-        MOV AH, 0AH
-        LEA DX, EDIT_BOOKID_INPUT
-        INT 21H
+            MOV AH, 0AH
+            LEA DX, EDIT_BOOKID_INPUT
+            INT 21H
 
-        MOV AL , EDIT_BOOKID_INPUT[1]
+            MOV AL , EDIT_BOOKID_INPUT[1]
 
-        CMP AL , 1 
-        JE SINGLE_BOOK_ID
+            CMP AL , 1 
+            JE SINGLE_BOOK_ID
 
-        CMP AL , 2
-        JE DOUBLE_BOOK_ID
+            CMP AL , 2
+            JE DOUBLE_BOOK_ID
 
-        JMP EDIT_BOOK_START
+            JMP EDIT_BOOK_START
 
-        SINGLE_BOOK_ID:
-            MOV BL , EDIT_BOOKID_INPUT[2]         ;GET THE FIRST DIGIT 
-            SUB BL , "0"                          ;CONVERT ASCII TO INTEGER
-            JMP PROCESS_EDIT_BOOK                 ;JUMP TO PROCESS_EDIT_BOOK
+            SINGLE_BOOK_ID:
+                MOV BL , EDIT_BOOKID_INPUT[2]         ;GET THE FIRST DIGIT 
+                SUB BL , "0"                          ;CONVERT ASCII TO INTEGER
+                JMP PROCESS_EDIT_BOOK                 ;JUMP TO PROCESS_EDIT_BOOK
 
-        DOUBLE_BOOK_ID:
-            MOV AL , EDIT_BOOKID_INPUT[2]        ; Get the first digit
-            SUB AL, '0'                          ; Convert ASCII to integer
-            MOV BL, AL                           ; Store first digit in BL
+            DOUBLE_BOOK_ID:
+                MOV AL , EDIT_BOOKID_INPUT[2]        ; Get the first digit
+                SUB AL, '0'                          ; Convert ASCII to integer
+                MOV BL, AL                           ; Store first digit in BL
 
-            MOV AL,  EDIT_BOOKID_INPUT[3]       ; Get the second digit
-            SUB AL, '0'                         ; Convert ASCII to integer
-            MOV BH, AL                          ; Store second digit in BH
+                MOV AL,  EDIT_BOOKID_INPUT[3]       ; Get the second digit
+                SUB AL, '0'                         ; Convert ASCII to integer
+                MOV BH, AL                          ; Store second digit in BH
 
-            ;COBINATION OF TWO DIGIT    
-            MOV AL, BL                          ; Move the first digit to AL
-            MOV CX, 10                          ; Move 10 to CX
-            MUL CX                              ; Multiply AL by CX, MULTIPLY BECAUSE WE WANT TO GET THE ACTUAL VALUE
-            ADD AL, BH                          ; Add BH to AL
-            MOV BL, AL                          ; Store the result in BL
+                ;COBINATION OF TWO DIGIT    
+                MOV AL, BL                          ; Move the first digit to AL
+                MOV CX, 10                          ; Move 10 to CX
+                MUL CX                              ; Multiply AL by CX, MULTIPLY BECAUSE WE WANT TO GET THE ACTUAL VALUE
+                ADD AL, BH                          ; Add BH to AL
+                MOV BL, AL                          ; Store the result in BL
 
-            JMP PROCESS_EDIT_BOOK   
+                JMP PROCESS_EDIT_BOOK   
 
         PROCESS_EDIT_BOOK:
             MOV SI , 0 
@@ -1221,192 +1517,192 @@
             INC SI
         LOOP SEARCH_BOOK
 
-            CALL NEW_LINE 
+                CALL NEW_LINE 
 
-            MOV AH, 09H
-            LEA DX, BOOKNOTFOUND
-            INT 21H
+                MOV AH, 09H
+                LEA DX, BOOKNOTFOUND
+                INT 21H
 
-            JMP EDIT_BOOK_START
+                JMP EDIT_BOOK_START
 
-        BOOK_FOUND:
-            CALL NEW_LINE
+            BOOK_FOUND:
+                CALL NEW_LINE
 
-            ;CHECK WHETHER THE BOOK IS AVAILABLE TO EDIT AVOID ANY NOT YET ADDED BOOK CAN BE EDIT
-            LEA DI , BOOK_NAME_ARRAY
-            MOV AX , SI
-            MUL BOOK_SIZE
-            ADD DI , AX
+                ;CHECK WHETHER THE BOOK IS AVAILABLE TO EDIT AVOID ANY NOT YET ADDED BOOK CAN BE EDIT
+                LEA DI , BOOK_NAME_ARRAY
+                MOV AX , SI
+                MUL BOOK_SIZE
+                ADD DI , AX
 
-            CMP BYTE PTR [DI] , '$'
-            JE BOOK_NOT_EXISTED_YET
+                CMP BYTE PTR [DI] , '$'
+                JE BOOK_NOT_EXISTED_YET
 
-            MOV AH, 09H
-            LEA DX, EDIT_FIELD_PROMPT
-            INT 21H
+                MOV AH, 09H
+                LEA DX, EDIT_FIELD_PROMPT
+                INT 21H
 
-            MOV AH, 01H
-            INT 21H
-            MOV EDIT_FIELD_CHOICE, AL
+                MOV AH, 01H
+                INT 21H
+                MOV EDIT_FIELD_CHOICE, AL
 
-            CMP EDIT_FIELD_CHOICE, 'N'
-            JE EDIT_BOOK_NAME
+                CMP EDIT_FIELD_CHOICE, 'N'
+                JE EDIT_BOOK_NAME
 
-            CMP EDIT_FIELD_CHOICE, 'A'
-            JE HOLD_EDIT_BOOK_AUTHOR
+                CMP EDIT_FIELD_CHOICE, 'A'
+                JE HOLD_EDIT_BOOK_AUTHOR
 
-            CALL NEW_LINE 
+                CALL NEW_LINE 
 
-            MOV AH, 09H
-            LEA DX, EDIT_UNAVAILABLE_CHOICE
-            INT 21H
+                MOV AH, 09H
+                LEA DX, EDIT_UNAVAILABLE_CHOICE
+                INT 21H
 
-            JMP BOOK_FOUND            ;CAN ALSO RETURN TO BOOK FOUND
+                JMP BOOK_FOUND            ;CAN ALSO RETURN TO BOOK FOUND
 
-        HOLD_EDIT_BOOK_AUTHOR:
-            JMP EDIT_BOOK_AUTHOR    
+            HOLD_EDIT_BOOK_AUTHOR:
+                JMP EDIT_BOOK_AUTHOR    
 
-        BOOK_NOT_EXISTED_YET:
-            CALL NEW_LINE
+            BOOK_NOT_EXISTED_YET:
+                CALL NEW_LINE
 
-            MOV AH, 09H
-            LEA DX, BOOKNOTFOUND
-            INT 21H
+                MOV AH, 09H
+                LEA DX, BOOKNOTFOUND
+                INT 21H
 
-            JMP EDIT_BOOK_START
-        
-        EDIT_BOOK_NAME:
-            CALL NEW_LINE
+                JMP EDIT_BOOK_START
+            
+            EDIT_BOOK_NAME:
+                CALL NEW_LINE
 
-            MOV AH, 09H
-            LEA DX, PROMPT_EDIT_BOOKNAME
-            INT 21H
+                MOV AH, 09H
+                LEA DX, PROMPT_EDIT_BOOKNAME
+                INT 21H
 
-            MOV AH, 0AH
-            LEA DX, EDITED_NEW_BOOKNAME
-            INT 21H
+                MOV AH, 0AH
+                LEA DX, EDITED_NEW_BOOKNAME
+                INT 21H
 
-            MOV AL, EDITED_NEW_BOOKNAME[1]   ; Length of the entered string
-            CMP AL, 0                        ; Check if the length is 0
-            JE INVALID_BOOK_NAME_EDIT             ; If 0, jump to the error handler
+                MOV AL, EDITED_NEW_BOOKNAME[1]   ; Length of the entered string
+                CMP AL, 0                        ; Check if the length is 0
+                JE INVALID_BOOK_NAME_EDIT             ; If 0, jump to the error handler
 
-            LEA BX  , EDITED_NEW_BOOKNAME[2]
-            MOV CL , EDITED_NEW_BOOKNAME[1]
+                LEA BX  , EDITED_NEW_BOOKNAME[2]
+                MOV CL , EDITED_NEW_BOOKNAME[1]
 
-            VALIDATE_BOOK_NAME:
-                MOV AL , [BX]
-                CMP AL , '$'
-                JE INVALID_BOOK_NAME_EDIT
-                INC BX
-                DEC CL 
-            JNZ VALIDATE_BOOK_NAME
-
-
-
-            MOV AX , SI 
-            MUL BOOK_SIZE      
-
-            LEA DI , BOOK_NAME_ARRAY
-            ADD DI , AX
-
-            ;CLEAR THE BOOK NAME 
-            MOV CX , 30
-            CLEAR_BOOKNAME:
-                MOV BYTE PTR [DI] , '$'
-                INC DI
-            LOOP CLEAR_BOOKNAME
-
-            ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
-            SUB DI , 30
-
-            ;PERFORM EDIT BOOK NAME
-            LEA SI , EDITED_NEW_BOOKNAME[2]
-
-            XOR CX , CX
-            MOV CL , EDITED_NEW_BOOKNAME[1]
-            REPLACE_BOOKNAME:
-                MOV AL , [SI]
-                MOV [DI] , AL
-                INC SI
-                INC DI
-            LOOP REPLACE_BOOKNAME
-
-            RET
-
-        INVALID_BOOK_NAME_EDIT:
-            ; Handle invalid book name (empty or contains '$')
-            CALL NEW_LINE
-            MOV AH, 09H
-            LEA DX, INVALID_INPUT
-            INT 21H
-            JMP EDIT_BOOK_NAME                ; Re-prompt the user to enter a valid name
-
-        EDIT_BOOK_AUTHOR:
-            CALL NEW_LINE
-
-            MOV AH, 09H
-            LEA DX, PROMPT_EDIT_AUTHOR
-            INT 21H
-
-            MOV AH, 0AH
-            LEA DX, EDITED_NEW_AUTHOR
-            INT 21H
-
-            MOV AL, EDITED_NEW_AUTHOR[1]   ; Length of the entered string
-            CMP AL, 0                        ; Check if the length is 0
-            JE INVALID_AUTHOR_EDIT             ; If 0, jump to the error handler
-
-            LEA BX  , EDITED_NEW_AUTHOR[2]
-            MOV CL , EDITED_NEW_AUTHOR[1]
-
-            VALIDATE_AUTHOR:
-                MOV AL , [BX]
-                CMP AL , '$'
-                JE INVALID_AUTHOR_EDIT
-                INC BX
-                DEC CL
-            JNZ VALIDATE_AUTHOR
+                VALIDATE_BOOK_NAME:
+                    MOV AL , [BX]
+                    CMP AL , '$'
+                    JE INVALID_BOOK_NAME_EDIT
+                    INC BX
+                    DEC CL 
+                JNZ VALIDATE_BOOK_NAME
 
 
 
-            MOV AX , SI
-            MUL BOOK_SIZE
+                MOV AX , SI 
+                MUL BOOK_SIZE      
 
-            LEA DI , BOOK_AUTHORS
-            ADD DI , AX
+                LEA DI , BOOK_NAME_ARRAY
+                ADD DI , AX
 
-            ;CLEAR THE BOOK AUTHOR
-            MOV CX , 30
-            CLEAR_BOOKAUTHOR:
-                MOV BYTE PTR [DI] , '$'
-                INC DI
-            LOOP CLEAR_BOOKAUTHOR
+                ;CLEAR THE BOOK NAME 
+                MOV CX , 30
+                CLEAR_BOOKNAME:
+                    MOV BYTE PTR [DI] , '$'
+                    INC DI
+                LOOP CLEAR_BOOKNAME
 
-            ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
-            SUB DI , 30
+                ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
+                SUB DI , 30
 
-            ;PERFORM EDIT BOOK AUTHOR
-            LEA SI , EDITED_NEW_AUTHOR[2]
+                ;PERFORM EDIT BOOK NAME
+                LEA SI , EDITED_NEW_BOOKNAME[2]
 
-            XOR CX , CX
-            MOV CL , EDITED_NEW_AUTHOR[1]
-            REPLACE_BOOK_AUTHOR:
-                MOV AL , [SI]
-                MOV [DI] , AL
-                INC SI
-                INC DI
-            LOOP REPLACE_BOOK_AUTHOR
+                XOR CX , CX
+                MOV CL , EDITED_NEW_BOOKNAME[1]
+                REPLACE_BOOKNAME:
+                    MOV AL , [SI]
+                    MOV [DI] , AL
+                    INC SI
+                    INC DI
+                LOOP REPLACE_BOOKNAME
 
-            RET
+                RET
 
-            INVALID_AUTHOR_EDIT:
-            CALL NEW_LINE
+            INVALID_BOOK_NAME_EDIT:
+                ; Handle invalid book name (empty or contains '$')
+                CALL NEW_LINE
+                MOV AH, 09H
+                LEA DX, INVALID_INPUT
+                INT 21H
+                JMP EDIT_BOOK_NAME                ; Re-prompt the user to enter a valid name
 
-            MOV AH, 09H
-            LEA DX, INVALID_INPUT
-            INT 21H
+            EDIT_BOOK_AUTHOR:
+                CALL NEW_LINE
 
-            JMP EDIT_BOOK_AUTHOR              ; Re-prompt the user to enter a valid author name
+                MOV AH, 09H
+                LEA DX, PROMPT_EDIT_AUTHOR
+                INT 21H
+
+                MOV AH, 0AH
+                LEA DX, EDITED_NEW_AUTHOR
+                INT 21H
+
+                MOV AL, EDITED_NEW_AUTHOR[1]   ; Length of the entered string
+                CMP AL, 0                        ; Check if the length is 0
+                JE INVALID_AUTHOR_EDIT             ; If 0, jump to the error handler
+
+                LEA BX  , EDITED_NEW_AUTHOR[2]
+                MOV CL , EDITED_NEW_AUTHOR[1]
+
+                VALIDATE_AUTHOR:
+                    MOV AL , [BX]
+                    CMP AL , '$'
+                    JE INVALID_AUTHOR_EDIT
+                    INC BX
+                    DEC CL
+                JNZ VALIDATE_AUTHOR
+
+
+
+                MOV AX , SI
+                MUL BOOK_SIZE
+
+                LEA DI , BOOK_AUTHORS
+                ADD DI , AX
+
+                ;CLEAR THE BOOK AUTHOR
+                MOV CX , 30
+                CLEAR_BOOKAUTHOR:
+                    MOV BYTE PTR [DI] , '$'
+                    INC DI
+                LOOP CLEAR_BOOKAUTHOR
+
+                ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
+                SUB DI , 30
+
+                ;PERFORM EDIT BOOK AUTHOR
+                LEA SI , EDITED_NEW_AUTHOR[2]
+
+                XOR CX , CX
+                MOV CL , EDITED_NEW_AUTHOR[1]
+                REPLACE_BOOK_AUTHOR:
+                    MOV AL , [SI]
+                    MOV [DI] , AL
+                    INC SI
+                    INC DI
+                LOOP REPLACE_BOOK_AUTHOR
+
+                RET
+
+                INVALID_AUTHOR_EDIT:
+                CALL NEW_LINE
+
+                MOV AH, 09H
+                LEA DX, INVALID_INPUT
+                INT 21H
+
+                JMP EDIT_BOOK_AUTHOR              ; Re-prompt the user to enter a valid author name
 
     EDIT_BOOK ENDP
 
@@ -1876,6 +2172,173 @@
         RET
     DISPLAY_BOOK_CATALOG ENDP
 
-    
+    CALCULATE_OVERTIME_DIFF_DAY PROC
+        MOV DIFF_DAY, 0
+
+        ;move to selected book's return date
+        ;new SI = old SI + (selected Index * sizeOf(value))
+        XOR AX, AX
+        MOV AL, BOOK_ID_POSITION
+        DEC AL
+        MUL DATE_SIZE
+        LEA SI, RET_DATE_ARRAY
+        ADD SI, AX  
+
+        ;get return day
+        MOV AL, [SI]
+        SUB AL, 30H
+        MUL TEN
+        MOV RET_DAY, AL
+
+        INC SI
+
+        MOV AL, [SI]
+        SUB AL, 30H
+        ADD RET_DAY, AL
+
+        ADD SI, 2
+
+        ;get return month
+        MOV AL, [SI]
+        SUB AL, 30H
+        MUL TEN
+        MOV RET_MONTH, AL
+
+        INC SI
+
+        MOV AL, [SI]
+        SUB AL, 30H
+        ADD RET_MONTH, AL
+
+        XOR BX, BX
+        XOR CX, CX  
+        XOR AX, AX
+
+        ;Count Difference Day
+        LEA SI, DAY_OF_MONTH
+        MOV BL, CURR_DAY
+
+        MOV CL, CURR_MONTH
+        DEC CX 
+        CMP CX, 0 ;add day only if January
+        JE END_COUNTOVERTIME_CURR_DAY_OF_MONTHS   
+        COUNTOVERTIME_CURR_DAY_OF_MONTHS:
+            MOV AL, [SI]  
+            ADD BX, AX
+            INC SI
+        LOOP COUNTOVERTIME_CURR_DAY_OF_MONTHS   
+        END_COUNTOVERTIME_CURR_DAY_OF_MONTHS:
+
+        LEA SI, DAY_OF_MONTH
+        MOV AL, RET_DAY
+        SUB BX, AX
+        MOV CL, RET_MONTH
+        DEC CX
+        CMP CX, 0 ;add day only if January
+        JE END_COUNTOVERTIME_RET_DAY_OF_MONTHS
+        COUNTOVERTIME_RET_DAY_OF_MONTHS:
+            MOV AL, [SI]
+            SUB BX, AX
+            CMP BX, 0
+            JS NOT_EXCEED_RET_DATE_OVERTIME    
+            INC SI
+        LOOP COUNTOVERTIME_RET_DAY_OF_MONTHS
+
+        END_COUNTOVERTIME_RET_DAY_OF_MONTHS:
+            ;store the difference day to DIFF_DAY
+            XOR CX, CX
+            MOV DIFF_DAY, BX
+
+        NOT_EXCEED_RET_DATE_OVERTIME:
+        RET
+    CALCULATE_OVERTIME_DIFF_DAY ENDP
+
+    ;Get current date and store it to DATE, CURR_DAY, CURR_MONTH, CURR_YEAR
+    ;DATE is stored as string, DATE format: DD/MM/YYYY
+    GET_DATE PROC
+        ;Get current date
+        ;DL - day
+        ;DH - month
+        MOV AH, 2Ah
+        INT 21h 
+        ;MOV DL, 14 ; TESTING
+        ;MOV DH, 9 ; TESTING
+        MOV CURR_MONTH, DH
+        MOV CURR_DAY, DL
+        MOV CURR_YEAR, CX
+
+
+
+        LEA SI, DATE      
+
+        ;Store Day
+        XOR AX, AX
+        MOV AL, DL
+        DIV TEN
+        MOV BX, AX
+
+        ADD BL, 30H
+        MOV [SI], BL
+        INC SI
+
+        ADD BH, 30H
+        MOV [SI], BH
+        INC SI
+
+        ; Store '/'
+        MOV BL, DATE_DELIMETER
+        MOV [SI], BL
+        INC SI
+
+        ;Store month
+        XOR AX, AX
+        MOV AL, DH
+        DIV TEN
+        MOV BX, AX 
+
+        ADD BL, 30H
+        MOV [SI], BL
+        INC SI
+
+        ADD BH, 30H
+        MOV [SI], BH
+        INC SI
+
+        ;Store '/'
+        MOV BL, DATE_DELIMETER
+        MOV [SI], BL
+        INC SI
+
+        ;Store year
+        XOR BX, BX
+        MOV AX, CURR_YEAR
+        XOR CX, CX
+        READ_CURR_YEAR:
+            INC CX
+            DIV TEN
+            MOV BX, AX
+
+            XOR AL, AL ; clear integral part and push remainder only to stack
+            PUSH AX 
+
+            CMP BL, 0
+            JE END_READ_CURR_YEAR
+
+            XOR BH, BH ; clear remainder part and calculate only integral part
+            MOV AX, BX 
+        JMP READ_CURR_YEAR
+
+        END_READ_CURR_YEAR:
+
+        STORE_CURR_YEAR:
+            POP BX
+            ADD BH, 30H
+            MOV [SI], BH 
+            INC SI
+        LOOP STORE_CURR_YEAR
+        RET
+    GET_DATE ENDP
+
+
 
 END MAIN
