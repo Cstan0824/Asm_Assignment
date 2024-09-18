@@ -195,6 +195,10 @@
     CURR_PENALTY_EXTRA_CHARGE_RATE_MSG DB "Penalty extra rate after 14 days (%): extra $"
     CURR_PENALTY_MAXIMUM_CHARGE_MSG DB "Current penalty maximum charge: RM $"
     PENALTY_CAUTION_MSG DB "==================== CAUTION ===================== $"
+
+    BOOK_ID_POSITION DB 0
+    REMAINDER DB ?
+    QUOTIENT DB ?
 .CODE
 
     MAIN PROC
@@ -211,39 +215,64 @@
 
         CALL NEW_LINE
 
-        LEA SI, BORROW_BY_ARRAY
+        LEA DI, BORROW_BY_ARRAY
+        
 
         XOR BX, BX
+        MOV BOOK_ID_POSITION, 1
         MOV CX, 20
 
         DISPLAY_BORROWED_BOOK:
-            push cx
+            CMP byte ptr [DI], '$' ; Check if this book is not borrowed (indicated by '$')
+            JE SKIP_BOOK           ; If not borrowed, skip to the next book
 
-            CMP byte ptr [SI], '$'
-            JE display_next_book
+            ;DISPLAY BOOK ID POSITION 2 DIGITS
+            XOR AX, AX
+            MOV AL, BOOK_ID_POSITION
+            DIV TEN
+            MOV QUOTIENT, AL
+            MOV REMAINDER, AH
 
+            MOV AH, 02H
+            MOV DL, QUOTIENT
+            ADD DL, 30H
+            INT 21H
+
+            MOV DL, REMAINDER
+            ADD DL, 30H
+            INT 21H
+
+            CALL NEW_LINE
+
+            ; Preserve CX before calling CALCULATE_DIFF_DAY
+            PUSH CX
+            ; If the book is borrowed, calculate the difference in days
             CALL CALCULATE_DIFF_DAY
 
-            cmp diff_day, 30
-            jg display_overtime
+            ; Restore CX after function returns
+            POP CX
 
-            mov ah, 09H
-            lea dx, not_overtime_msg
-            int 21H
+            ; Compare the difference in days to 30
+            CMP DIFF_DAY, 30
+            JG DISPLAY_OVERTIME     ; If the difference is greater than 30, display "Overtime"
 
-            jmp display_next_book
+            ; Book is not overdue
+            MOV AH, 09H
+            LEA DX, not_overtime_msg
+            INT 21H
+            JMP DISPLAY_NEXT_BOOK
 
-            display_overtime:
-                mov ah, 09H
-                lea dx, overtime_msg
-                int 21H
+            DISPLAY_OVERTIME:
+                MOV AH, 09H
+                LEA DX, overtime_msg
+                INT 21H
 
-            display_next_book:
-                pop cx
-                inc bx
-                xor ax, ax
-                mov al, 40
-                add si, ax
+            DISPLAY_NEXT_BOOK:
+                CALL NEW_LINE           ; Print a new line for separation
+
+            SKIP_BOOK:
+                ADD DI, 40              ; Move to the next borrow status (40 bytes per entry)
+                INC BOOK_ID_POSITION    ; Increment the book ID position
         LOOP DISPLAY_BORROWED_BOOK
 
 
@@ -279,13 +308,14 @@
 
     CALCULATE_DIFF_DAY PROC
         MOV DIFF_DAY, 0
-        LEA SI, RET_DATE_ARRAY
 
         ;move to selected book's return date
         ;new SI = old SI + (selected Index * sizeOf(value))
         XOR AX, AX
-        MOV AL, BL ;get BX - user currently borrowed book
+        MOV AL, BOOK_ID_POSITION
+        DEC AL
         MUL DATE_SIZE
+        LEA SI, RET_DATE_ARRAY
         ADD SI, AX  
 
         ;get return day
