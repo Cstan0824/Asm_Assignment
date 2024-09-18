@@ -37,6 +37,8 @@
     COLOR_REMARK_MSG DB "Green: Book is not available to borrow$"
     SYSTEM_PAUSE_MSG DB "Press any key to continue...$"
     AVALIABLE_MSG DB "Available$"
+    ;---exit
+	DISPLAY_EXIT DB 0DH, 0AH,"Thank you, see you next time.$"
 
     ;Borrow, Return Book
     NOT_AVALIABLE_MSG DB "Book Not Available to borrow$"
@@ -300,17 +302,17 @@
         MOV DS, AX
 
         START_MAIN_MENU:
-        CALL CLEAR_SCREEN
-        CALL DISPLAY_MAIN_MENU
-        MOV BX, '3'   ;Maximum value for user input
-        CALL GET_CHOICE
+            CALL CLEAR_SCREEN
+            CALL DISPLAY_MAIN_MENU
+            MOV BX, '3'   ;Maximum value for user input
+            CALL GET_CHOICE
 
-        CMP AX, 1
-        JE LOGIN_AS_ADMIN
-        CMP AX, 2
-        JE LOGIN_AS_USER
-        CMP AX, 3
-        JE EXIT_PROGRAM
+            CMP AX, 1
+            JE LOGIN_AS_ADMIN 
+            CMP AX, 2
+            JE LOGIN_AS_USER
+            CMP AX, 3
+            JE EXIT_PROGRAM
 
         LOGIN_AS_ADMIN:
             ;ADMIN LOGIN - YY PART
@@ -331,6 +333,11 @@
             JMP START_MAIN_MENU
 
         EXIT_PROGRAM:
+
+        MOV AH,09H
+        LEA DX, DISPLAY_EXIT
+        INT 21H
+
         MOV AX, 4C00H
         INT 21H
     MAIN ENDP
