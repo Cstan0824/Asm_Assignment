@@ -989,86 +989,14 @@
 
     CALCULATE_PENALTY PROC
         MOV HAS_PENALTY_CHARGE, 0
-        MOV DIFF_DAY, 0
-        LEA SI, RET_DATE_ARRAY
-
-        ;move to selected book's return date
-        ;new SI = old SI + (selected Index * sizeOf(value))
-        XOR AX, AX
-        MOV AL, BL ;get BX - user currently borrowed book
-        MUL DATE_SIZE
-        ADD SI, AX  
-
-        ;get return day
-        MOV AL, [SI]
-        SUB AL, 30H
-        MUL TEN
-        MOV RET_DAY, AL
-
-        INC SI
-
-        MOV AL, [SI]
-        SUB AL, 30H
-        ADD RET_DAY, AL
-
-        ADD SI, 2
-
-        ;get return month
-        MOV AL, [SI]
-        SUB AL, 30H
-        MUL TEN
-        MOV RET_MONTH, AL
-
-        INC SI
-
-        MOV AL, [SI]
-        SUB AL, 30H
-        ADD RET_MONTH, AL
-
-        XOR BX, BX
-        XOR CX, CX  
-        XOR AX, AX
-
-        ;Count Difference Day
-        LEA SI, DAY_OF_MONTH
-        MOV BL, CURR_DAY
-
-        MOV CL, CURR_MONTH
-        DEC CX 
-        CMP CX, 0 ;add day only if January
-        JE END_COUNT_CURR_DAY_OF_MONTHS   
-        COUNT_CURR_DAY_OF_MONTHS:
-            MOV AL, [SI]  
-            ADD BX, AX
-            INC SI
-        LOOP COUNT_CURR_DAY_OF_MONTHS   
-        END_COUNT_CURR_DAY_OF_MONTHS:
-
-        LEA SI, DAY_OF_MONTH
-        MOV AL, RET_DAY
-        SUB BX, AX
-        MOV CL, RET_MONTH
-        DEC CX
-        CMP CX, 0 ;add day only if January
-        JE END_COUNT_RET_DAY_OF_MONTHS
-        COUNT_RET_DAY_OF_MONTHS:
-            MOV AL, [SI]
-            SUB BX, AX
-            CMP BX, 0
-            JS NOT_EXCEED_RET_DATE    
-            INC SI
-        LOOP COUNT_RET_DAY_OF_MONTHS
-        JMP END_COUNT_RET_DAY_OF_MONTHS
-        NOT_EXCEED_RET_DATE:
-            JMP NO_PENALTY_CHARGE  
-        END_COUNT_RET_DAY_OF_MONTHS:
-
-        ;store the difference day to DIFF_DAY
-        XOR CX, CX
-        MOV DIFF_DAY, BX
+        CALL CALCULATE_DIFF_DAY ; calculate the diff day and store it to DIFF_DAY
         
         CMP DIFF_DAY, 0 ; if does not exceed the return date will not stores the difference day to DIFF_DAY
-        JE NOT_EXCEED_RET_DATE ;calculate penalty if current date exceeds return date
+        JA CALC_PENALTY_CHARGE ;calculate penalty if current date exceeds return date
+        
+        JMP NO_PENALTY_CHARGE
+        
+        CALC_PENALTY_CHARGE:
         ; PENALTY_EXTRA_RATE (10) / PENALTY_CHARGE (5) = 2 ( diff_day * 2 = PENALTY_EXTRA_RATE (10))
         XOR AX, AX
         MOV AL, PENALTY_EXTRA_RATE
@@ -1189,6 +1117,86 @@
         NO_PENALTY_CHARGE:	
         RET
     CALCULATE_PENALTY ENDP 
+
+    CALCULATE_DIFF_DAY PROC
+        MOV DIFF_DAY, 0
+        LEA SI, RET_DATE_ARRAY
+
+        ;move to selected book's return date
+        ;new SI = old SI + (selected Index * sizeOf(value))
+        XOR AX, AX
+        MOV AL, BL ;get BX - user currently borrowed book
+        MUL DATE_SIZE
+        ADD SI, AX  
+
+        ;get return day
+        MOV AL, [SI]
+        SUB AL, 30H
+        MUL TEN
+        MOV RET_DAY, AL
+
+        INC SI
+
+        MOV AL, [SI]
+        SUB AL, 30H
+        ADD RET_DAY, AL
+
+        ADD SI, 2
+
+        ;get return month
+        MOV AL, [SI]
+        SUB AL, 30H
+        MUL TEN
+        MOV RET_MONTH, AL
+
+        INC SI
+
+        MOV AL, [SI]
+        SUB AL, 30H
+        ADD RET_MONTH, AL
+
+        XOR BX, BX
+        XOR CX, CX  
+        XOR AX, AX
+
+        ;Count Difference Day
+        LEA SI, DAY_OF_MONTH
+        MOV BL, CURR_DAY
+
+        MOV CL, CURR_MONTH
+        DEC CX 
+        CMP CX, 0 ;add day only if January
+        JE END_COUNT_CURR_DAY_OF_MONTHS   
+        COUNT_CURR_DAY_OF_MONTHS:
+            MOV AL, [SI]  
+            ADD BX, AX
+            INC SI
+        LOOP COUNT_CURR_DAY_OF_MONTHS   
+        END_COUNT_CURR_DAY_OF_MONTHS:
+
+        LEA SI, DAY_OF_MONTH
+        MOV AL, RET_DAY
+        SUB BX, AX
+        MOV CL, RET_MONTH
+        DEC CX
+        CMP CX, 0 ;add day only if January
+        JE END_COUNT_RET_DAY_OF_MONTHS
+        COUNT_RET_DAY_OF_MONTHS:
+            MOV AL, [SI]
+            SUB BX, AX
+            CMP BX, 0
+            JS NOT_EXCEED_RET_DATE    
+            INC SI
+        LOOP COUNT_RET_DAY_OF_MONTHS
+
+        END_COUNT_RET_DAY_OF_MONTHS:
+            ;store the difference day to DIFF_DAY
+            XOR CX, CX
+            MOV DIFF_DAY, BX
+
+        NOT_EXCEED_RET_DATE:
+        RET
+    CALCULATE_DIFF_DAY ENDP
 
     DISPLAY_PENALTY_DET PROC 
         ;PENALTY CHARGE: RM 5.00 (Penalty Basic Rate) x 10 (Exceed Days) x 110% = RM 55.00 (Penalty Charge, MAX: RM 100.00)
