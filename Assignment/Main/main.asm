@@ -3,37 +3,37 @@
 
 .DATA
     ;MENU
-    MAIN_MENU   DB "1. Admin ", 0DH, 0AH
-                DB "2. User ", 0DH, 0AH
-                DB "3. Exit ", 0DH, 0AH
+    MAIN_MENU   DB " | 1. ADMIN ", 28 DUP(" ") , "|", 0DH, 0AH
+                DB " | 2. USER ", 29 DUP(" ") , "|", 0DH, 0AH
+                DB " | 3. EXIT ", 29 DUP(" ") , "|"
                 DB "$"
 
-    ADMIN_MENU  DB "1. Add Book ", 0DH, 0AH
-                DB "2. Edit Book ", 0DH, 0AH
-                DB "3. Delete Book ", 0DH, 0AH
-                DB "4. View Book[Borrow Record] ", 0DH, 0AH
-                DB "5. Penalty Management ", 0DH, 0AH
-                DB "6. Logout ", 0DH, 0AH
+    ADMIN_MENU  DB " | 1. Add Book ", 25 DUP(" ") , "|", 0DH, 0AH
+                DB " | 2. Edit Book ", 24 DUP(" ") , "|", 0DH, 0AH
+                DB " | 3. Delete Book ", 22 DUP(" ") , "|", 0DH, 0AH
+                DB " | 4. View Book[Borrow Record] ", 9 DUP(" ") , "|", 0DH, 0AH
+                DB " | 5. Penalty Management ", 15 DUP(" ") , "|", 0DH, 0AH
+                DB " | 6. Logout ", 27 DUP(" "), "|"
                 DB "$"
 
-    USER_MENU   DB "1. Borrow Book ", 0DH, 0AH
-                DB "2. Return Book ", 0DH, 0AH
-                DB "3. Logout ", 0DH, 0AH
+    USER_MENU   DB " | 1. Borrow Book ",22 DUP(" "), "|", 0DH, 0AH
+                DB " | 2. Return Book ",22 DUP(" "), "|", 0DH, 0AH
+                DB " | 3. Logout ", 27 DUP(" "), "|"
                 DB "$"
 
-    PENALTY_MENU    DB "1. Change Penalty Charge ", 0DH, 0AH
-                    DB "2. Change Penalty Extra Charge Rate ", 0DH, 0AH
-                    DB "3. Change Penalty Maximum Charge ", 0DH, 0AH
-                    DB "4. Back ", 0DH, 0AH
+    PENALTY_MENU    DB " | 1. Change Penalty Charge ", 12 DUP(" "), "|", 0DH, 0AH
+                    DB " | 2. Change Penalty Extra Charge Rate ", 1 DUP(" "), "|", 0DH, 0AH
+                    DB " | 3. Change Penalty Maximum Charge ", 4 DUP(" "), "|", 0DH, 0AH
+                    DB " | 4. Back ", 29 DUP(" ") , "|"
                     DB "$"
 
-    LOGIN_MENU  DB "1. Login",0DH, 0AH
-                            DB "2. Back to Menu",0DH, 0AH
-                            DB "$"
+    LOGIN_MENU  DB " | 1. LOGIN", 29 DUP(" "), "|", 0DH, 0AH
+                DB " | 2. Back to Menu", 22 DUP(" "), "|"
+                DB "$"
             
 
     NL DB 0AH,0DH,"$"
-	LINE DB 0AH,0DH,"===============================================",0DH, 0AH,"$"
+	LINE DB 0AH,0DH,"  ====================================== ",0DH, 0AH,"$"
 	DISPLAY_WELCOME_MAINPAGE DB 0DH, 0AH,"Welcome to our library system!",0DH, 0AH,"$"
 
 	;---Admin Menu
@@ -43,51 +43,50 @@
 
 	;---login page displays
 	DISPLAY_LOGIN DB 0DH, 0AH,"LOGIN$"
-	DISPLAY_ENTER_USERNAME DB 0DH, 0AH,"Please enter your username: $"
-	DISPLAY_ENTER_PASSWORD DB 0DH, 0AH,"Please enter your password: $"
-	DISPLAY_LOGINFAIL DB 0DH, 0AH,"The username or password u entered might be wrong, please try again!",0DH, 0AH,"$"
-	DISPLAY_LOGINS DB 0DH, 0AH,"Login Successfull!",0DH, 0AH,"$"
+	DISPLAY_ENTER_USERNAME DB 0DH, 0AH," Please enter your username: $"
+	DISPLAY_ENTER_PASSWORD DB 0DH, 0AH," Please enter your password: $"
+	DISPLAY_LOGINFAIL DB 0DH, 0AH," The username or password u entered might be wrong, please try again!",0DH, 0AH,"$"
+	DISPLAY_LOGINS DB 0DH, 0AH," Login Successfull!",0DH, 0AH,"$"
 
 	
 
     ;MESSAGE
-    CHOICE_MSG DB "Enter your choice: $"
-    INVALID_INPUT DB "Invalid Input! Please try again. $"
-    COLOR_REMARK_MSG DB "Green: Book is not available to borrow$"
-    SYSTEM_PAUSE_MSG DB "Press any key to continue...$"
+    CHOICE_MSG DB " Enter your choice: $"
+    INVALID_INPUT DB " Invalid Input! Please try again. $"
+    COLOR_REMARK_MSG DB " Green: Book is not available to borrow$"
+    SYSTEM_PAUSE_MSG DB " Press any key to continue...$"
     AVALIABLE_MSG DB "Available$"
     ;---exit
-	DISPLAY_EXIT DB 0DH, 0AH,"Thank you, see you next time.$"
-    INVALIDSELECTION_MSG DB 0DH, 0AH,"Invalid Selection. Try Again",0DH, 0AH,"$"
+	DISPLAY_EXIT DB 0DH, 0AH," Thank you, see you next time.$"
+    INVALIDSELECTION_MSG DB 0DH, 0AH," Invalid Selection. Try Again",0DH, 0AH,"$"
 
     ;Borrow, Return Book
-    NOT_AVALIABLE_MSG DB "Book Not Available to borrow$"
-    BOOK_RETURNED_MSG DB "Book Returned Successfully$"
-    BOOK_RETURN_FAILED DB "Book Return Failed$"
-    RETURN_BOOK_MSG DB "Do you want to return the book", 63, " (Y/N): $"
-    USER_NOT_AVALIABLE_MSG DB "User not available to borrow!$"
-    BORROW_RECORED_NOT_FOUND_MSG DB "Borrow Record not found!$"
-    BOOK_ID_NOT_EXISTS_MSG DB "Book ID not Exists$"
+    NOT_AVALIABLE_MSG DB " Book Not Available to borrow$"
+    BOOK_RETURNED_MSG DB " Book Returned Successfully$"
+    BOOK_RETURN_FAILED DB " Book Return Failed$"
+    RETURN_BOOK_MSG DB " Do you want to return the book", 63, " (Y/N): $"
+    USER_NOT_AVALIABLE_MSG DB " User not available to borrow!$"
+    BORROW_RECORED_NOT_FOUND_MSG DB " Borrow Record not found!$"
+    BOOK_ID_NOT_EXISTS_MSG DB " Book ID not Exists$"
 
     ;Penalty Payment
-    PAYMENT_MSG DB "Do you want to proceed payment", 63, " (Y/N): $"
-    PAYMENT_COMPLETE DB "Payment Complete$"
-    PAYMENT_FAILED DB "Payment Failed$"
-    PENALTY_CHARGE_MSG DB "Penalty Charge = $" 
-    PENALTY_CHARGE_FORMAT DB "               = $"
+    PAYMENT_MSG DB " Do you want to proceed payment", 63, " (Y/N): $"
+    PAYMENT_COMPLETE DB " Payment Complete$"
+    PAYMENT_FAILED DB " Payment Failed$"
+    PENALTY_CHARGE_MSG DB " Penalty Charge = $" 
+    PENALTY_CHARGE_FORMAT DB "                = $"
     PENALTY_BASIC_RATE_INFO DB " (Penalty Basic Rate) $"
     ;exp:  PENALTY CHARGE: RM 5.00 (Penalty Basic Rate) x 10 (Exceed Days) x 110% = RM 55.00 (Penalty Charge, MAX: RM 100.00)
     PENALTY_RATE_INFO DB " (Penalty Rate) $"
     DIFF_DAY_INFO DB " (Exceed Days) $"
     RM DB "RM $"
-    ROUNDED_DECIMAL DB ".00$"
-    PENALTY_CHARGE_INFO DB " (Penalty Charge, MAX: RM 100.00) $"
+    ROUNDED_DECIMAL DB ".00$"       ;for rounded decimal
+    PENALTY_CHARGE_INFO DB " (Penalty Charge, MAX: RM  $"
 
-    BOOK_NAME DB "Book: $"
-    AUTHOR DB "Author: $"
-    RET_DATE DB "Return Date: $"
-    CURR_DATE DB "Current Date: $"
-    YEAR DB "2024$"
+    BOOK_NAME DB "  Book             : $"
+    AUTHOR DB    "  Author           : $"
+    RET_DATE DB  "  Return Date      : $"
+    CURR_DATE DB "  Current Date     : $"
     DATE_DELIMETER DB '/'
 
     TEN DB 10
@@ -166,25 +165,25 @@
         
     ;Borrow Status
     BORROW_BY_ARRAY DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB "CSTAN$", 34 DUP('$')
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB "THE_BEST_DOGGAN$", 24 DUP('$')
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
-        DB 40 DUP('$')
+                    DB 40 DUP("$")
+                    DB "CSTAN$", 34 DUP('$')
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB "THE_BEST_DOGGAN$", 24 DUP('$')
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP("$")
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
 
     
     CURR_USER_ID DB "CSTAN$", 34 DUP('$')
@@ -224,28 +223,28 @@
     ;diff day
 	DIFF_DAY DW 0
 
-    SELECT_BOOK_ID_TO_BORROW_MSG DB "Select the book ID you want to borrow: $"
+    SELECT_BOOK_ID_TO_BORROW_MSG DB " Select the book ID you want to borrow: $"
 
     ;ADD_BOOK VARIABLES
-    ADD_UNAVAILABLE DB "No more slot available to add new books. $"
-    PROMPT_INPUT_BOOKNAME_P1 DB "Enter new book name (cannot input '$"
-    PROMPT_INPUT_BOOKNAME_P2 DB "'): $"
-    PROMPT_INPUT_BOOKAUTHOR_P1 DB "Enter book author for the new book (cannot input '$"
-    PROMPT_INPUT_BOOKAUTHOR_P2 DB "'): $"
-    PROMPT_NEW_BOOKNAME DB "New Book Name: $"
-    PROMPT_NEW_BOOKAUTHOR DB "New Book Author: $"
-    PROMPT_ADDED_BOOK DB "New book has been added to the catalog. $"
+    ADD_UNAVAILABLE DB " No more slot available to add new books. $"
+    PROMPT_INPUT_BOOKNAME_P1 DB " Enter new book name (cannot input '$"
+    PROMPT_INPUT_BOOKNAME_P2 DB "')                : $"
+    PROMPT_INPUT_BOOKAUTHOR_P1 DB " Enter book author for the new book (cannot input '$"
+    PROMPT_INPUT_BOOKAUTHOR_P2 DB "') : $"
+    PROMPT_NEW_BOOKNAME DB   " New Book Name   : $"
+    PROMPT_NEW_BOOKAUTHOR DB " New Book Author : $"
+    PROMPT_ADDED_BOOK DB " New book has been added to the catalog. $"
 
 
     ;EDIT_BOOK VARIABLES
-    PROMPT_INPUT_BOOKID DB "ENTER THE BOOK ID YOU WANT TO EDIT: $"
-    PROMPT_EDIT_BOOKNAME DB "ENTER THE NEW BOOK NAME : $"
-    PROMPT_EDIT_AUTHOR DB "ENTER THE NEW AUTHOR NAME : $"
-    PROMPT_BOOK_EDITED DB "Book edited successfully!$"  
-    EDIT_FIELD_PROMPT DB "Do you want to edit the Name (N) or Author (A): $"
+    PROMPT_INPUT_BOOKID DB " ENTER THE BOOK ID YOU WANT TO EDIT: $"
+    PROMPT_EDIT_BOOKNAME DB " Enter the new Book Name : $"
+    PROMPT_EDIT_AUTHOR DB " Enter the new Author Name : $"
+    PROMPT_BOOK_EDITED DB " Book edited successfully!$"  
+    EDIT_FIELD_PROMPT DB " Do you want to edit the Name (N) or Author (A): $"
     EDIT_FIELD_CHOICE DB 0
-    EDIT_UNAVAILABLE_CHOICE DB "Invalid choice! Please enter N or A.$"
-    BOOKNOTFOUND DB "BOOK NOT FOUND $"
+    EDIT_UNAVAILABLE_CHOICE DB " Invalid choice! Please enter N or A.$"
+    BOOKNOTFOUND DB " BOOK NOT FOUND $"
 
 
     ;NEW_BOOK INPUT_STRING 
@@ -283,7 +282,7 @@
     ACTN_DIGIT DB 0
     INTEGER_STRING DB 5 DUP("$")
 
-    PROMPT_INPUT_DELETE_BOOKID DB "Enter the book ID to delete: $"
+    PROMPT_INPUT_DELETE_BOOKID DB " Enter the book ID to delete: $"
     DELETE_BOOKID_INPUTBUFFER LABEL BYTE             
     MAX_DELETE_BUFFER DB 3                      
     ACTUAL_DELETE_BUFFER DB 0                
@@ -293,23 +292,25 @@
     BOOK_ID_POSITION DB 0
     
     WRITTEN_BY DB "written by $"
-    PROMPT_BOOKID_ERROR DB "Invalid book ID. Please try again. $"
+    PROMPT_BOOKID_ERROR DB " Invalid book ID. Please try again. $"
     PROMPT_BOOK_ISDELETED DB " is deleted successfully! $"
-    PROMPT_BOOK_NOT_AVAILABLE DB "Book is currently borrowed, cannot delete!$"
-    PROMPT_BOOK_NOT_FOUND DB "Book not found! Please try again. $"
-    PROMPT_DELETE_BOOK_CONFIRMATION DB "Are you sure you want to delete this book? (Y/N) $"
+    PROMPT_BOOK_NOT_AVAILABLE DB " Book is currently borrowed, cannot delete!$"
+    PROMPT_BOOK_NOT_FOUND DB " Book not found! Please try again. $"
+    PROMPT_DELETE_BOOK_CONFIRMATION DB " Are you sure you want to delete this book? (Y/N) $"
     INTEGER DW 0
 
     ;PENALTY MANAGEMENT VARIABLES
-    CHANGE_PENALTY_CHARGE_MSG DB "Enter the new penalty charge (RM 1 - RM 5): $"
-    CHANGE_PENALTY_EXTRA_RATE_MSG DB "Enter the new penalty extra charge rate (extra 1% - 10%): $"
-    CHANGE_PENALTY_MAXIMUM_CHARGE_MSG DB "Enter the new penalty maximum charge (RM 80 - RM 100): $"
+    CHANGE_PENALTY_CHARGE_MSG DB         " Enter the new penalty charge (RM 1 - RM 5)               : $"
+    CHANGE_PENALTY_EXTRA_RATE_MSG DB     " Enter the new penalty extra charge rate (extra 1% - 10%) : $"
+    CHANGE_PENALTY_MAXIMUM_CHARGE_MSG DB " Enter the new penalty maximum charge (RM 80 - RM 100)    : $"
 
-    CURR_PENALTY_CHARGE_MSG DB "Current penalty charge (RM/DAY): RM $"
-    CURR_PENALTY_EXTRA_CHARGE_RATE_MSG DB "Penalty extra rate after 14 days (%): extra $"
-    CURR_PENALTY_MAXIMUM_CHARGE_MSG DB "Current penalty maximum charge: RM $"
-    PENALTY_CAUTION_MSG DB "==================== CAUTION ===================== $"
-
+    CURR_PENALTY_CHARGE_MSG DB "  Current penalty charge (RM/DAY): RM $"
+    CURR_PENALTY_EXTRA_CHARGE_RATE_MSG DB "  Penalty extra rate after 14 days (%): extra $"
+    CURR_PENALTY_MAXIMUM_CHARGE_MSG DB "  Current penalty maximum charge: RM $"
+    PENALTY_CAUTION_MSG DB " ===================== CAUTION ====================== $"
+    PENALTY_LINE DB " " ,52 DUP("="), " $"
+    BOOK_LINE DB " " ,52 DUP("="), " $"
+    PENALTY_CHARGE_LINE DB " " , 70 DUP("="), " $"
 
     PENALTY_CHARGE DB 5
     HAS_PENALTY_CHARGE DB 0 ; 0 - no penalty charge, 1 - has penalty charge
@@ -339,9 +340,7 @@
         ADMIN_LOGIN_PAGE:
             ;ADMIN LOGIN - YY PART
             CALL CLEAR_SCREEN
-		    CALL BORDER
             CALL DISPLAY_ADMIN_LOGIN_MENU
-            CALL NEW_LINE
 
             MOV BX, '2'   ;Maximum value for user input
             CALL GET_CHOICE
@@ -353,9 +352,7 @@
         USER_LOGIN_PAGE:
             ;USER LOGIN - YY PART
             CALL CLEAR_SCREEN
-		    CALL BORDER
             CALL DISPLAY_USER_LOGIN_MENU
-            CALL NEW_LINE
 
             MOV BX, '2'   ;Maximum value for user input
             CALL GET_CHOICE
@@ -367,12 +364,10 @@
         LOGIN_AS_ADMIN:
             ;ADMIN LOGIN - YY PART
             CALL CLEAR_SCREEN
-            CALL BORDER
 
             CALL ADMIN_LOGIN
             CALL LOGINSUCCESS
 
-			CALL BORDER
             CALL SYSTEM_PAUSE 
             CALL CLEAR_SCREEN
 
@@ -381,12 +376,10 @@
         LOGIN_AS_USER:
             ;USER LOGIN - YY PART
             CALL CLEAR_SCREEN
-            CALL BORDER
 
             CALL USER_LOGIN
             CALL LOGINSUCCESS
 
-			CALL BORDER
             CALL SYSTEM_PAUSE 
             CALL CLEAR_SCREEN
 
@@ -415,18 +408,20 @@
 
     ;Display Main Menu - Role Selection 
     DISPLAY_MAIN_MENU PROC
+        CALL BORDER 
         MOV AH, 09H
         LEA DX, MAIN_MENU
         INT 21H
+        CALL BORDER 
         RET
     DISPLAY_MAIN_MENU ENDP
 
     DISPLAY_ADMIN_LOGIN_MENU PROC
-        CALL BORDER
-
         MOV AH,09H
         LEA DX, DISPLAY_WELCOME_ADMINPAGE
         INT 21H
+
+        CALL BORDER
             
         ;-----login
         MOV AH,09H
@@ -437,15 +432,16 @@
     DISPLAY_ADMIN_LOGIN_MENU ENDP
 
     DISPLAY_USER_LOGIN_MENU PROC
-        CALL BORDER
         MOV AH,09H
         LEA DX, DISPLAY_WELCOME_USERPAGE
         INT 21H
+        CALL BORDER
             
         ;-----login
         MOV AH,09H
         LEA DX, LOGIN_MENU
         INT 21H 
+
         CALL BORDER
         RET
     DISPLAY_USER_LOGIN_MENU ENDP
@@ -533,17 +529,21 @@
 
     ;Admin Modules
     DISPLAY_ADMIN_MENU PROC 
+        CALL BORDER
         MOV AH, 09H
         LEA DX, ADMIN_MENU
         INT 21H
+        CALL BORDER
         RET
     DISPLAY_ADMIN_MENU ENDP
 
     ;Penalty Management
     DISPLAY_PENALTY_MENU PROC
+        CALL BORDER
         MOV AH, 09H
         LEA DX, PENALTY_MENU
         INT 21H
+        CALL BORDER
         RET
     DISPLAY_PENALTY_MENU ENDP
 
@@ -604,6 +604,7 @@
             END_CHANGE_PENALTY_CHARGE:
                 MOV BX, INTEGER 
                 MOV PENALTY_CHARGE, BL
+                CALL CLEAR_SCREEN
                 JMP START_PENALTY_MANAGEMENT
         
         CHANGE_PENALTY_EXTRA_RATE:
@@ -638,6 +639,7 @@
             END_CHANGE_PENALTY_EXTRA_RATE:
                 MOV BX, INTEGER 
                 MOV PENALTY_EXTRA_RATE, BL
+                CALL CLEAR_SCREEN
                 JMP START_PENALTY_MANAGEMENT
 
         CHANGE_PENALTY_MAXIMUM_CHARGE:
@@ -671,6 +673,7 @@
             END_CHANGE_PENALTY_MAXIMUM_CHARGE:
                 MOV BX, INTEGER
                 MOV MAX_PENALTY_CHARGE, BL
+                CALL CLEAR_SCREEN
                 JMP START_PENALTY_MANAGEMENT
             END_PENALTY_MANAGEMENT:
         RET 
@@ -678,8 +681,12 @@
 
     ;Display Current Penalty Details
     DISPLAY_CURR_PENALTY_DET PROC 
-
-        ;Display Penalty Charge
+        CALL NEW_LINE
+        MOV AH, 09H 
+        LEA DX, PENALTY_CAUTION_MSG
+        INT 21H
+        CALL NEW_LINE
+        ;Display Penalty Charge 
         MOV AH, 09H 
         LEA DX, CURR_PENALTY_CHARGE_MSG
         INT 21H
@@ -785,6 +792,12 @@
             INT 21H
         LOOP DISPLAY_CURR_MAX_PENALTY_CHARGE
 
+        CALL NEW_LINE
+
+        MOV AH, 09H 
+        LEA DX, PENALTY_LINE
+        INT 21H 
+
         RET
     DISPLAY_CURR_PENALTY_DET ENDP
 
@@ -875,7 +888,7 @@
                 INT 21H
 
                 MOV AH, 09H
-                LEA DX, PROMPT_INPUT_BOOKNAME_P2    
+                LEA DX, PROMPT_INPUT_BOOKAUTHOR_P2    
                 int 21h
 
                 MOV AH, 0AH
@@ -918,6 +931,12 @@
                 JMP NEW_NAME_ERROR
 
             DISPLAY_NEW_BOOK:
+                CALL NEW_LINE 
+                MOV AH, 09H
+                LEA DX, BOOK_LINE  
+                INT 21H 
+                CALL NEW_LINE 
+
                 MOV AH, 09H
                 LEA DX, PROMPT_NEW_BOOKNAME             ;display new book name  
                 INT 21H
@@ -936,11 +955,17 @@
 
                 CALL NEW_LINE
                 CALL NEW_LINE
+                MOV AH, 09H
+                LEA DX, BOOK_LINE  
+                INT 21H 
+                CALL NEW_LINE 
+
                 LEA DX, PROMPT_ADDED_BOOK               ;display new book added to catalog
                 INT 21H
-
-            CALL NEW_LINE
-            CALL NEW_LINE
+                CALL NEW_LINE
+                CALL NEW_LINE 
+                
+                
             CALL SYSTEM_PAUSE
             JMP QUIT_ADD_BOOK
 
@@ -1093,7 +1118,13 @@
             jmp book_borrowed
 
         display_book_information:
-            call new_line
+            CALL NEW_LINE 
+            CALL NEW_LINE
+
+            MOV AH, 09H 
+            LEA DX, BOOK_LINE 
+            INT 21H 
+            
             CALL NEW_LINE
 
             ; Display book name
@@ -1158,14 +1189,16 @@
             CALL NEW_LINE
             CALL NEW_LINE
 
+            MOV AH, 09H 
+            LEA DX, BOOK_LINE
+            INT 21H 
+            CALL NEW_LINE
+
             jmp delete_confirmation
 
         delete_confirmation:
             ; Print confirmation message
-            mov ah, 09h
-            lea dx, PROMPT_DELETE_BOOK_CONFIRMATION
-            int 21h
-
+            LEA DX, PROMPT_DELETE_BOOK_CONFIRMATION
             ; Get user input
             CALL GET_CONFIRMATION ; only accept Y or N - ignore cases
 
@@ -1281,192 +1314,249 @@
     ;GAN PART
     EDIT_BOOK PROC
 
-        CALL DISPLAY_BOOK_CATALOG
-        CALL NEW_LINE
+        EDIT_BOOK_START:
 
-        MOV AH, 09H
-        LEA DX, PROMPT_INPUT_BOOKID
-        INT 21H
-
-        MOV AH, 0AH
-        LEA DX, EDIT_BOOKID_INPUT
-        INT 21H
-
-        MOV AL , EDIT_BOOKID_INPUT[1]
-
-        CMP AL , 1 
-        JE SINGLE_BOOK_ID
-
-        CMP AL , 2
-        JE DOUBLE_BOOK_ID
-
-        RET
-
-        SINGLE_BOOK_ID:
-            MOV BL , EDIT_BOOKID_INPUT[2]         ;GET THE FIRST DIGIT 
-            SUB BL , "0"                          ;CONVERT ASCII TO INTEGER
-            JMP PROCESS_EDIT_BOOK                 ;JUMP TO PROCESS_EDIT_BOOK
-
-        DOUBLE_BOOK_ID:
-            MOV AL , EDIT_BOOKID_INPUT[2]        ; Get the first digit
-            SUB AL, '0'                          ; Convert ASCII to integer
-            MOV BL, AL                           ; Store first digit in BL
-
-            MOV AL,  EDIT_BOOKID_INPUT[3]       ; Get the second digit
-            SUB AL, '0'                         ; Convert ASCII to integer
-            MOV BH, AL                          ; Store second digit in BH
-
-            ;COBINATION OF TWO DIGIT    
-            MOV AL, BL                          ; Move the first digit to AL
-            MOV CX, 10                          ; Move 10 to CX
-            MUL CX                              ; Multiply AL by CX, MULTIPLY BECAUSE WE WANT TO GET THE ACTUAL VALUE
-            ADD AL, BH                          ; Add BH to AL
-            MOV BL, AL                          ; Store the result in BL
-
-            JMP PROCESS_EDIT_BOOK   
-
-        PROCESS_EDIT_BOOK:
-            MOV SI , 0 
-            MOV CX , 20
-
-        SEARCH_BOOK:
-            CMP BOOK_ID_ARRAY[SI] , BL
-            JE BOOK_FOUND
-            INC SI
-        LOOP SEARCH_BOOK
-
-            CALL NEW_LINE 
-
-            MOV AH, 09H
-            LEA DX, BOOKNOTFOUND
-            INT 21H
-
-            RET
-
-        BOOK_FOUND:
-            CALL NEW_LINE
-
-            ;CHECK WHETHER THE BOOK IS AVAILABLE TO EDIT AVOID ANY NOT YET ADDED BOOK CAN BE EDIT
-            LEA DI , BOOK_NAME_ARRAY
-            MOV AX , SI
-            MUL BOOK_SIZE
-            ADD DI , AX
-
-            CMP BYTE PTR [DI] , '$'
-            JE BOOK_NOT_EXISTED_YET
-
-            MOV AH, 09H
-            LEA DX, EDIT_FIELD_PROMPT
-            INT 21H
-
-            MOV AH, 01H
-            INT 21H
-            MOV EDIT_FIELD_CHOICE, AL
-
-            CMP EDIT_FIELD_CHOICE, 'N'
-            JE EDIT_BOOK_NAME
-
-            CMP EDIT_FIELD_CHOICE, 'A'
-            JE EDIT_BOOK_AUTHOR
-
-            CALL NEW_LINE 
-
-            MOV AH, 09H
-            LEA DX, EDIT_UNAVAILABLE_CHOICE
-            INT 21H
-
-            RET             ;CAN ALSO RETURN TO BOOK FOUND
-
-        BOOK_NOT_EXISTED_YET:
+            CALL DISPLAY_BOOK_CATALOG
             CALL NEW_LINE
 
             MOV AH, 09H
-            LEA DX, BOOKNOTFOUND
-            INT 21H
-
-            RET
-        
-        EDIT_BOOK_NAME:
-            CALL NEW_LINE
-
-            MOV AH, 09H
-            LEA DX, PROMPT_EDIT_BOOKNAME
+            LEA DX, PROMPT_INPUT_BOOKID
             INT 21H
 
             MOV AH, 0AH
-            LEA DX, EDITED_NEW_BOOKNAME
+            LEA DX, EDIT_BOOKID_INPUT
             INT 21H
 
-            MOV AX , SI 
-            MUL BOOK_SIZE       ;POTENTIAL PROBLEM
+            MOV AL , EDIT_BOOKID_INPUT[1]
 
-            LEA DI , BOOK_NAME_ARRAY
-            ADD DI , AX
+            CMP AL , 1 
+            JE SINGLE_BOOK_ID
 
-            ;CLEAR THE BOOK NAME 
-            MOV CX , 30
-            CLEAR_BOOKNAME:
-                MOV BYTE PTR [DI] , '$'
-                INC DI
-            LOOP CLEAR_BOOKNAME
+            CMP AL , 2
+            JE DOUBLE_BOOK_ID
 
-            ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
-            SUB DI , 30
+            JMP EDIT_BOOK_START
 
-            ;PERFORM EDIT BOOK NAME
-            LEA SI , EDITED_NEW_BOOKNAME[2]
+            SINGLE_BOOK_ID:
+                MOV BL , EDIT_BOOKID_INPUT[2]         ;GET THE FIRST DIGIT 
+                SUB BL , "0"                          ;CONVERT ASCII TO INTEGER
+                JMP PROCESS_EDIT_BOOK                 ;JUMP TO PROCESS_EDIT_BOOK
 
-            XOR CX , CX
-            MOV CL , EDITED_NEW_BOOKNAME[1]
-            REPLACE_BOOKNAME:
-                MOV AL , [SI]
-                MOV [DI] , AL
+            DOUBLE_BOOK_ID:
+                MOV AL , EDIT_BOOKID_INPUT[2]        ; Get the first digit
+                SUB AL, '0'                          ; Convert ASCII to integer
+                MOV BL, AL                           ; Store first digit in BL
+
+                MOV AL,  EDIT_BOOKID_INPUT[3]       ; Get the second digit
+                SUB AL, '0'                         ; Convert ASCII to integer
+                MOV BH, AL                          ; Store second digit in BH
+
+                ;COBINATION OF TWO DIGIT    
+                MOV AL, BL                          ; Move the first digit to AL
+                MOV CX, 10                          ; Move 10 to CX
+                MUL CX                              ; Multiply AL by CX, MULTIPLY BECAUSE WE WANT TO GET THE ACTUAL VALUE
+                ADD AL, BH                          ; Add BH to AL
+                MOV BL, AL                          ; Store the result in BL
+
+                JMP PROCESS_EDIT_BOOK   
+
+            PROCESS_EDIT_BOOK:
+                MOV SI , 0 
+                MOV CX , 20
+
+            SEARCH_BOOK:
+                CMP BOOK_ID_ARRAY[SI] , BL
+                JE BOOK_FOUND
                 INC SI
-                INC DI
-            LOOP REPLACE_BOOKNAME
+            LOOP SEARCH_BOOK
 
-            RET
+                CALL NEW_LINE 
 
-        EDIT_BOOK_AUTHOR:
-            CALL NEW_LINE
+                MOV AH, 09H
+                LEA DX, BOOKNOTFOUND
+                INT 21H
 
-            MOV AH, 09H
-            LEA DX, PROMPT_EDIT_AUTHOR
-            INT 21H
+                JMP EDIT_BOOK_START
 
-            MOV AH, 0AH
-            LEA DX, EDITED_NEW_AUTHOR
-            INT 21H
+            BOOK_FOUND:
+                CALL NEW_LINE
 
-            MOV AX , SI
-            MUL BOOK_SIZE
+                ;CHECK WHETHER THE BOOK IS AVAILABLE TO EDIT AVOID ANY NOT YET ADDED BOOK CAN BE EDIT
+                LEA DI , BOOK_NAME_ARRAY
+                MOV AX , SI
+                MUL BOOK_SIZE
+                ADD DI , AX
 
-            LEA DI , BOOK_AUTHORS
-            ADD DI , AX
+                CMP BYTE PTR [DI] , '$'
+                JE BOOK_NOT_EXISTED_YET
 
-            ;CLEAR THE BOOK AUTHOR
-            MOV CX , 30
-            CLEAR_BOOKAUTHOR:
-                MOV BYTE PTR [DI] , '$'
-                INC DI
-            LOOP CLEAR_BOOKAUTHOR
+                MOV AH, 09H
+                LEA DX, EDIT_FIELD_PROMPT
+                INT 21H
 
-            ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
-            SUB DI , 30
+                MOV AH, 01H
+                INT 21H
+                MOV EDIT_FIELD_CHOICE, AL
 
-            ;PERFORM EDIT BOOK AUTHOR
-            LEA SI , EDITED_NEW_AUTHOR[2]
+                CMP EDIT_FIELD_CHOICE, 'N'
+                JE EDIT_BOOK_NAME
 
-            XOR CX , CX
-            MOV CL , EDITED_NEW_AUTHOR[1]
-            REPLACE_BOOK_AUTHOR:
-                MOV AL , [SI]
-                MOV [DI] , AL
-                INC SI
-                INC DI
-            LOOP REPLACE_BOOK_AUTHOR
+                CMP EDIT_FIELD_CHOICE, 'A'
+                JE HOLD_EDIT_BOOK_AUTHOR
 
-            RET
+                CALL NEW_LINE 
+
+                MOV AH, 09H
+                LEA DX, EDIT_UNAVAILABLE_CHOICE
+                INT 21H
+
+                JMP BOOK_FOUND            ;CAN ALSO RETURN TO BOOK FOUND
+
+            HOLD_EDIT_BOOK_AUTHOR:
+                JMP EDIT_BOOK_AUTHOR    
+
+            BOOK_NOT_EXISTED_YET:
+                CALL NEW_LINE
+
+                MOV AH, 09H
+                LEA DX, BOOKNOTFOUND
+                INT 21H
+
+                JMP EDIT_BOOK_START
+            
+            EDIT_BOOK_NAME:
+                CALL NEW_LINE
+
+                MOV AH, 09H
+                LEA DX, PROMPT_EDIT_BOOKNAME
+                INT 21H
+
+                MOV AH, 0AH
+                LEA DX, EDITED_NEW_BOOKNAME
+                INT 21H
+
+                MOV AL, EDITED_NEW_BOOKNAME[1]   ; Length of the entered string
+                CMP AL, 0                        ; Check if the length is 0
+                JE INVALID_BOOK_NAME_EDIT             ; If 0, jump to the error handler
+
+                LEA BX  , EDITED_NEW_BOOKNAME[2]
+                MOV CL , EDITED_NEW_BOOKNAME[1]
+
+                VALIDATE_BOOK_NAME:
+                    MOV AL , [BX]
+                    CMP AL , '$'
+                    JE INVALID_BOOK_NAME_EDIT
+                    INC BX
+                    DEC CL 
+                JNZ VALIDATE_BOOK_NAME
+
+
+
+                MOV AX , SI 
+                MUL BOOK_SIZE      
+
+                LEA DI , BOOK_NAME_ARRAY
+                ADD DI , AX
+
+                ;CLEAR THE BOOK NAME 
+                MOV CX , 30
+                CLEAR_BOOKNAME:
+                    MOV BYTE PTR [DI] , '$'
+                    INC DI
+                LOOP CLEAR_BOOKNAME
+
+                ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
+                SUB DI , 30
+
+                ;PERFORM EDIT BOOK NAME
+                LEA SI , EDITED_NEW_BOOKNAME[2]
+
+                XOR CX , CX
+                MOV CL , EDITED_NEW_BOOKNAME[1]
+                REPLACE_BOOKNAME:
+                    MOV AL , [SI]
+                    MOV [DI] , AL
+                    INC SI
+                    INC DI
+                LOOP REPLACE_BOOKNAME
+
+                RET
+
+            INVALID_BOOK_NAME_EDIT:
+                ; Handle invalid book name (empty or contains '$')
+                CALL NEW_LINE
+                MOV AH, 09H
+                LEA DX, INVALID_INPUT
+                INT 21H
+                JMP EDIT_BOOK_NAME                ; Re-prompt the user to enter a valid name
+
+            EDIT_BOOK_AUTHOR:
+                CALL NEW_LINE
+
+                MOV AH, 09H
+                LEA DX, PROMPT_EDIT_AUTHOR
+                INT 21H
+
+                MOV AH, 0AH
+                LEA DX, EDITED_NEW_AUTHOR
+                INT 21H
+
+                MOV AL, EDITED_NEW_AUTHOR[1]   ; Length of the entered string
+                CMP AL, 0                        ; Check if the length is 0
+                JE INVALID_AUTHOR_EDIT             ; If 0, jump to the error handler
+
+                LEA BX  , EDITED_NEW_AUTHOR[2]
+                MOV CL , EDITED_NEW_AUTHOR[1]
+
+                VALIDATE_AUTHOR:
+                    MOV AL , [BX]
+                    CMP AL , '$'
+                    JE INVALID_AUTHOR_EDIT
+                    INC BX
+                    DEC CL
+                JNZ VALIDATE_AUTHOR
+
+
+
+                MOV AX , SI
+                MUL BOOK_SIZE
+
+                LEA DI , BOOK_AUTHORS
+                ADD DI , AX
+
+                ;CLEAR THE BOOK AUTHOR
+                MOV CX , 30
+                CLEAR_BOOKAUTHOR:
+                    MOV BYTE PTR [DI] , '$'
+                    INC DI
+                LOOP CLEAR_BOOKAUTHOR
+
+                ;TO GET BACK THE ORIGINAL PLACE FOR EDIT
+                SUB DI , 30
+
+                ;PERFORM EDIT BOOK AUTHOR
+                LEA SI , EDITED_NEW_AUTHOR[2]
+
+                XOR CX , CX
+                MOV CL , EDITED_NEW_AUTHOR[1]
+                REPLACE_BOOK_AUTHOR:
+                    MOV AL , [SI]
+                    MOV [DI] , AL
+                    INC SI
+                    INC DI
+                LOOP REPLACE_BOOK_AUTHOR
+
+                RET
+
+                INVALID_AUTHOR_EDIT:
+                CALL NEW_LINE
+
+                MOV AH, 09H
+                LEA DX, INVALID_INPUT
+                INT 21H
+
+                JMP EDIT_BOOK_AUTHOR              ; Re-prompt the user to enter a valid author name
+
     EDIT_BOOK ENDP
 
     ;CSTAN PART - View Borrow Details , buat pagination kalau ada masa 
@@ -1697,6 +1787,11 @@
 
         END_DISPLAY_BORROW_RECORD:
 
+            ;DISPLAY LINE
+            MOV AH, 09H
+            LEA DX, BORROW_RECORD_LINE
+            INT 21H
+
             CALL NEW_LINE
 
             ;Display red
@@ -1753,9 +1848,11 @@
     
     ;user modules
     DISPLAY_USER_MENU PROC
+        CALL BORDER
         MOV AH, 09H
         LEA DX, USER_MENU
         INT 21H
+        CALL BORDER
         RET
     DISPLAY_USER_MENU ENDP
 
@@ -1865,13 +1962,10 @@
 
             CALL NEW_LINE
 
-            MOV AH, 09H 
-            LEA DX, PENALTY_CAUTION_MSG
-            INT 21h
+            
 
             CALL NEW_LINE 
             CALL DISPLAY_CURR_PENALTY_DET
-            CALL NEW_LINE 
 
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
@@ -2121,6 +2215,7 @@
         LEA SI, BOOK_NAME_ARRAY
         LEA DI, BOOK_AUTHORS
 
+
         ;index is stored at BX
         MOV AX, BX
         MUL BOOK_SIZE
@@ -2128,8 +2223,13 @@
         ADD SI, AX 
         ADD DI, AX 
         ;Display Current Borrowed Book
+        CALL NEW_LINE
+        MOV AH, 09H
+        LEA DX, BOOK_LINE 
+        INT 21H 
+        CALL NEW_LINE
 
-        ;Book Name
+        ;Book Name  
         MOV AH, 09H
         LEA DX, BOOK_NAME
         INT 21H 
@@ -2176,7 +2276,7 @@
 
         ;Current Date
         PUSH BX ;move BX to stack temporary
-        CALL GET_DATE ;
+        CALL GET_DATE 
         POP BX ;move back to BX 
 
         MOV AH, 09H
@@ -2186,6 +2286,14 @@
         MOV AH, 09H
         LEA DX, DATE
         INT 21H
+
+        CALL NEW_LINE
+        MOV AH, 09H
+        LEA DX, BOOK_LINE 
+        INT 21H 
+        CALL NEW_LINE
+
+        RET 
     DISPLAY_BOOK_DETAILS ENDP
 
     ;return value to BX
@@ -2483,6 +2591,12 @@
     ;Show the amount that the user needs to pay 
     DISPLAY_PENALTY_CHARGE_DET PROC 
         ;PENALTY CHARGE: RM 5.00 (Penalty Basic Rate) x 10 (Exceed Days) x 110% = RM 55.00 (Penalty Charge, MAX: RM 100.00)
+        ;CALL NEW_LINE
+        ;MOV AH, 09H
+        ;LEA DX, PENALTY_CHARGE_LINE 
+        ;INT 21H 
+        ;CALL NEW_LINE
+
         MOV AH, 09H 
         LEA DX, PENALTY_CHARGE_MSG
         INT 21H 
@@ -2612,6 +2726,7 @@
         SKIP_DISPLAY_EXTRA_RATE:
 
         CALL NEW_LINE 
+        CALL NEW_LINE 
         ;Display Calculated Penalty & Details
         MOV AH, 09H 
         LEA DX, PENALTY_CHARGE_FORMAT
@@ -2628,6 +2743,53 @@
         MOV AH, 09H 
         LEA DX, PENALTY_CHARGE_INFO
         INT 21H 
+
+        ;display maximum charge
+        XOR AX, AX 
+        MOV AL, MAX_PENALTY_CHARGE
+        XOR CX , CX 
+        READ_MAX_PENALTY_CHARGE:
+            INC CX 
+            
+            DIV TEN
+            MOV BX, AX
+
+            XOR AL, AL
+            PUSH AX
+
+            CMP BL, 0
+            JE END_READ_MAX_PENALTY_CHARGE
+
+            XOR BH, BH
+            MOV AX, BX
+
+        JMP READ_MAX_PENALTY_CHARGE
+
+        END_READ_MAX_PENALTY_CHARGE:
+
+        DISPLAY_MAX_PENALTY_CHARGE:
+            POP BX
+            MOV AH, 02H
+            MOV DL, BH
+            ADD DL, 30H
+            INT 21H
+
+        LOOP DISPLAY_MAX_PENALTY_CHARGE
+
+        MOV AH, 09H
+        LEA DX, ROUNDED_DECIMAL
+        INT 21H
+
+        MOV AH, 02H 
+        MOV DL, ")"
+        INT 21H 
+
+        ;CALL NEW_LINE
+        ;MOV AH, 09H
+        ;LEA DX, PENALTY_CHARGE_LINE 
+        ;INT 21H 
+        CALL NEW_LINE
+
         RET
     DISPLAY_PENALTY_CHARGE_DET ENDP
 
@@ -2803,6 +2965,11 @@
 
         END_DISPLAY_BOOKS:
 
+        ;DISPLAY LINE
+        MOV AH, 09H
+        LEA DX, BOOK_CATALOG_LINE
+        INT 21H
+
         CALL NEW_LINE
 
         ;Display green
@@ -2816,6 +2983,8 @@
         MOV AH, 09H 
         LEA DX, COLOR_REMARK_MSG
         INT 21H
+
+
         
         RET
     DISPLAY_BOOK_CATALOG ENDP
