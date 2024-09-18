@@ -2,6 +2,69 @@
 .STACK 100
 
 .DATA
+    ;Animation
+        START_BOOK_FRAME db "   |____________________________________________________|", 0DH, 0AH
+    db "   | __     __   ____   ___ ||  ____    ____     _  __  |", 0DH, 0AH
+    db "  ||  |__ |--|_| || |_|   |||_|**|*|__|+|+||___| ||  | |", 0DH, 0AH
+    db "  ||==|^^||--| |=||=| |=*=||| |~~|~|  |=|=|| | |~||==| |", 0DH, 0AH
+    db "  ||  |##||  | | || | |JRO|||-|  | |==|+|+||-|-|~||__| |", 0DH, 0AH
+    db "  ||__|__||__|_|_||_|_|___|||_|__|_|__|_|_||_|_|_||__|_|", 0DH, 0AH
+    db "  ||_______________________||__________________________|", 0DH, 0AH
+    db "  | _____________________  ||      __   __  _  __    _ |", 0DH, 0AH
+    db "  ||=|=|=|=|=|=|=|=|=|=|=| __..\/ |  |_|  ||#||==|  / /|", 0DH, 0AH
+    db "  || | | | | | | | | | | |/\ \  \\|++|=|  || ||==| / / |", 0DH, 0AH
+    db "  ||_|_|_|_|_|_|_|_|_|_|_/_/\_.___\__|_|__||_||__|/_/__|", 0DH, 0AH
+    db "  |___________________ /\~(",1,")/(",1,")~//\ _________________|", 0DH, 0AH
+    db "  | __   __    _  _     \_  (_ .  _/ _    ___     _____|", 0DH, 0AH
+    db "  ||~~|_|..|__| || |_ _   \ //\\ /  |=|__|~|~|___| | | |", 0DH, 0AH
+    db "  ||--|+|^^|==|1||2| | |__/\ __ /\__| |==|x|x|+|+|=|=|=|", 0DH, 0AH
+    db "  ||__|_|__|__|_||_|_| /  \ \  / /  \_|__|_|_|_|_|_|_|_|", 0DH, 0AH
+    db "  |_________________ _/    \/\/\/    \_ _______________|", 0DH, 0AH
+    db "  | _____   _   __  |/      \../      \|  __   __   ___|", 0DH, 0AH
+    db "  ||_____|_| |_|##|_||   |   \/ __|   ||_|==|_|++|_|-|||", 0DH, 0AH
+    db "  ||______||=|#|--| |\   \   o    /   /| |  |~|  | | |||", 0DH, 0AH
+    db "  ||______||_|_|__|_|_\   \  o   /   /_|_|__|_|__|_|_|||", 0DH, 0AH
+    db "  |_________ __________\___\____/___/___________ ______|", 0DH, 0AH
+    db "  |__   _    /    WELCOME TO             c[_]   / _ _ _|", 0DH, 0AH
+    db "  |__    _  /    ________     ______           /| _ _ _|", 0DH, 0AH
+    db "  |\ \  |=|/   //    /| //   /  /  / |        / ||%|%|%|", 0DH, 0AH
+    db "  | \/\ |*/  .//____//.//   /__/__/ (_)      /  ||=|=|=|", 0DH, 0AH
+    db "__|  \/\|/   /(____|/ //    LIBARY SYSTEM ",1," /  /||~|~|~|__", 0DH, 0AH
+    db "  |___\_/   /________//   ________         /  / ||_|_|_|", 0DH, 0AH
+    db "  |___ /   (|________/   |\_______\       /  /| |______|", 0DH, 0AH
+    db "      / ",169,"ASCII ART","       \|________)     /  / | ", "$"
+
+    END_BOOK_FRAME db "   |____________________________________________________|", 0DH, 0AH
+    db "   | __     __   ____   ___ ||  ____    ____     _  __  |", 0DH, 0AH
+    db "  ||  |__ |--|_| || |_|   |||_|**|*|__|+|+||___| ||  | |", 0DH, 0AH
+    db "  ||==|^^||--| |=||=| |=*=||| |~~|~|  |=|=|| | |~||==| |", 0DH, 0AH
+    db "  ||  |##||  | | || | |JRO|||-|  | |==|+|+||-|-|~||__| |", 0DH, 0AH
+    db "  ||__|__||__|_|_||_|_|___|||_|__|_|__|_|_||_|_|_||__|_|", 0DH, 0AH
+    db "  ||_______________________||__________________________|", 0DH, 0AH
+    db "  | _____________________  ||      __   __  _  __    _ |", 0DH, 0AH
+    db "  ||=|=|=|=|=|=|=|=|=|=|=| __..\/ |  |_|  ||#||==|  / /|", 0DH, 0AH
+    db "  || | | | | | | | | | | |/\ \  \\|++|=|  || ||==| / / |", 0DH, 0AH
+    db "  ||_|_|_|_|_|_|_|_|_|_|_/_/\_____\__|_|__||_||__|/_/__|", 0DH, 0AH
+    db "  |____________________________________________________|", 0DH, 0AH
+    db "  | __   __    _  _     ____    _         ___     _____|", 0DH, 0AH
+    db "  ||~~|_|..|__| || |_ _|SEJ |__| |__|=|__|~|~|___| | | |", 0DH, 0AH
+    db "  ||--|+|^^|==|1||2| | |ARAH|  |_|  | |==|x|x|+|+|=|=|=|", 0DH, 0AH
+    db "  ||__|_|__|__|_||_|_|_|____|__|_|__|_|__|_|_|_|_|_|_|_|", 0DH, 0AH
+    db "  |____________________________________________________|", 0DH, 0AH
+    db "  | _____   _   __   __   ___   __   __   __   __   ___|", 0DH, 0AH
+    db "  ||_____|_| |_|##|_|~~| | @=|_|  | |  |_|==|_|++|_|-|||", 0DH, 0AH
+    db "  ||______||=|#|--| |  | | @ | |  |_|  | |  |~|  | | |||", 0DH, 0AH
+    db "  ||______||_|_|__|_|__|_|___|_|__|_|__|_|__|_|__|_|_|||", 0DH, 0AH
+    db "  |_________ _______________________ ___________ ______|", 0DH, 0AH
+    db "  |__   _    /    BYE BYE !!             c[_]   / _ _ _|", 0DH, 0AH
+    db "  |__    _  /    ________     ______           /| _ _ _|", 0DH, 0AH
+    db "  |\ \  |=|/   //    /| //   /  /  / |        / ||%|%|%|", 0DH, 0AH
+    db "  | \/\ |*/  .//____//.//   /__/__/ (_)      /  ||=|=|=|", 0DH, 0AH
+    db "__|  \/\|/   /(____|/ // C U NEXT TIME ",1,"/  /||~|~|~|__", 0DH, 0AH
+    db "  |___\_/   /________//   ________         /  / ||_|_|_|", 0DH, 0AH
+    db "  |___ /   (|________/   |\_______\       /  /| |______|", 0DH, 0AH
+    db "      / ",169,"ASCII ART","       \|________)     /  / | ", "$"
+
     ;MENU
     MAIN_MENU   DB " | 1. ADMIN ", 28 DUP(" ") , "|", 0DH, 0AH
                 DB " | 2. USER ", 29 DUP(" ") , "|", 0DH, 0AH
@@ -55,7 +118,7 @@
     CHOICE_MSG DB " Enter your choice: $"
     INVALID_INPUT DB " Invalid Input! Please try again. $"
     COLOR_REMARK_MSG DB " Green: Book is not available to borrow$"
-    OVERTIME_COLOR_REMARK_MSG DB "Red: Book has not been returned more than 30 days from return date$"
+    OVERTIME_COLOR_REMARK_MSG DB " Red: Book has not been returned more than 30 days from return date$"
     SYSTEM_PAUSE_MSG DB " Press any key to continue...$"
     AVALIABLE_MSG DB "Available$"
     ;---exit
@@ -323,7 +386,7 @@
 	PENALTY DB 7 DUP("$") ; stores the penalty charge - 100.00 (maximum)
 
     ;REMOVE OVERTIME BOOK VARIABLES
-    PROMPT_INPUT_DELETE_OVERTIME_BOOKID DB "Enter the book ID to delete: $"
+    PROMPT_INPUT_DELETE_OVERTIME_BOOKID DB " Enter the book ID to delete: $"
     DELETE_OVERTIME_BOOKID_INPUTBUFFER LABEL BYTE             
     MAX_DELETE_OVERTIME_BUFFER DB 3                      
     ACTUAL_DELETE_OVERTIME_BUFFER DB 0                
@@ -336,6 +399,8 @@
     MAIN PROC
         MOV AX, @DATA
         MOV DS, AX
+
+        CALL START_LIBARY_SYSTEM
 
         START_MAIN_MENU:
             CALL CLEAR_SCREEN
@@ -411,13 +476,33 @@
 
         EXIT_PROGRAM:
 
-        MOV AH,09H
-        LEA DX, DISPLAY_EXIT
-        INT 21H
+        CALL END_LIBARY_SYSTEM
 
         MOV AX, 4C00H
         INT 21H
     MAIN ENDP
+    ;animation for start of the program
+    START_LIBARY_SYSTEM PROC
+        MOV AH, 09H 
+        LEA DX, START_BOOK_FRAME
+        INT 21H
+
+        CALL NEW_LINE
+        CALL SYSTEM_PAUSE
+
+        RET
+    START_LIBARY_SYSTEM ENDP
+    ;animation for end of the program
+    END_LIBARY_SYSTEM PROC 
+        MOV AH, 09H 
+        LEA DX, END_BOOK_FRAME
+        INT 21H
+
+        CALL NEW_LINE
+        CALL SYSTEM_PAUSE
+
+        RET 
+    END_LIBARY_SYSTEM ENDP
 
     ;Display Main Menu - Role Selection 
     DISPLAY_MAIN_MENU PROC
@@ -623,6 +708,7 @@
             JMP START_CHANGE_PENALTY_CHARGE
 
             END_CHANGE_PENALTY_CHARGE:
+                ;store the value to PENALTY_CHARGE
                 MOV BX, INTEGER 
                 MOV PENALTY_CHARGE, BL
                 CALL CLEAR_SCREEN
@@ -658,6 +744,7 @@
             JMP START_CHANGE_PENALTY_EXTRA_RATE
 
             END_CHANGE_PENALTY_EXTRA_RATE:
+                ;store the value to PENALTY_EXTRA_RATE
                 MOV BX, INTEGER 
                 MOV PENALTY_EXTRA_RATE, BL
                 CALL CLEAR_SCREEN
@@ -692,6 +779,7 @@
             JMP START_CHANGE_PENALTY_MAXIMUM_CHARGE
 
             END_CHANGE_PENALTY_MAXIMUM_CHARGE:
+                ;store the value to MAX_PENALTY_CHARGE
                 MOV BX, INTEGER
                 MOV MAX_PENALTY_CHARGE, BL
                 CALL CLEAR_SCREEN
@@ -1581,6 +1669,11 @@
             JMP DISPLAY_OVERTIME_RECORD
 
         END_DISPLAY_OVERTIME_RECORD:
+        
+            ;DISPLAY LINE
+            MOV AH, 09H
+            LEA DX, BORROW_RECORD_LINE
+            INT 21H
 
             CALL NEW_LINE
 
@@ -1597,7 +1690,6 @@
             LEA DX, OVERTIME_COLOR_REMARK_MSG
             INT 21H
             
-            CALL NEW_LINE
             CALL NEW_LINE
             
 
@@ -2236,7 +2328,7 @@
 
     EDIT_BOOK ENDP
 
-    ;CSTAN PART - View Borrow Details , buat pagination kalau ada masa 
+    ;CSTAN PART - View Borrow Details
     VIEW_BORROW_RECORD PROC 
         ;Point to array
         LEA SI, BOOK_NAME_ARRAY
@@ -2990,7 +3082,7 @@
                 MOV AL, [SI]
                 MOV AH, [DI]
                 CMP AH, AL
-                JNE WRONG_USER_ID
+                JNE WRONG_USER_ID ;if the char is not same then jump to WRONG_USER_ID
 
                 CMP AH, '$' ; both char is '$'
                 JE MATCH_USER_ID
@@ -3011,7 +3103,7 @@
             ADD SI, BX ;JUMP TO NEXT USER_ID
 
             INC CX 
-            CMP CX, 19
+            CMP CX, 19 ;MAX BOOK COUNT - 1
             JA USER_ID_NOT_EXISTS
 
         JMP CHECK_USER_ID_EXISTENCE
@@ -3020,6 +3112,7 @@
             MOV BX, -1 ; set to -1 if user not found
 
         MATCH_USER_ID:
+        ;return the index of the user at BORROW_BY_ARRAY
         RET
     CHECK_USER_EXISTENCE ENDP
 
@@ -3653,7 +3746,7 @@
             INT 21H
 
             
-            
+            ;format book name with spaces
             MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
             
             ;Count the string length
@@ -3703,11 +3796,11 @@
 
             CALL NEW_LINE
 
-            ;jmp to next value
+           
             POP BX ; get back the value of BX from stack
-            INC BOOK_COUNT
+            INC BOOK_COUNT ; count the number of books
             NEXT_BOOK:
-
+                ;jmp to next value
                 XOR AX, AX
                 MOV AL, BOOK_SIZE
                 ADD SI, AX
@@ -3859,7 +3952,7 @@
         LEA DX, GET_INTEGER_STRING
         INT 21H
 
-        ;VALIDATE
+        ;VALIDATE - ensure only input digit
         XOR AX, AX
         MOV CL, ACTN_DIGIT
         CHECK_INTEGER:
