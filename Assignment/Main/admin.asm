@@ -1463,34 +1463,42 @@
 
         EDIT_BOOK_START:
 
+            ;display book catalog
             CALL DISPLAY_BOOK_CATALOG
             CALL NEW_LINE
 
+            ;enter book id
             MOV AH, 09H
             LEA DX, PROMPT_INPUT_BOOKID
             INT 21H
 
+            ;accepy book id input
             MOV AH, 0AH
             LEA DX, EDIT_BOOKID_INPUT
             INT 21H
 
+            ;check the input are 2 digit or 1 
             MOV AL , EDIT_BOOKID_INPUT[1]
 
+            ;one digit 
             CMP AL , 1 
             JE SINGLE_BOOK_ID
 
+            ;2 digit 
             CMP AL , 2
             JE DOUBLE_BOOK_ID
 
+            ;else statement
             JMP EDIT_BOOK_START
 
+            ;handle one digit
             SINGLE_BOOK_ID:
-                MOV BL , EDIT_BOOKID_INPUT[2]         ;GET THE FIRST DIGIT 
-                SUB BL , "0"                          ;CONVERT ASCII TO INTEGER
-                JMP PROCESS_EDIT_BOOK                 ;JUMP TO PROCESS_EDIT_BOOK
+                MOV BL , EDIT_BOOKID_INPUT[2]         ;get the first digit
+                SUB BL , "0"                          ;convert ASCII to integer
+                JMP PROCESS_EDIT_BOOK                 
 
             DOUBLE_BOOK_ID:
-                MOV AL , EDIT_BOOKID_INPUT[2]        ; Get the first digit
+                MOV AL , EDIT_BOOKID_INPUT[2]        ; get the first digit
                 SUB AL, '0'                          ; Convert ASCII to integer
                 MOV BL, AL                           ; Store first digit in BL
 
@@ -1500,13 +1508,14 @@
 
                 ;COBINATION OF TWO DIGIT    
                 MOV AL, BL                          ; Move the first digit to AL
-                MOV CX, 10                          ; Move 10 to CX
-                MUL CX                              ; Multiply AL by CX, MULTIPLY BECAUSE WE WANT TO GET THE ACTUAL VALUE
+                MOV CX, 10                          ; Move 10 to CX , 
+                MUL CX                              ; Multiply AL by CX,  so it become 10 , 20 , 30
                 ADD AL, BH                          ; Add BH to AL
                 MOV BL, AL                          ; Store the result in BL
 
                 JMP PROCESS_EDIT_BOOK   
 
+        ; check whther the book id is exist or not
         PROCESS_EDIT_BOOK:
             MOV SI , 0 
             MOV CX , 20
@@ -1528,15 +1537,16 @@
             BOOK_FOUND:
                 CALL NEW_LINE
 
-                ;CHECK WHETHER THE BOOK IS AVAILABLE TO EDIT AVOID ANY NOT YET ADDED BOOK CAN BE EDIT
                 LEA DI , BOOK_NAME_ARRAY
                 MOV AX , SI
                 MUL BOOK_SIZE
                 ADD DI , AX
 
+                 ;CHECK WHETHER THE BOOK IS AVAILABLE TO EDIT AVOID ANY NOT YET ADDED BOOK CAN BE EDIT
                 CMP BYTE PTR [DI] , '$'
                 JE BOOK_NOT_EXISTED_YET
 
+                ;DISPLAY THE edit choice
                 MOV AH, 09H
                 LEA DX, EDIT_FIELD_PROMPT
                 INT 21H
@@ -1545,23 +1555,28 @@
                 INT 21H
                 MOV EDIT_FIELD_CHOICE, AL
 
+                ; if n
                 CMP EDIT_FIELD_CHOICE, 'N'
                 JE EDIT_BOOK_NAME
 
+                ; if a  
                 CMP EDIT_FIELD_CHOICE, 'A'
                 JE HOLD_EDIT_BOOK_AUTHOR
 
                 CALL NEW_LINE 
 
+                ;else statement
                 MOV AH, 09H
                 LEA DX, EDIT_UNAVAILABLE_CHOICE
                 INT 21H
 
                 JMP BOOK_FOUND            ;CAN ALSO RETURN TO BOOK FOUND
 
+            ; too far to jump so i put it here
             HOLD_EDIT_BOOK_AUTHOR:
                 JMP EDIT_BOOK_AUTHOR    
-
+            
+            ; this is when the book is not existed yet
             BOOK_NOT_EXISTED_YET:
                 CALL NEW_LINE
 
@@ -1571,6 +1586,7 @@
 
                 JMP EDIT_BOOK_START
             
+            ;edit book name
             EDIT_BOOK_NAME:
                 CALL NEW_LINE
 
@@ -1582,10 +1598,12 @@
                 LEA DX, EDITED_NEW_BOOKNAME
                 INT 21H
 
+                ;check whther empty or not
                 MOV AL, EDITED_NEW_BOOKNAME[1]   ; Length of the entered string
                 CMP AL, 0                        ; Check if the length is 0
                 JE INVALID_BOOK_NAME_EDIT             ; If 0, jump to the error handler
 
+                ;check that any $ in the string
                 LEA BX  , EDITED_NEW_BOOKNAME[2]
                 MOV CL , EDITED_NEW_BOOKNAME[1]
 
@@ -1595,10 +1613,10 @@
                     JE INVALID_BOOK_NAME_EDIT
                     INC BX
                     DEC CL 
-                JNZ VALIDATE_BOOK_NAME
+                JNZ VALIDATE_BOOK_NAME              ;jmp if not zero(cl)
 
 
-
+                ; start to edit the book name
                 MOV AX , SI 
                 MUL BOOK_SIZE      
 
@@ -1629,29 +1647,34 @@
 
                 RET
 
+            ; Handle invalid book name (empty or contains '$')
             INVALID_BOOK_NAME_EDIT:
-                ; Handle invalid book name (empty or contains '$')
                 CALL NEW_LINE
                 MOV AH, 09H
                 LEA DX, INVALID_INPUT
                 INT 21H
-                JMP EDIT_BOOK_NAME                ; Re-prompt the user to enter a valid name
+
+                JMP EDIT_BOOK_NAME           
 
             EDIT_BOOK_AUTHOR:
                 CALL NEW_LINE
 
+                ; Prompt the user to enter the new author name
                 MOV AH, 09H
                 LEA DX, PROMPT_EDIT_AUTHOR
                 INT 21H
 
+                ; Accept the new author name input
                 MOV AH, 0AH
                 LEA DX, EDITED_NEW_AUTHOR
                 INT 21H
 
-                MOV AL, EDITED_NEW_AUTHOR[1]   ; Length of the entered string
-                CMP AL, 0                        ; Check if the length is 0
-                JE INVALID_AUTHOR_EDIT             ; If 0, jump to the error handler
+                ; Check if the entered author name is empty
+                MOV AL, EDITED_NEW_AUTHOR[1]        ; Length of the entered string
+                CMP AL, 0                           ; Check if the length is 0
+                JE INVALID_AUTHOR_EDIT              ; If 0, jump to the error handler
 
+                ; Check if the entered author name contains '$'
                 LEA BX  , EDITED_NEW_AUTHOR[2]
                 MOV CL , EDITED_NEW_AUTHOR[1]
 
@@ -1661,10 +1684,10 @@
                     JE INVALID_AUTHOR_EDIT
                     INC BX
                     DEC CL
-                JNZ VALIDATE_AUTHOR
+                JNZ VALIDATE_AUTHOR             ;jump if not zero (cl)
 
 
-
+                ; Start to edit the book author
                 MOV AX , SI
                 MUL BOOK_SIZE
 
@@ -1702,8 +1725,7 @@
                 LEA DX, INVALID_INPUT
                 INT 21H
 
-                JMP EDIT_BOOK_AUTHOR              ; Re-prompt the user to enter a valid author name
-
+                JMP EDIT_BOOK_AUTHOR             
     EDIT_BOOK ENDP
 
     ;TESTING
