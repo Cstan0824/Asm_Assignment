@@ -256,7 +256,7 @@
     ;DATE
     DATE DB 11 DUP('$')
     RET_DATE_ARRAY DB 11 DUP("$")
-                    DB "18/09/2024$"
+                    DB "05/09/2024$"
                     DB "03/05/2024$"
                     DB 11 DUP("$")
                     DB 11 DUP("$")
@@ -371,9 +371,9 @@
     CHANGE_PENALTY_EXTRA_RATE_MSG DB     " Enter the new penalty extra charge rate (extra 1% - 10%) : $"
     CHANGE_PENALTY_MAXIMUM_CHARGE_MSG DB " Enter the new penalty maximum charge (RM 80 - RM 100)    : $"
 
-    CURR_PENALTY_CHARGE_MSG DB "  Current penalty charge (RM/DAY): RM $"
-    CURR_PENALTY_EXTRA_CHARGE_RATE_MSG DB "  Penalty extra rate after 14 days (%): extra $"
-    CURR_PENALTY_MAXIMUM_CHARGE_MSG DB "  Current penalty maximum charge: RM $"
+    CURR_PENALTY_CHARGE_MSG DB            "  Current penalty charge (RM/DAY)      : RM $"
+    CURR_PENALTY_EXTRA_CHARGE_RATE_MSG DB "  Penalty extra rate after 14 days (%) : extra $"
+    CURR_PENALTY_MAXIMUM_CHARGE_MSG DB    "  Current penalty maximum charge       : RM $"
     PENALTY_CAUTION_MSG DB " ===================== CAUTION ====================== $"
     PENALTY_LINE DB " " ,52 DUP("="), " $"
     BOOK_LINE DB " " ,52 DUP("="), " $"
@@ -481,6 +481,7 @@
         MOV AX, 4C00H
         INT 21H
     MAIN ENDP
+
     ;animation for start of the program
     START_LIBARY_SYSTEM PROC
         MOV AH, 09H 
@@ -492,6 +493,7 @@
 
         RET
     START_LIBARY_SYSTEM ENDP
+
     ;animation for end of the program
     END_LIBARY_SYSTEM PROC 
         MOV AH, 09H 
@@ -1065,7 +1067,6 @@
                 INT 21H
 
                 CALL NEW_LINE
-                CALL NEW_LINE
                 MOV AH, 09H
                 LEA DX, BOOK_LINE                       ;print line for UI
                 INT 21H 
@@ -1280,7 +1281,6 @@
             int 21h
 
             ; Display new line
-            CALL NEW_LINE
             CALL NEW_LINE
 
             MOV AH, 09H 
@@ -1775,6 +1775,11 @@
             call new_line
             CALL NEW_LINE
 
+            MOV AH, 09H 
+            LEA DX, BOOK_LINE
+            INT 21H 
+            CALL NEW_LINE 
+
             ; Display book name
             mov ah, 09h
             lea dx, BOOK_NAME
@@ -1912,9 +1917,13 @@
             LEA DX, DAYS
             INT 21H
 
-            call new_line
             CALL NEW_LINE
+            MOV AH, 09H 
+            LEA DX, BOOK_LINE
+            INT 21H 
 
+            CALL NEW_LINE
+            CALL NEW_LINE
             jmp delete_overtime_confirmation
 
         delete_overtime_confirmation:
@@ -2081,7 +2090,7 @@
             LEA DX, EDIT_BOOKID_INPUT
             INT 21H
 
-            MOV AL , EDIT_BOOKID_INPUT[1] ; get the Actual lenght of the input
+            MOV AL , EDIT_BOOKID_INPUT[1] ; get the Actual length of the input
             ;check the number of digit input
             CMP AL , 1 
             JE SINGLE_BOOK_ID ;one digit
@@ -2089,6 +2098,14 @@
             CMP AL , 2
             JE DOUBLE_BOOK_ID ;two digit
 
+            CALL NEW_LINE 
+            MOV AH, 09H 
+            LEA DX, INVALID_INPUT 
+            INT 21H 
+            CALL NEW_LINE
+
+            CALL SYSTEM_PAUSE 
+            CALL CLEAR_SCREEN 
             JMP EDIT_BOOK_START
 
             SINGLE_BOOK_ID:
@@ -2126,10 +2143,12 @@
             LOOP SEARCH_BOOK
 
                 CALL NEW_LINE 
-
                 MOV AH, 09H
                 LEA DX, BOOKNOTFOUND
                 INT 21H
+                CALL NEW_LINE
+                CALL SYSTEM_PAUSE 
+                CALL CLEAR_SCREEN 
 
                 JMP EDIT_BOOK_START
 
@@ -2156,8 +2175,12 @@
 
                 CMP EDIT_FIELD_CHOICE, 'N'
                 JE EDIT_BOOK_NAME ; Edit book name
+                CMP EDIT_FIELD_CHOICE, 'n'
+                JE EDIT_BOOK_NAME ; Edit book name
 
                 CMP EDIT_FIELD_CHOICE, 'A'
+                JE HOLD_EDIT_BOOK_AUTHOR ; Edit book author
+                CMP EDIT_FIELD_CHOICE, 'a'
                 JE HOLD_EDIT_BOOK_AUTHOR ; Edit book author
 
                 CALL NEW_LINE 
@@ -2172,11 +2195,14 @@
                 JMP EDIT_BOOK_AUTHOR    
 
             BOOK_NOT_EXISTED_YET:
-                CALL NEW_LINE
 
                 MOV AH, 09H
-                LEA DX, BOOKNOTFOUND
+                LEA DX, BOOK_ID_NOT_EXISTS_MSG
                 INT 21H
+
+                CALL NEW_LINE
+                CALL SYSTEM_PAUSE
+                CALL CLEAR_SCREEN
 
                 JMP EDIT_BOOK_START
             
@@ -2955,7 +2981,7 @@
             RET
         FAILED_TO_RETURN_BOOK:
             POP BX ;clear stack 
-            CALL NEW_LINE
+            CALL CLEAR_SCREEN
 
             MOV AH, 09H
             LEA DX, BOOK_RETURN_FAILED
