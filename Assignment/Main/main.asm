@@ -913,12 +913,12 @@
     ;JEREMY PART
     ADD_BOOK PROC
         ;Point to array
-        LEA SI, BOOK_NAME_ARRAY
-        LEA DI, BOOK_AUTHORS
+        LEA SI, BOOK_NAME_ARRAY                         ;point to book name array
+        LEA DI, BOOK_AUTHORS                            ;point to book name array
 
         ;CHECK IF THERES EMPTY SLOT
         MOV CX, 20                                      ;loop 20 books
-        MOV BOOK_ID_POSITION, 1
+        MOV BOOK_ID_POSITION, 1                         ;start from first book
         XOR BX, BX                                      ;reset BX
             
         CHECK_EMPTY_SLOT:
@@ -928,11 +928,11 @@
             JE ADD_BOOK_DETAILS                         ;if empty, add new book details
     
             SKIP_CHECK_NEXT:
-            MOV AX, 0                                   ;reset AX
+            XOR AX, AX                                  ;reset AX
             MOV AL, BOOK_SIZE                           
-            ADD SI, AX                                  ;move to next book name
-            ADD DI, AX                                  ;move to next book author
-            INC BOOK_ID_POSITION
+            ADD SI, AX                                  ;move to next book name index
+            ADD DI, AX                                  ;move to next book author index
+            INC BOOK_ID_POSITION                        ;next book
         LOOP CHECK_EMPTY_SLOT
 
         JMP FULL_ERROR_MSG
@@ -945,7 +945,7 @@
                 INT 21H
 
                 MOV AH, 02h
-                MOV DL, '$'
+                MOV DL, '$'                                 
                 INT 21H
 
                 MOV AH, 09H
@@ -956,40 +956,40 @@
                 LEA DX, NEW_BOOKNAME_INPUT              ;store user input to NEW_BOOKNAME_INPUT
                 INT 21H
 
-                LEA BX, NEW_BOOKNAME
+                LEA BX, NEW_BOOKNAME                    ;point to new book name input by user
 
                 ;check if the input is empty
                 MOV AL, byte ptr [BX]
-                CMP AL, 0DH
-                JE TEMP_NEW_NAME_ERROR
+                CMP AL, 0DH                             ;first input of the book name != enter key
+                JE TEMP_NEW_NAME_ERROR                  ;if it is enter key, prompt error message
             
-                MOV CX, 0                               ;reset CX
-                XOR AX, AX
+                XOR CX, CX                              ;reset CX
+                XOR AX, AX                              ;reset AX
                 MOV CL, INPUT_BOOKNAME_SIZE             ;store the actual input size to CL
-                VALIDATE_BOOKNAME_INPUT:
+                VALIDATE_BOOKNAME_INPUT:                
                     MOV AL, BYTE PTR [BX]
-                    CMP AL, '$'
-                    JE TEMP_NEW_NAME_ERROR
-                    INC BX
-                LOOP VALIDATE_BOOKNAME_INPUT
+                    CMP AL, '$'                         ;check if there is '$' in user input
+                    JE TEMP_NEW_NAME_ERROR              ;if yes, prompt error message
+                    INC BX                              ;next character
+                LOOP VALIDATE_BOOKNAME_INPUT            ;loop with the actual input size
 
                 ;IF NO ERRORS
-                LEA BX, NEW_BOOKNAME
-                MOV CX, 0 
-                MOV CL, INPUT_BOOKNAME_SIZE 
+                LEA BX, NEW_BOOKNAME                    ;point bx to starting of user input
+                XOR CX, CX                              ;reset cx
+                MOV CL, INPUT_BOOKNAME_SIZE             
                 SAVE_TO_BOOKNAME_ARRAY:
                     MOV AL, byte ptr [BX]       
                     MOV [SI], AL                        ;store the input to BOOK_NAME_ARRAY
-                    INC SI
-                    INC BX
-                LOOP SAVE_TO_BOOKNAME_ARRAY
+                    INC SI                              ;next char in book_name_array
+                    INC BX                              ;next char in user input
+                LOOP SAVE_TO_BOOKNAME_ARRAY             ;loop with the actual input size
         
-            CALL NEW_LINE
+            CALL NEW_LINE                               ;print new line
 
             INPUT_NEW_BOOKAUTHORS:
                 
-                MOV AH, 09H
-                LEA DX, PROMPT_INPUT_BOOKAUTHOR_P1          ;prompt user to input new book author
+                MOV AH, 09H                             
+                LEA DX, PROMPT_INPUT_BOOKAUTHOR_P1      ;prompt user to input new book author
                 INT 21H
 
                 MOV AH, 02h
@@ -1004,53 +1004,55 @@
                 LEA DX, NEW_BOOKAUTHORS_INPUT           ;store user input to NEW_BOOKAUTHORS_INPUT
                 INT 21H
 
-                LEA BX, NEW_BOOKAUTHORS 
+                LEA BX, NEW_BOOKAUTHORS                 ;point bx to user input (book author)
 
                 ;check if the input is empty
                 MOV AL, byte ptr [BX]
-                CMP AL, 0DH
-                JE TEMP_NEW_NAME_ERROR
+                CMP AL, 0DH                             ;compare the first input != enter
+                JE TEMP_NEW_NAME_ERROR                  ;if yes, prompt error message
 
                 MOV CX, 0                               ;reset CX
                 MOV CL, INPUT_BOOKAUTHORS_SIZE          ;store the actual input size to CL
 
                 VALIDATE_BOOKAUTHORS_INPUT:
-                    MOV AL, BYTE PTR [BX]
-                    CMP AL, '$'
-                    JE TEMP_NEW_NAME_ERROR
+                    MOV AL, BYTE PTR [BX]               
+                    CMP AL, '$'                         ;check if there is '$' in user input
+                    JE TEMP_NEW_NAME_ERROR              ;if yes, prompt error message
                     INC BX
-                LOOP VALIDATE_BOOKAUTHORS_INPUT
+                LOOP VALIDATE_BOOKAUTHORS_INPUT         ;loop through actual user input size
 
                 ;IF NO ERRORS
-                LEA BX, NEW_BOOKAUTHORS
-                MOV CX, 0
+                LEA BX, NEW_BOOKAUTHORS                 ;point back to starting point of user input
+                XOR CX, CX                              ;reset cx
                 MOV CL, INPUT_BOOKAUTHORS_SIZE
                 SAVE_TO_BOOKAUTHORS_ARRAY:
-                    MOV AL, byte ptr [BX]       
+                    MOV AL, byte ptr [BX]               
                     MOV [DI], AL                        ;store the input to BOOK_AUTHORS
-                    INC DI
-                    INC BX
-                LOOP SAVE_TO_BOOKAUTHORS_ARRAY
+                    INC DI                              ;next char in BOOK_AUTHORS
+                    INC BX                              ;next char in user input
+                LOOP SAVE_TO_BOOKAUTHORS_ARRAY          ;loop through actual size of user input
+            
             CALL NEW_LINE
+            CALL NEW_LINE                               ;print new line
             CALL NEW_LINE
-            CALL NEW_LINE
-            JMP DISPLAY_NEW_BOOK
+            
+            JMP DISPLAY_NEW_BOOK                        ;proceed to display new book
 
             TEMP_NEW_NAME_ERROR:
-                JMP NEW_NAME_ERROR
+                JMP NEW_NAME_ERROR                      ;to avoid jump out of range
 
             DISPLAY_NEW_BOOK:
-                CALL NEW_LINE 
+                CALL NEW_LINE                           ;print new line
                 MOV AH, 09H
-                LEA DX, BOOK_LINE  
+                LEA DX, BOOK_LINE                       ;print line for UI
                 INT 21H 
-                CALL NEW_LINE 
+                CALL NEW_LINE                           ;print new line
 
                 MOV AH, 09H
                 LEA DX, PROMPT_NEW_BOOKNAME             ;display new book name  
                 INT 21H
                 MOV AH, 09H
-                LEA DX, NEW_BOOKNAME
+                LEA DX, NEW_BOOKNAME                    
                 INT 21H
                 
                 CALL NEW_LINE
@@ -1065,11 +1067,11 @@
                 CALL NEW_LINE
                 CALL NEW_LINE
                 MOV AH, 09H
-                LEA DX, BOOK_LINE  
+                LEA DX, BOOK_LINE                       ;print line for UI
                 INT 21H 
                 CALL NEW_LINE 
 
-                LEA DX, PROMPT_ADDED_BOOK               ;display new book added to catalog
+                LEA DX, PROMPT_ADDED_BOOK               ;display message: new book added to catalog
                 INT 21H
                 CALL NEW_LINE
                 CALL NEW_LINE 
@@ -1081,25 +1083,25 @@
         FULL_ERROR_MSG:
             CALL NEW_LINE
             MOV AH, 09H
-            LEA DX, ADD_UNAVAILABLE                          ;display error message
+            LEA DX, ADD_UNAVAILABLE                     ;display error msg - no slot for new book
             INT 21H
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            JMP QUIT_ADD_BOOK
+            JMP QUIT_ADD_BOOK                           ;quit module
 
-        NEW_NAME_ERROR:
+        NEW_NAME_ERROR:                                 ;if user input contain enter key / '$'
             XOR AX, AX
-            MOV AL, BOOK_ID_POSITION
+            MOV AL, BOOK_ID_POSITION                    
             DEC AL
-            MOV CL, BOOK_SIZE
+            MOV CL, BOOK_SIZE                           
             MUL CL
-            LEA SI, BOOK_NAME_ARRAY
+            LEA SI, BOOK_NAME_ARRAY                     ;point to the new book name array
             ADD SI, AX
 
             MOV CX, 30
-            REMOVE_ADDED_NEW_BOOKNAME:
+            REMOVE_ADDED_NEW_BOOKNAME:                  ;clear the book name
                 MOV AL, '$'
-                MOV [SI], AL
+                MOV [SI], AL                            ;replace the input with '$'
                 INC SI
             LOOP REMOVE_ADDED_NEW_BOOKNAME
 
@@ -1108,69 +1110,68 @@
             DEC AL
             MOV CL, BOOK_SIZE
             MUL CL
-            LEA SI, BOOK_AUTHORS
+            LEA SI, BOOK_AUTHORS                        ;point to the new book author array
             ADD SI, AX
 
             MOV CX, 30
-            REMOVE_ADDED_NEW_BOOKAUTHOR:
+            REMOVE_ADDED_NEW_BOOKAUTHOR:                ;clear the new book author
                 MOV AL, '$'
-                MOV [SI], AL
+                MOV [SI], AL                            ;replace the input with '$'
                 INC SI
             LOOP REMOVE_ADDED_NEW_BOOKAUTHOR
 
             CALL NEW_LINE
             MOV AH, 09H
-            LEA DX, INVALID_INPUT
+            LEA DX, INVALID_INPUT                       ;prompt error message
             INT 21H
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
 
-            JMP QUIT_ADD_BOOK
+            JMP QUIT_ADD_BOOK                           ;quit module
 
         QUIT_ADD_BOOK:
-            RET
+            RET                                         ;back to admin menu
     ADD_BOOK ENDP
 
     ;JEREMY PART
     REMOVE_BOOK PROC
-        CALL DISPLAY_BOOK_CATALOG
+        CALL DISPLAY_BOOK_CATALOG                       ;display book catalog
         CALL NEW_LINE
 
         get_book_id:
-            ; Prompt user to enter Book ID
             mov ah, 09h
-            lea dx, PROMPT_INPUT_DELETE_BOOKID
+            lea dx, PROMPT_INPUT_DELETE_BOOKID          ; Prompt user to enter Book ID
             int 21h
 
             mov ah, 0Ah
-            lea dx, DELETE_BOOKID_INPUTBUFFER
-            int 21H
+            lea dx, DELETE_BOOKID_INPUTBUFFER           ;receive user input bookid (string)
+            int 21H                                     ;only accepts 2 character + 1 enter key
 
             
         process_input:
-            lea si, DELETE_BOOKID_BUFFER
+            lea si, DELETE_BOOKID_BUFFER        ;point to user input (book id)
             xor ax, ax
 
             mov al, byte ptr [si]               ; Get the first digit  
-            cmp al, 0Dh                         ; Check if Enter was pressed
-            je temp_invalid_input               ; If Enter was pressed too early, it's invalid input
+            cmp al, 0Dh                         ; Check if Enter was pressed at first char
+            je temp_invalid_input               ; If yes, it's invalid input
             sub al, 30H                         ; Convert ASCII '0'-'9' to 0-9
-            mov bl, al                          ; Store the first digit
+            mov bl, al                          ; Store the first digit to bl
 
-            inc si                              ; Move to the next character
-            mov al, byte ptr [si]               ; Get the next character (second digit or Enter)
-            cmp al, 0Dh                         ; Check if Enter was pressed for single digit
-            je one_digit_book_id                ; If Enter, we have a single-digit input
+            inc si                              ; Move to the next character of user input
+            mov al, byte ptr [si]               ; access to the next character
+            cmp al, 0Dh                         ; Check if Enter was pressed after single digit
+            je one_digit_book_id                ; if yes, the book id is a single digit input
 
-            sub al, 30H                         ; Convert ASCII '0'-'9' to 0-9
+            sub al, 30H                         ; if not, convert second digit ASCII '0'-'9' to 0-9
             mov bh, al                          ; Store the second digit in bh
 
             ; Combine the digits into a two-digit number
             xor ax, ax
             mov al, bl
-            mul TEN
-            add al, bh                          ; Combine the digits into a two-digit number
-            jmp process_input_into_bookid        ; Skip the single digit case
+            mul TEN                             ; multiply 10 to the first digit - shift left
+            add al, bh                          ; Combine the second digit into al (2 digit bookid)
+            jmp process_input_into_bookid       ; Skip the single digit case, proceed to process
 
         one_digit_book_id:
             ; If it's a single digit, store it in al
@@ -1178,24 +1179,22 @@
             mov al, bl                      ; Store the single digit in al
 
         process_input_into_bookid:
-            ; Validate the range (1-20)
+            ; Validate the range of book id (only 1-20)
             cmp al, 1                           ; Check if Book ID is at least 1
             jl temp_invalid_input               ; Invalid if less than 1
             cmp al, 20                          ; Check if Book ID is less than or equal to 20
             jg temp_invalid_input               ; Invalid if greater than 20
             
             mov BOOK_ID_POSITION, al            ; Store the valid Book ID
-            jmp check_book_availability         ; Continue to check the availability of the book
+            jmp check_book_availability         ; proceed to further process
 
 
-        temp_invalid_input:
-            ; If invalid input, jump to invalid input handler
-            jmp invalid_bookid_input
+        temp_invalid_input:                     ; If invalid input, jump to invalid input handler
+            jmp invalid_bookid_input            ;to avoid jump out of range
 
-        ;if valid input, check if book is borrowed
-        check_book_availability:
-            ;check if the book name is not empty
-            check_book_name:
+        check_book_availability:                ;if valid input, check if book is borrowed
+            
+            check_book_name:                    ;check if the book name is not empty
             mov al, BOOK_ID_POSITION
             dec al                  ; Book ID starts at 1, so subtract 1 to get the correct index
             mov cl, BOOK_SIZE       ; 30 bytes for each book name
@@ -1205,28 +1204,28 @@
 
             cmp byte ptr [SI], '$'
             je temp_no_book_found        ; If book name is empty, the book does not exist
-            jmp check_borrow_status
+            jmp check_borrow_status      ; if book name is not empty, the book exist
 
             temp_no_book_found:
-                jmp no_book_found
+                jmp no_book_found        ; to avoid jump out of range
 
-            ; Check if the book is borrowed
-            check_borrow_status:
+            
+            check_borrow_status:            ; Check if the book is borrowed if book is exist
             mov al, BOOK_ID_POSITION
             dec al                  ; Book ID starts at 1, so subtract 1 to get the correct index
-            mov cl, USER_ID_SIZE    ; 40 bytes for each borrow status
+            mov cl, USER_ID_SIZE    ; 40 bytes for each borrow status (user id)
             mul cl                  ; al = al * 40
             lea SI, BORROW_BY_ARRAY
             add SI, ax              ; Point to the correct borrow status
 
-            cmp byte ptr [SI], '$'
-            jne temp_book_borrowed       ; If the book is borrowed, display error message
-            jmp display_book_information
+            cmp byte ptr [SI], '$'          ; Check the first character of the borrow status
+            jne temp_book_borrowed          ; If the book is borrowed, display error message
+            jmp display_book_information    ; If book is not borrowed, delete is granted
 
         temp_book_borrowed:
-            jmp book_borrowed
+            jmp book_borrowed               ; To avoid jump out of range
 
-        display_book_information:
+        display_book_information:           ; Display validated book (exist, available for delete)
             CALL NEW_LINE 
             CALL NEW_LINE
 
@@ -1238,7 +1237,7 @@
 
             ; Display book name
             mov ah, 09h
-            lea dx, BOOK_NAME
+            lea dx, BOOK_NAME              
             int 21h
 
             ;display space
@@ -1248,21 +1247,14 @@
 
             mov al, BOOK_ID_POSITION
             dec al
-            mov cl, 30        ; 30 bytes for each book name/author
-            mul cl            ; al = al * 30
+            mov cl, 30                      ; 30 bytes for each book name/author
+            mul cl                          ; al = al * 30
             lea SI, BOOK_NAME_ARRAY
-            add SI, ax        ; Point to the correct book name
+            add SI, ax                      ; Point to the correct book name
 
-            mov cx, 30
-            display_book_name:
-                mov ah, 02H
-                cmp byte ptr[SI], '$'
-                je skip_next_bn
-                mov dl, byte ptr[SI]
-                int 21H
-                skip_next_bn:
-                    inc SI
-            loop display_book_name
+            mov ah, 09H
+            lea dx, [SI]                    ; print book name until string terminator '$'
+            int 21h        
 
             call new_line
 
@@ -1281,18 +1273,11 @@
             mov cl, 30
             mul cl
             lea SI, BOOK_AUTHORS
-            add SI, ax        ; Point to the correct author
+            add SI, ax                      ; Point to the correct author
 
-            mov cx, 30
-            display_book_author:
-                mov ah, 02H
-                cmp byte ptr[SI], '$'
-                je skip_next_ba
-                mov dl, byte ptr[SI]
-                int 21H
-                skip_next_ba:
-                    inc SI
-            loop display_book_author
+            mov ah, 09H 
+            lea dx, [SI]                    ; print author name until string terminator '$'
+            int 21h
 
             ; Display new line
             CALL NEW_LINE
@@ -1334,10 +1319,10 @@
                 mov ah, 02H
                 cmp byte ptr[SI], '$'
                 je delete_next_alphabet
-                mov dl, byte ptr[SI]
+                mov dl, byte ptr[SI]        ;print book name char by char
                 int 21H
                 delete_next_alphabet:
-                    mov byte ptr [SI], '$'
+                    mov byte ptr [SI], '$'  ; replace with '$'
                     inc SI
             loop del_name
 
@@ -1356,22 +1341,22 @@
             mov cl, 30
             mul cl
             lea SI, BOOK_AUTHORS
-            add SI, ax        ; Point to the correct author
+            add SI, ax                  ; Point to the correct author
 
             mov cx, 30
             del_author:
                 mov ah, 02H
                 cmp byte ptr[SI], '$'
                 je delete_next_alphabet1
-                mov dl, byte ptr[SI]
+                mov dl, byte ptr[SI]       ;print author name char by char
                 int 21H
                 delete_next_alphabet1:
-                    mov byte ptr [SI], '$'
+                    mov byte ptr [SI], '$'  ;replace with '$'
                     inc SI
             loop del_author
 
             ; Print success message
-            lea dx, PROMPT_BOOK_ISDELETED
+            lea dx, PROMPT_BOOK_ISDELETED       ;prompt delete message
             mov ah, 09h
             int 21h
 
@@ -1380,9 +1365,9 @@
             CALL SYSTEM_PAUSE
             jmp end_delete_book
 
-        no_book_found:
-            ; Print error message if book is not found
-            lea dx, PROMPT_BOOK_NOT_FOUND
+        no_book_found:                              ; when book id is (1-20) but no book is found
+            
+            lea dx, PROMPT_BOOK_NOT_FOUND           ; Print error message
             mov ah, 09h
             int 21h
 
@@ -1390,23 +1375,23 @@
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL NEW_LINE
-            jmp GET_BOOK_ID
+            jmp GET_BOOK_ID                         ; ask user input book id again
 
         book_borrowed:
             ; Print error message if book is borrowed
-            lea dx, PROMPT_BOOK_NOT_AVAILABLE
+            lea dx, PROMPT_BOOK_NOT_AVAILABLE       ; prompt user book is unavailable to delete
             mov ah, 09h
             int 21h
 
             ; Print new line
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            jmp end_delete_book
+            jmp end_delete_book                     ;quit module
 
         invalid_bookid_input:
             ; Print error message for invalid input
             mov ah, 09h
-            lea dx, PROMPT_BOOKID_ERROR
+            lea dx, PROMPT_BOOKID_ERROR             ;book id out of range (not 1-20)
             int 21h
 
             ; Print new line
