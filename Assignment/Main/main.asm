@@ -1077,7 +1077,18 @@
                 CALL NEW_LINE
                 CALL NEW_LINE 
                 
-                
+                MOV CX, 30
+                XOR AX, AX
+                LEA SI, NEW_BOOKNAME
+                LEA DI, NEW_BOOKAUTHORS
+                RESET_INPUT_BUFFER:
+                    MOV AL, '$'
+                    MOV byte ptr [SI], AL
+                    MOV byte ptr [DI], AL
+                    INC SI
+                    INC DI
+                LOOP RESET_INPUT_BUFFER
+
             CALL SYSTEM_PAUSE
             JMP QUIT_ADD_BOOK
 
@@ -1128,7 +1139,7 @@
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
 
-            JMP QUIT_ADD_BOOK                           ;quit module
+            
 
         QUIT_ADD_BOOK:
             RET                                         ;back to admin menu
