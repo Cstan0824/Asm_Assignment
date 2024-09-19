@@ -2069,7 +2069,7 @@
     EDIT_BOOK PROC
 
         EDIT_BOOK_START:
-
+            ;Select Book from list
             CALL DISPLAY_BOOK_CATALOG
             CALL NEW_LINE
 
@@ -2081,13 +2081,13 @@
             LEA DX, EDIT_BOOKID_INPUT
             INT 21H
 
-            MOV AL , EDIT_BOOKID_INPUT[1]
-
+            MOV AL , EDIT_BOOKID_INPUT[1] ; get the Actual lenght of the input
+            ;check the number of digit input
             CMP AL , 1 
-            JE SINGLE_BOOK_ID
+            JE SINGLE_BOOK_ID ;one digit
 
             CMP AL , 2
-            JE DOUBLE_BOOK_ID
+            JE DOUBLE_BOOK_ID ;two digit
 
             JMP EDIT_BOOK_START
 
@@ -2119,6 +2119,7 @@
                 MOV CX , 20
 
             SEARCH_BOOK:
+                ;compare the book id with the array
                 CMP BOOK_ID_ARRAY[SI] , BL
                 JE BOOK_FOUND
                 INC SI
@@ -2147,16 +2148,17 @@
                 MOV AH, 09H
                 LEA DX, EDIT_FIELD_PROMPT
                 INT 21H
-
+                
+                ;Select field to edit
                 MOV AH, 01H
                 INT 21H
                 MOV EDIT_FIELD_CHOICE, AL
 
                 CMP EDIT_FIELD_CHOICE, 'N'
-                JE EDIT_BOOK_NAME
+                JE EDIT_BOOK_NAME ; Edit book name
 
                 CMP EDIT_FIELD_CHOICE, 'A'
-                JE HOLD_EDIT_BOOK_AUTHOR
+                JE HOLD_EDIT_BOOK_AUTHOR ; Edit book author
 
                 CALL NEW_LINE 
 
