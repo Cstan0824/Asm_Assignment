@@ -184,11 +184,11 @@
 	    DB "The Alchemist$", 16 DUP('$')
 	    DB "Sapiens$", 22 DUP('$')
 	    DB "The Da Vinci Code$", 12 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
+        DB "War and Peace$", 16 DUP('$')
+        DB "Brave New World$", 14 DUP('$')
+        DB "The Hobbit$", 19 DUP('$')
+        DB "Crime and Punishment$", 9 DUP('$')
+        DB "The Picture of Dorian Gray$", 3 DUP('$')
         DB 30 DUP('$')
         DB 30 DUP('$')
         DB 30 DUP('$')
@@ -205,11 +205,11 @@
 	    DB "Paulo Coelho$", 17 DUP('$')
 	    DB "Yuval Noah Harari$", 12 DUP('$')
 	    DB "Dan Brown$", 20 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
-        DB 30 DUP('$')
+        DB "Leo Tolstoy$", 18 DUP('$')
+        DB "Aldous Huxley$", 16 DUP('$')
+        DB "J.R.R. Tolkien$", 15 DUP('$')
+        DB "Fyodor Dostoevsky$", 11 DUP('$')
+        DB "Oscar Wilde$", 18 DUP('$')
         DB 30 DUP('$')
         DB 30 DUP('$')
         DB 30 DUP('$')
@@ -221,29 +221,61 @@
     USER_ID_ARRAY DB "ALI_BABA$", 31 DUP('$')
         DB "THE_BEST_DOGGAN$", 24 DUP('$')
         DB "ABG_CHIN$", 31 DUP('$')
-        DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
+        DB "SAMSAM_CLOWN$", 27 DUP('$')
         DB "CSTANTAN$", 31 DUP('$')
-        DB "CSTAN$", 34 DUP('$')
+        DB "LEONGYY$", 32 DUP('$')
         DB "LIM_ZHI_PING$", 27 DUP('$')
         DB "G.E.M.$", 33 DUP('$')
         DB "JAY_CHOU$", 31 DUP('$')
         DB "COLDPLAY$", 31 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
+        DB 40 DUP('$')
         
+    ;User password
+    USER_PASSWORD_ARRAY DB "12345678910$"
+        DB "12345$", 6 DUP('$')
+        DB "ezpass$", 5 DUP('$')
+        DB "password$", 3 DUP('$')
+        DB "user1234$", 3 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+        DB 12 DUP('$')
+
     ;Borrow Status
     BORROW_BY_ARRAY DB 40 DUP("$")
-        DB "CSTAN$", 34 DUP('$')
-        DB "LIM_ZHI_PING$", 27 DUP('$')
+        DB "CSTAN$", 34 DUP('$');
+        DB "LIM_ZHI_PING$", 27 DUP('$');
+        DB 40 DUP("$")
+        DB "SAMSAM_CLOWN$", 27 DUP('$');
+        DB 40 DUP("$")
+        DB "THE_BEST_DOGGAN$", 24 DUP('$');
         DB 40 DUP("$")
         DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB "THE_BEST_DOGGAN$", 24 DUP('$')
-        DB 40 DUP("$")
-        DB 40 DUP("$")
-        DB 40 DUP("$")
+        DB "ABG_CHIN$", 31 DUP('$');
         DB 40 DUP('$')
         DB 40 DUP('$')
         DB 40 DUP('$')
-        DB 40 DUP('$')
+        DB "LEONGYY$", 32 DUP('$');
         DB 40 DUP('$')
         DB 40 DUP('$')
         DB 40 DUP('$')
@@ -259,22 +291,23 @@
                     DB "05/09/2024$"
                     DB "03/05/2024$"
                     DB 11 DUP("$")
-                    DB 11 DUP("$")
+                    DB "24/08/2024$"
                     DB 11 DUP("$")
                     DB "07/06/2024$"
                     DB 11 DUP("$") 
                     DB 11 DUP("$")
+                    DB "10/09/2024$"
+                    DB 11 DUP("$")
+                    DB 11 DUP("$")
+                    DB 11 DUP("$")
+                    DB "11/08/2024$"
                     DB 11 DUP("$")
                     DB 11 DUP("$")
                     DB 11 DUP("$")
                     DB 11 DUP("$")
                     DB 11 DUP("$")
                     DB 11 DUP("$")
-                    DB 11 DUP("$")
-                    DB 11 DUP("$")
-                    DB 11 DUP("$")
-                    DB 11 DUP("$")
-                    DB 11 DUP("$")
+
 	DAY_OF_MONTH DB 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 
     DAYS DB "days $"
@@ -3446,85 +3479,88 @@
     CALCULATE_DIFF_DAY ENDP
 
     CALCULATE_OVERTIME_DIFF_DAY PROC
-        MOV DIFF_DAY, 0
+        MOV DIFF_DAY, 0                 ; clear DIFF_DAY
 
         ;move to selected book's return date
         ;new SI = old SI + (selected Index * sizeOf(value))
         XOR AX, AX
         MOV AL, BOOK_ID_POSITION
         DEC AL
-        MUL DATE_SIZE
-        LEA SI, RET_DATE_ARRAY
-        ADD SI, AX  
+        MUL DATE_SIZE                   ; get the position of the book id
+        LEA SI, RET_DATE_ARRAY          
+        ADD SI, AX                      ; move to the selected book's return date
 
         ;get return day
-        MOV AL, [SI]
+        MOV AL, [SI]                    ; get the first digit of the return day
         SUB AL, 30H
-        MUL TEN
-        MOV RET_DAY, AL
+        MUL TEN                         ; multiply the first digit by 10 to get the actual value
+        MOV RET_DAY, AL                 ; store the actual value to RET_DAY
 
-        INC SI
+        INC SI                          ; move to the second digit of the return day
 
-        MOV AL, [SI]
-        SUB AL, 30H
-        ADD RET_DAY, AL
+        MOV AL, [SI]                    ; get the second digit of the return day
+        SUB AL, 30H     
+        ADD RET_DAY, AL                 ; add the second digit to the actual value
 
-        ADD SI, 2
+        ADD SI, 2                       ; move to the return month
 
         ;get return month
         MOV AL, [SI]
         SUB AL, 30H
-        MUL TEN
-        MOV RET_MONTH, AL
+        MUL TEN                         ; multiply the first digit by 10 to get the actual value
+        MOV RET_MONTH, AL               ; store the actual value to RET_MONTH
 
-        INC SI
+        INC SI                          ; move to the second digit of the return month
 
         MOV AL, [SI]
         SUB AL, 30H
-        ADD RET_MONTH, AL
+        ADD RET_MONTH, AL               ; add the second digit to the actual value
 
-        XOR BX, BX
-        XOR CX, CX  
-        XOR AX, AX
+        XOR BX, BX                      ; clear BX
+        XOR CX, CX                      ; clear CX
+        XOR AX, AX                      ; clear AX
 
-        ;Count Difference Day
-        LEA SI, DAY_OF_MONTH
-        MOV BL, CURR_DAY
+        ; Count Difference Day between 1/1 to current date
+        LEA SI, DAY_OF_MONTH            ; point to the first total day of months
+        MOV BL, CURR_DAY                ; get the current day
 
-        MOV CL, CURR_MONTH
+        MOV CL, CURR_MONTH              ; get the current month
         DEC CX 
-        CMP CX, 0 ;add day only if January
+        CMP CX, 0                       ; add day only if January  
         JE END_COUNTOVERTIME_CURR_DAY_OF_MONTHS   
         COUNTOVERTIME_CURR_DAY_OF_MONTHS:
-            MOV AL, [SI]  
-            ADD BX, AX
-            INC SI
-        LOOP COUNTOVERTIME_CURR_DAY_OF_MONTHS   
+            MOV AL, [SI]                ; get the total day of the month (starts from january = 31)
+            ADD BX, AX                  ; add the total day of the month to BX
+            INC SI                      ; move to the next total day of month
+        LOOP COUNTOVERTIME_CURR_DAY_OF_MONTHS      ; loop until the current month
         END_COUNTOVERTIME_CURR_DAY_OF_MONTHS:
 
-        LEA SI, DAY_OF_MONTH
-        MOV AL, RET_DAY
-        SUB BX, AX
-        MOV CL, RET_MONTH
-        DEC CX
-        CMP CX, 0 ;add day only if January
-        JE END_COUNTOVERTIME_RET_DAY_OF_MONTHS
+        ; Currently BX is holding the total days from 1/1 to current date
+
+        ; Count Difference Day between 1/1 to return date
+        LEA SI, DAY_OF_MONTH            ; point to the first total day of months
+        MOV AL, RET_DAY                 ; get the return day
+        SUB BX, AX                      ; subtract the return day from BX
+        MOV CL, RET_MONTH               ; get the return month
+        DEC CX                          
+        CMP CX, 0                       ; add day only if January  
+        JE END_COUNTOVERTIME_RET_DAY_OF_MONTHS  ; if the return month is January, skip the loop
         COUNTOVERTIME_RET_DAY_OF_MONTHS:
-            MOV AL, [SI]
-            SUB BX, AX
-            CMP BX, 0
-            JS NOT_EXCEED_RET_DATE_OVERTIME    
-            INC SI
-        LOOP COUNTOVERTIME_RET_DAY_OF_MONTHS
+            MOV AL, [SI]                ; get the total day of the month (starts from january = 31)
+            SUB BX, AX                  ; subtract the total day of the month from BX
+            CMP BX, 0                   ; check if BX is negative
+            JS NOT_EXCEED_RET_DATE_OVERTIME    ; if BX is negative, not exceed the return date
+            INC SI                      ; move to the next total day of month
+        LOOP COUNTOVERTIME_RET_DAY_OF_MONTHS    ; loop until the return month
 
         END_COUNTOVERTIME_RET_DAY_OF_MONTHS:
             ;store the difference day to DIFF_DAY
             XOR CX, CX
-            MOV DIFF_DAY, BX
+            MOV DIFF_DAY, BX            ; store the difference day to DIFF_DAY
 
-        NOT_EXCEED_RET_DATE_OVERTIME:
-        RET
-    CALCULATE_OVERTIME_DIFF_DAY ENDP
+        NOT_EXCEED_RET_DATE_OVERTIME:   ; if BX is negative, diff day is 0
+        RET                             
+    CALCULATE_OVERTIME_DIFF_DAY ENDP    
 
     ;Display Penalty Charge Details
     ;Show how the penalty charge is calculated 
