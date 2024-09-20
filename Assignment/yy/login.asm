@@ -325,7 +325,7 @@ LOGINSUCCESS ENDP
 
 ;=========================================================================
 ADMINLOGIN PROC
-	;----ask to enter username
+;----ask to enter username
 		MOV AH, 09H
 		LEA DX, DISPLAY_ENTER_USERNAME
 		INT 21H
