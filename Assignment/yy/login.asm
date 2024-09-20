@@ -6,84 +6,104 @@
 
 	;---admin login
 	;---A = Admin
-	ADMIN_USERNAME DB "admin$"
-	ADMIN_PASSWORD DB "admin123$"
+	ADMIN_USERNAME DB 'admin$'
+	ADMIN_PASSWORD DB 'admin123$'
 
 	ADMIN_INPUT_USERNAME LABEL BYTE
 	ADMIN_USERNAME_MAXN DB 40
 	ADMIN_USERNAME_ACTN DB ?
-	ADMIN_OUTPUT_USERNAME DB 40 DUP("$")
+	ADMIN_OUTPUT_USERNAME DB 40 DUP('$')
 
 	ADMIN_INPUT_PASSWORD LABEL BYTE
 	ADMIN_INPUT_PASSWORD_MAXN DB 12
 	ADMIN_INPUT_PASSWORD_ACTN DB ?
-	ADMIN_OUTPUT_PASSWORD DB 12 DUP("$")
+	ADMIN_OUTPUT_PASSWORD DB 12 DUP('$')
 	
 	;---UI = user input
-	USER_USERNAME DB "user$"
-	USER_PASSWORD DB "user123$"
+	USER_USERNAME DB 'user$'
+	USER_PASSWORD DB 'user123$'
 
 	USER_INPUT_USERNAME LABEL BYTE
 	USER_USERNAME_MAXN DB 40
 	USER_USERNAME_ACTN DB ?
-	USER_OUTPUT_USERNAME DB 40 DUP("$")
+	USER_OUTPUT_USERNAME DB 40 DUP('$')
 
 	USER_INPUT_PASSWORD LABEL BYTE
 	USER_INPUT_PASSWORD_MAXN DB 12
 	USER_INPUT_PASSWORD_ACTN DB ?
-	USER_OUTPUT_PASSWORD DB 12 DUP("$")
+	USER_OUTPUT_PASSWORD DB 12 DUP('$')
 
 	;---user
-
+    USER_ID_ARRAY   DB "ALI_BABA$", 31 DUP('$')
+                    DB "THE_BEST_DOGGAN$", 24 DUP('$')
+                    DB "ABG_CHIN$", 31 DUP('$')
+                    DB "ASSIGNMENT_HELPER_SAM$", 18 DUP('$')
+                    DB "CSTANTAN$", 31 DUP('$')
+                    DB "CSTAN$", 34 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+                    DB 40 DUP('$')
+					
+	USER_PASSWORD_ARRAY DB '123456$', 6 DUP('$')
+						DB '123456$', 6 DUP('$')
+						DB '123456$', 6 DUP('$')
+						DB '123456$', 6 DUP('$')
+						DB '123456$', 6 DUP('$')
+						DB '123456$', 6 DUP('$')
+						DB 12 DUP('$')
+						DB 12 DUP('$')
+						DB 12 DUP('$')
+						DB 12 DUP('$')
 
 	;---Main Menu Displays
 	;---D = Display
-	NL DB 0AH,0DH,"$"
-	LINE DB 0AH,0DH,"===============================================",10,13,"$"
-	DISPLAY_WELCOME_MAINPAGE DB 10,13,"Welcome to our library system!",10,13,"$"
+	NL DB 0AH,0DH,'$'
+	LINE DB 10,13,'===============================================',10,13,'$'
+	DISPLAY_WELCOME_MAINPAGE DB 10,13,'Welcome to our library system!',10,13,'$'
 
 
-	DISPLAY_ROLE_MAINPAGE DB "1. Admin",10,13,"2. User",10,13,"3. Exit",10,13,"$"
-	DISPLAY_SELECTION DB 10,13,"Enter selection: $"
+	DISPLAY_ROLE_MAINPAGE DB '1. Admin',10,13,'2. User',10,13,'3. Exit',10,13,'$'
+	DISPLAY_SELECTION DB 10,13,'Enter selection: $'
 
 	;---Admin Menu
-	DISPLAY_WELCOME_ADMINPAGE DB 10,13,"Welcome to Admin page!",10,13,"$"
-	DISPLAY_ROLE_ADMINPAGE DB "1. Login",10,13,"2. Back to Menu",10,13,"3. Exit",10,13,"$"
+	DISPLAY_WELCOME_ADMINPAGE DB 10,13,'Welcome to Admin page!',10,13,'$'
+	DISPLAY_ROLE_ADMINPAGE DB '1. Login',10,13,'2. Back to Menu',10,13,'3. Exit',10,13,'$'
 	CHOICE_ADMINPAGE DB ?
 	
 	;---login page displays
-	DISPLAY_LOGIN DB 10,13,"LOGIN$"
-	DISPLAY_ENTER_USERNAME DB 10,13,"Please enter your username: $"
-	DISPLAY_ENTER_PASSWORD DB 10,13,"Please enter your password: $"
-	DISPLAY_LOGINFAIL DB 10,13,"The username or password u entered might be wrong, please try again!",10,13,"$"
-	DISPLAY_LOGINS DB 10,13,"Login Successfull!",10,13,"$"
+	DISPLAY_LOGIN DB 10,13,'LOGIN$'
+	DISPLAY_ENTER_USERNAME DB 10,13,'Please enter your username: $'
+	DISPLAY_ENTER_PASSWORD DB 10,13,'Please enter your password: $'
+	DISPLAY_LOGINFAIL DB 10,13,'The username or password u entered might be wrong, please try again!',10,13,'$'
+	DISPLAY_LOGINS DB 10,13,'Login Successfull!',10,13,'$'
 
 	;---admin login success
-	DISPLAY_LOGINSUCCESS_ADMINPAGE DB "Welcome! $"
-	DISPLAY_ADMINROLE DB "1. Display",10,13,"2. Back to Menu",10,13,"3. Exit$"
+	DISPLAY_LOGINSUCCESS_ADMINPAGE DB 'Welcome! $'
+	DISPLAY_ADMINROLE DB '1. Display',10,13,'2. Back to Menu',10,13,'3. Exit$'
 
 
 	;---User Menu
-	DISPLAY_WELCOME_USERPAGE DB 10,13,"Welcome to User page!",10,13,"$"
-	DISPLAY_ROLE_USERPAGE DB "1. Login",10,13,"2. Back to Menu",10,13,"3. Exit",10,13,"$"
+	DISPLAY_WELCOME_USERPAGE DB 10,13,'Welcome to User page!',10,13,'$'
+	DISPLAY_ROLE_USERPAGE DB '1. Login',10,13,'2. Back to Menu',10,13,'3. Exit',10,13,'$'
 	CHOICE_USERPAGE DB ?
 
 	;---user login page
 	
 
 	;---user login success
-	DISPLAY_LOGINSUCCESS_USERPAGE DB "Welcome! $"
-	DISPLAY_USERROLE DB "1. Display",10,13,"2. Back to Menu",10,13,"3. Exit$"
+	DISPLAY_LOGINSUCCESS_USERPAGE DB 'Welcome! $'
+	DISPLAY_USERROLE DB '1. Display',10,13,'2. Back to Menu',10,13,'3. Exit$'
 
 	;---user register
 
 
 
 	;---exit
-	DISPLAY_EXIT DB 10,13,"Thank you, see you next time.$"
+	DISPLAY_EXIT DB 10,13,'Thank you, see you next time.$'
 
 	;---invalid selection
-	INVALIDSELECTION_MSG DB 10,13,"Invalid Selection. Try Again",10,13,"$"
+	INVALIDSELECTION_MSG DB 10,13,'Invalid Selection. Try Again',10,13,'$'
 	
 
 	
@@ -245,8 +265,6 @@ LEA DX, DISPLAY_ROLE_ADMINPAGE
 INT 21H 	
 
 RETN 	
-
-
 ADMINPAGE ENDP
 
 ADMINSELECT PROC
@@ -308,73 +326,73 @@ LOGINSUCCESS ENDP
 ;=========================================================================
 ADMINLOGIN PROC
 	;----ask to enter username
-	MOV AH, 09H
-	LEA DX, DISPLAY_ENTER_USERNAME
-	INT 21H
+		MOV AH, 09H
+		LEA DX, DISPLAY_ENTER_USERNAME
+		INT 21H
+		
+		;---input username STRING
+		MOV AH, 0AH
+		LEA DX, ADMIN_INPUT_USERNAME
+		INT 21H
+
+
+		;-----ask to enter password
+		MOV AH, 09H
+		LEA DX, DISPLAY_ENTER_PASSWORD
+		INT 21H
+		
+		;-----input password STRING
+		MOV AH, 0AH
+		LEA DX, ADMIN_INPUT_PASSWORD
+		INT 21H
+
+		;---actual number of username
+		MOV CL,ADMIN_INPUT_USERNAME[1]
+		MOV SI,2
+		MOV DI, OFFSET ADMIN_USERNAME
+
+		;-----validate username
+		ADMINUSERNAME:
+
+			MOV BL,ADMIN_INPUT_USERNAME[SI]
+			CMP BL,[DI]
+			JNE INVALIDADMINUSERNAME
 	
-	;---input username STRING
-	MOV AH, 0AH
-	LEA DX, ADMIN_INPUT_USERNAME
-	INT 21H
-
-
-	;-----ask to enter password
-	MOV AH, 09H
-	LEA DX, DISPLAY_ENTER_PASSWORD
-	INT 21H
-	
-	;-----input password STRING
-	MOV AH, 0AH
-	LEA DX, ADMIN_INPUT_PASSWORD
-	INT 21H
-
-	;---actual number of username
-	MOV CL,ADMIN_INPUT_USERNAME[1]
-	MOV SI,2
-	MOV DI, OFFSET ADMIN_USERNAME
-
-	;-----validate username
-	ADMINUSERNAME:
-
-		MOV BL,ADMIN_INPUT_USERNAME[SI]
-		CMP BL,[DI]
+			INC SI
+			INC DI
+		LOOP ADMINUSERNAME
+		
+		; Validate if the input username has been fully matched
+		CMP BYTE PTR [DI], '$'                
 		JNE INVALIDADMINUSERNAME
+		
+		;-----validate password
+		MOV CL, ADMIN_INPUT_PASSWORD[1]       ; Get the length of the password input
+		MOV SI, 2                             ; Start comparing from the second byte of the buffer
+		MOV DI, OFFSET ADMIN_PASSWORD         ; Point to the stored password
 
-		INC SI
-		INC DI
-	LOOP ADMINUSERNAME
-	
-	; Validate if the input username has been fully matched
-	CMP BYTE PTR [DI], "$"                
-	JNE INVALIDADMINUSERNAME
-	
-	;-----validate password
-	MOV CL, ADMIN_INPUT_PASSWORD[1]       ; Get the length of the password input
-	MOV SI, 2                             ; Start comparing from the second byte of the buffer
-	MOV DI, OFFSET ADMIN_PASSWORD         ; Point to the stored password
+		ADMINPASSWORD:
+			MOV BL, ADMIN_INPUT_PASSWORD[SI]  ; Get the next input character
+			CMP BL, [DI]                      ; Compare with the stored password character
+			JNE INVALIDADMINPASSWORD          ; If not equal, jump to invalid password
 
-	ADMINPASSWORD:
-		MOV BL, ADMIN_INPUT_PASSWORD[SI]  ; Get the next input character
-		CMP BL, [DI]                      ; Compare with the stored password character
-		JNE INVALIDADMINPASSWORD          ; If not equal, jump to invalid password
+			INC SI
+			INC DI
+			LOOP ADMINPASSWORD                ; Continue looping through the length of the input password
 
-		INC SI
-		INC DI
-		LOOP ADMINPASSWORD                ; Continue looping through the length of the input password
+		; Validate if the input password has been fully matched
+		CMP BYTE PTR [DI], '$'                ; Check if we reached the end of the stored password
+		JNE INVALIDADMINPASSWORD              ; If not, jump to invalid password
 
-	; Validate if the input password has been fully matched
-	CMP BYTE PTR [DI], "$"                ; Check if we reached the end of the stored password
-	JNE INVALIDADMINPASSWORD              ; If not, jump to invalid password
-
-	JMP PASSADMINLOGIN         
-	
-	INVALIDADMINUSERNAME:
-	INVALIDADMINPASSWORD:
-		CALL ADISPLAY_LOGINFAILED
-		JMP ALOGIN
-	PASSADMINLOGIN:
-	JMP AMENU
-	RETN 
+		JMP PASSADMINLOGIN         
+		
+		INVALIDADMINUSERNAME:
+		INVALIDADMINPASSWORD:
+			CALL ADISPLAY_LOGINFAILED
+			JMP ALOGIN
+PASSADMINLOGIN:
+JMP AMENU
+RETN 
 ADMINLOGIN ENDP
 
 ;=========================================================================
@@ -512,54 +530,89 @@ USERLOGIN PROC
     LEA DX, USER_INPUT_PASSWORD
     INT 21H
 
+    ;---initialize username and password array offsets
+    MOV SI, OFFSET USER_ID_ARRAY        ; SI points to the start of USER_ID_ARRAY
+    MOV BX, OFFSET USER_PASSWORD_ARRAY  ; BX points to the start of USER_PASSWORD_ARRAY
+
+NEXT_USER:
     ;---validate username
-    MOV CL, USER_INPUT_USERNAME[1]  ; Get the length of the input username (second byte of buffer)
-    MOV SI, 2                       ; Start comparing from the second byte (after the length byte)
-    MOV DI, OFFSET USER_USERNAME     ; Point to the stored username
+	MOV CX, 0
+    MOV CL, USER_INPUT_USERNAME[1]      ; CX = length of the input username (second byte of buffer)
+    MOV DI, 2                           ; DI points to start of input username (skip length byte)
+    
+COMPARE_USERNAME:
+    MOV AL, USER_INPUT_USERNAME[DI]     ; Load input username character
+    CMP AL, [SI]                        ; Compare with current character in USER_ID_ARRAY
+    JNE USERNAME_MISMATCH               ; If not equal, go to the next user
+    INC DI                              ; Move to the next input character
+    INC SI                              ; Move to the next stored username character
+    CMP BYTE PTR [SI], '$'              ; Check if we've reached the end of stored username
+    JE USERNAME_MATCH                   ; If reached end of stored username, match is successful
+    LOOP COMPARE_USERNAME               ; Continue comparing until CX becomes zero
 
-    USERUSERNAME:
-        MOV BL, USER_INPUT_USERNAME[SI]  ; Get the next input character from the user
-        CMP BL, [DI]                    ; Compare with stored username character
-        JNE UINVALID                    ; If not equal, jump to invalid
+USERNAME_MISMATCH:
+    ; Skip the rest of the current username and move to the next one
+    MOV CX, 40                          ; Assume max username length is 32 bytes
+SKIP_USERNAME:
+    CMP BYTE PTR [SI], '$'              ; Look for the username delimiter
+    JE DONE_SKIP_USERNAME               ; Found the delimiter, stop skipping
+    INC SI                              ; Move to the next character
+    DEC CX                              ; Decrease counter
+    JNZ SKIP_USERNAME                   ; Continue until delimiter or max length reached
+DONE_SKIP_USERNAME:
+    INC SI                              ; Move past the '$' delimiter
 
-        INC SI
-        INC DI
-        LOOP USERUSERNAME                ; Loop through the length of the username
+    ; Skip the current password to go to the next password
+    MOV CX, 12                          ; Assume max password length is 12 bytes
+SKIP_PASSWORD:
+    CMP BYTE PTR [BX], '$'              ; Look for the password delimiter
+    JE DONE_SKIP_PASSWORD               ; Found the delimiter, stop skipping
+    INC BX                              ; Move to the next character
+    DEC CX                              ; Decrease counter
+    JNZ SKIP_PASSWORD                   ; Continue until delimiter or max length reached
+DONE_SKIP_PASSWORD:
+    INC BX                              ; Move past the '$' delimiter
 
-    ; Validate if the input username has been fully matched
-    CMP BYTE PTR [DI], "$"               ; Check if we reached the end of the stored username
-    JNE UINVALID                         ; If not, jump to invalid
+    ; Check if we've reached the end of the username array
+    CMP SI, OFFSET USER_ID_ARRAY + 320  ; Compare with end of username array (10 entries * 32 bytes)
+    JAE UINVALID                        ; If out of bounds, fail login
 
-    ;---validate password
-    MOV CL, USER_INPUT_PASSWORD[1]       ; Get the length of the input password (second byte of buffer)
-    MOV SI, 2                            ; Start comparing from the second byte
-    MOV DI, OFFSET USER_PASSWORD         ; Point to the stored password
+    JMP NEXT_USER                       ; Try the next username and password
 
-    USERPASSWORD:
-        MOV BL, USER_INPUT_PASSWORD[SI]  ; Get the next input character from the user
-        CMP BL, [DI]                     ; Compare with stored password character
-        JNE UINVALID                     ; If not equal, jump to invalid
+USERNAME_MATCH:
+    ; If username matches, check the password
+    MOV CX,0
+	MOV CL, USER_INPUT_PASSWORD[1]      ; CX = length of input password (second byte of buffer)
+    MOV DI, 2                           ; DI points to start of input password
 
-        INC SI
-        INC DI
-        LOOP USERPASSWORD                ; Loop through the length of the password
+COMPARE_PASSWORD:
+    MOV AL, USER_INPUT_PASSWORD[DI]     ; Load input password character
+    CMP AL, [BX]                        ; Compare with current password character
+    JNE PASSWORD_MISMATCH               ; If not equal, go to the next user
+    INC DI                              ; Move to the next input character
+    INC BX                              ; Move to the next stored password character
+    CMP BYTE PTR [BX], '$'              ; Check if we've reached the end of stored password
+    JE PASSWORD_MATCH                   ; If reached end of stored password, match is successful
+    LOOP COMPARE_PASSWORD               ; Continue comparing until CX becomes zero
 
-    ; Validate if the input password has been fully matched
-    CMP BYTE PTR [DI], "$"               ; Check if we reached the end of the stored password
-    JNE UINVALID                         ; If not, jump to invalid
+PASSWORD_MISMATCH:
+    JMP USERNAME_MISMATCH               ; If password mismatches, check the next user
 
-    ; If both username and password are valid, jump to success
+PASSWORD_MATCH:
+    ; If both username and password are valid, proceed to success
     JMP PASSUSERLOGIN
 
-	UINVALID:
-		CALL UDISPLAY_LOGINFAILED            ; Display login failed
-		JMP USERLOGIN                        ; Go back to the user login process
+UINVALID:
+    CALL UDISPLAY_LOGINFAILED           ; Display login failed
+    JMP USERLOGIN                       ; Restart the login process
 
-	PASSUSERLOGIN:
-		; Proceed to the user menu after successful login
-		JMP UMENU
-		RETN
+PASSUSERLOGIN:
+    ; Proceed to user menu after successful login
+    JMP UMENU
+    RETN
 USERLOGIN ENDP
+
+
 
 
 USERMENU PROC

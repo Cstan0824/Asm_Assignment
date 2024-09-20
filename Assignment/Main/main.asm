@@ -546,10 +546,87 @@
         RET
     DISPLAY_USER_LOGIN_MENU ENDP
 
+    ;ADMIN LOGIN
+    ; if login success, BX = 1 else BX = 0
+    
     ADMIN_LOGIN PROC
-        ;ADMIN LOGIN - YY PART
-        ;Handle login at here if success continue to admin modules else ask user to try again
-        RET
+        ;need to clear the input buffer before enter the string
+        ;----ask to enter username
+		MOV AH, 09H
+		LEA DX, DISPLAY_ENTER_USERNAME
+		INT 21H
+		
+		;---input username STRING
+		MOV AH, 0AH
+		LEA DX, ADMIN_INPUT_USERNAME
+		INT 21H
+
+
+		;-----ask to enter password
+		MOV AH, 09H
+		LEA DX, DISPLAY_ENTER_PASSWORD
+		INT 21H
+		
+		;-----input password STRING
+		MOV AH, 0AH
+		LEA DX, ADMIN_INPUT_PASSWORD
+		INT 21H
+
+		;---actual number of username
+		MOV CL,ADMIN_INPUT_USERNAME[1]
+		MOV SI,2
+		MOV DI, OFFSET ADMIN_USERNAME
+
+		;-----validate username
+		ADMINUSERNAME:
+
+			MOV BL,ADMIN_INPUT_USERNAME[SI]
+			CMP BL,[DI]
+			JNE ADMIN_LOGIN_FAILED
+	
+			INC SI
+			INC DI
+		LOOP ADMINUSERNAME
+		
+		; Validate if the input username has been fully matched
+		CMP BYTE PTR [DI], '$'                
+		JNE ADMIN_LOGIN_FAILED
+		
+		;-----validate password
+		MOV CL, ADMIN_INPUT_PASSWORD[1]       ; Get the length of the password input
+		MOV SI, 2                             ; Start comparing from the second byte of the buffer
+		MOV DI, OFFSET ADMIN_PASSWORD         ; Point to the stored password
+
+		ADMINPASSWORD:
+			MOV BL, ADMIN_INPUT_PASSWORD[SI]  ; Get the next input character
+			CMP BL, [DI]                      ; Compare with the stored password character
+			JNE ADMIN_LOGIN_FAILED          ; If not equal, jump to invalid password
+
+			INC SI
+			INC DI
+			LOOP ADMINPASSWORD                ; Continue looping through the length of the input password
+
+		; Validate if the input password has been fully matched
+		CMP BYTE PTR [DI], '$'                ; Check if we reached the end of the stored password
+		JNE ADMIN_LOGIN_FAILED              ; If not, jump to invalid password
+
+		JMP PASSADMINLOGIN         
+		
+        ADMIN_LOGIN_FAILED:
+            CALL CLEAR_SCREEN
+
+            MOV AH, 09H
+            LEA DX, DISPLAY_LOGINFAIL
+            INT 21H
+            
+            CALL NEW_LINE 
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+            MOV BX, 0 ;login failed
+            RET
+        PASSADMINLOGIN:
+            MOV BX, 1 ;login success
+            RET
     ADMIN_LOGIN ENDP
 
     USER_LOGIN PROC 
