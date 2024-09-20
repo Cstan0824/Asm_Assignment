@@ -1077,14 +1077,15 @@
                 CALL NEW_LINE
                 CALL NEW_LINE 
                 
+                ;to prevent the second time when user input less character, and the system cannot read until the string terminator, reset the input buffer is needed
                 MOV CX, 30
                 XOR AX, AX
                 LEA SI, NEW_BOOKNAME
                 LEA DI, NEW_BOOKAUTHORS
                 RESET_INPUT_BUFFER:
                     MOV AL, '$'
-                    MOV byte ptr [SI], AL
-                    MOV byte ptr [DI], AL
+                    MOV byte ptr [SI], AL               ;reset the book name input buffer
+                    MOV byte ptr [DI], AL               ;reset the book author input buffer
                     INC SI
                     INC DI
                 LOOP RESET_INPUT_BUFFER
@@ -1208,9 +1209,9 @@
             
             check_book_name:                    ;check if the book name is not empty
             mov al, BOOK_ID_POSITION
-            dec al                  ; Book ID starts at 1, so subtract 1 to get the correct index
-            mov cl, BOOK_SIZE       ; 30 bytes for each book name
-            mul cl                  ; al = al * 30
+            dec al                      ; Book ID starts at 1, so subtract 1 to get the correct index
+            mov cl, BOOK_SIZE           ; 30 bytes for each book name
+            mul cl                      ; al = al * 30
             lea SI, BOOK_NAME_ARRAY     
             add SI, ax              ; Point to the correct book name
 
@@ -1222,13 +1223,13 @@
                 jmp no_book_found        ; to avoid jump out of range
 
             
-            check_borrow_status:            ; Check if the book is borrowed if book is exist
+            check_borrow_status:        ; Check if the book is borrowed if book is exist
             mov al, BOOK_ID_POSITION
-            dec al                  ; Book ID starts at 1, so subtract 1 to get the correct index
-            mov cl, USER_ID_SIZE    ; 40 bytes for each borrow status (user id)
-            mul cl                  ; al = al * 40
+            dec al                      ; Book ID starts at 1, so subtract 1 to get the correct index
+            mov cl, USER_ID_SIZE        ; 40 bytes for each borrow status (user id)
+            mul cl                      ; al = al * 40
             lea SI, BORROW_BY_ARRAY
-            add SI, ax              ; Point to the correct borrow status
+            add SI, ax                  ; Point to the correct borrow status
 
             cmp byte ptr [SI], '$'          ; Check the first character of the borrow status
             jne temp_book_borrowed          ; If the book is borrowed, display error message
@@ -1305,13 +1306,13 @@
             ; Print confirmation message
             LEA DX, PROMPT_DELETE_BOOK_CONFIRMATION
             ; Get user input
-            CALL GET_CONFIRMATION ; only accept Y or N - ignore cases
+            CALL GET_CONFIRMATION           ; only accept Y or N - ignore cases
 
             cmp al, 'Y'
             je execute_delete
             cmp al, 'y'
             je execute_delete
-            RET ; terminate this function and return back to menu if user enter 'N' or 'n'
+            RET        ; terminate this function and return back to menu if user enter 'N' or 'n'
 
         execute_delete:
             CALL NEW_LINE
@@ -1319,10 +1320,10 @@
             ; Delete book: replace book name and author with '$'
             mov al, BOOK_ID_POSITION
             dec al
-            mov cl, 30        ; 30 bytes for each book name/author
-            mul cl            ; al = al * 30
+            mov cl, 30                      ; 30 bytes for each book name/author
+            mul cl                          ; al = al * 30
             lea SI, BOOK_NAME_ARRAY
-            add SI, ax        ; Point to the correct book name
+            add SI, ax                      ; Point to the correct book name
 
             ; Replace book name with '$'
             mov cx, 30
@@ -1416,7 +1417,7 @@
     REMOVE_BOOK ENDP
 
     ;JEREMY PART
-    DISPLAY_OVERTIME_BOOK PROC
+    DISPLAY_OVERTIME_BOOK PROC              
 
         CALL GET_DATE
     
@@ -1441,50 +1442,52 @@
         CALL NEW_LINE
         
         XOR BX, BX
-        MOV BOOK_ID_POSITION, 1
+        MOV BOOK_ID_POSITION, 1                             ;start from first book
         MOV CX, 20
-        DISPLAY_OVERTIME_RECORD:
-            CMP CX, 0
-            JZ TEMP_END_DISPLAY_OVERTIME_RECORD
-            JMP PROCEED_LOOP
+        DISPLAY_OVERTIME_RECORD:           ; looping is done manually, because loop out of range
+            CMP CX, 0                      ; check if all books have been looped                 
+            JZ TEMP_END_DISPLAY_OVERTIME_RECORD     ; if yes, end the display
+            JMP PROCEED_LOOP                        ; if not, proceed to next book
 
             TEMP_END_DISPLAY_OVERTIME_RECORD:
-                JMP END_DISPLAY_OVERTIME_RECORD
+                JMP END_DISPLAY_OVERTIME_RECORD         ; to avoid jump out of range
 
             PROCEED_LOOP:
-            CMP byte ptr [DI], '$' ; Check if this book is not borrowed (indicated by '$')
-            JE TEMP_SKIP_BOOK ; Skip this book if it is not borrowed
-            JMP CURRENT_OVERTIME_RECORD
+            CMP byte ptr [DI], '$'            ; Check if this book is not borrowed (indicated by '$')
+            JE TEMP_SKIP_BOOK                 ; Skip this book if it is not borrowed
+            JMP CURRENT_OVERTIME_RECORD       ; Proceed to display the book
 
             TEMP_SKIP_BOOK:
-                JMP SKIP_BOOK
+                JMP SKIP_BOOK                 ; to avoid jump out of range
             CURRENT_OVERTIME_RECORD:
-                PUSH BX
-                PUSH CX
-                PUSH SI
+                PUSH BX                       ; store the value of BX to stack temporarily
+                PUSH CX                       ; store the value of CX to stack temporarily
+                PUSH SI                       ; store the value of SI to stack temporarily
 
-                CALL CALCULATE_OVERTIME_DIFF_DAY
+                ; because calculate overtime diff day will change the value of BX, CX, and SI
+
+                CALL CALCULATE_OVERTIME_DIFF_DAY        ; Calculate the difference in days between the current date and the assigned return date, and the difference is stored in DIFF_DAY
                 
-                POP SI
-                POP CX
-                CMP DIFF_DAY, 30
-                JB BOOK_NOT_OVERTIME
+                POP SI                         ; get back the value of SI from stack
+                POP CX                         ; get back the value of CX from stack
+                CMP DIFF_DAY, 30               ; Check if the book is overdue >= 30 days)
+                JB BOOK_NOT_OVERTIME           ; If not, skip to the next book
 
-                ;Display red
-                PUSH CX ;store the value of CX to stack temporarily
-                ;Display Read is not available - ez chatgpt
+                ;if yes, Display red
+                PUSH CX                        ;store the value of CX to stack temporarily
+                
                 MOV AH, 09H        ; BIOS function to write character and attributes
                 MOV AL, ' '        ; Character to display (e.g., space or any other character)
                 MOV BH, 0          ; Page number (usually 0)
-                MOV BL, 0Ch        ; Attribute byte: Foreground red (4), background black (0Fh)
-                MOV CX, 80          ; Number of times to print the character (5 spaces)
+                MOV BL, 0Ch        ; Attribute byte: Foreground light red (CH), background black (0H)
+                MOV CX, 80         ; Number of times to print the character (80 spaces)
                 INT 10H            ; Call BIOS interrupt to print with attributes
 
-                POP CX ; get back the cx value from stack
+                POP CX             ; get back the cx value from stack
             
-            BOOK_NOT_OVERTIME: 
-            POP BX ; get back the value of BX[index] from stack 
-            PUSH BX ; store the value of BX to stack again for future use temporarily 
+            BOOK_NOT_OVERTIME:    ; diff day < 30, no display in red colour
+            POP BX                ; get back the value of BX[index] from stack 
+            PUSH BX               ; store the value of BX to stack again for future use temporarily 
             
             ;Delimeter
             MOV AH, 02H
@@ -1503,17 +1506,17 @@
             XOR BX, BX
             MOV BX , AX
             MOV AX, 0
-            MOV AL, BOOK_ID_ARRAY[BX]
+            MOV AL, BOOK_ID_ARRAY[BX]       ; Get the book id from the array
             DIV TEN
             MOV BX, AX
             
             MOV AH, 02H
-            MOV DL, BL
+            MOV DL, BL                      ; Print the first digit of the book id
             ADD DL, 30H
             INT 21H
             
             MOV AH, 02H
-            MOV DL, BH
+            MOV DL, BH                      ; Print the second digit of the book id
             ADD DL, 30H
             INT 21H
             
@@ -1534,36 +1537,36 @@
             
             ;Book_Name
             MOV AH, 09H
-            LEA DX, [SI]
+            LEA DX, [SI]                    ; Print the book name until string terminator '$'
             INT 21H
 
             
             
-            MOV BX, 29 ;suspose to be 30 but 1 is for delimeter - from copilot
+            MOV BX, 29 ;suspose to be 30 but 1 is for delimeter
             
             ;Count the string length
             COUNTOVERTIME_BOOK_NAME_SPACES_1:
-                CMP BYTE PTR [SI], '$' ; apa ini
-                JE DONEOVERTIME_BOOK_NAME_SPACES_1
-                DEC BX
-                INC SI
-                JMP COUNTOVERTIME_BOOK_NAME_SPACES_1
+                CMP BYTE PTR [SI], '$'                      ;CHECK IF THE STRING IS FINISHED
+                JE DONEOVERTIME_BOOK_NAME_SPACES_1          ;IF YES PROCEED
+                DEC BX                                      ;IF NOT, DECREMENT BX
+                INC SI                                      ;INCREMENT SI
+                JMP COUNTOVERTIME_BOOK_NAME_SPACES_1        ;LOOP UNTIL THE STRING IS FINISHED
             DONEOVERTIME_BOOK_NAME_SPACES_1:
                 MOV AH, 02H
-                ;EXP: SI(original SI) = SI(currnet SI) - (29(total length) - BX(space length))
+                ;EXP: SI(original SI) = SI(current SI) - (29(total length) - BX(space length))
                 ADD SI, BX 
                 SUB SI, 29
 
-            ADDOVERTIME_SPACES_AFTER_NAME_1:
-                CMP BX, 0
-                JE DONE_ADDOVERTIME_BOOK_NAME_SPACES_1
+            ADDOVERTIME_SPACES_AFTER_NAME_1:                ;ADD SPACE AFTER BOOK NAME
+                CMP BX, 0                                   ;CHECK IF BX = 0
+                JE DONE_ADDOVERTIME_BOOK_NAME_SPACES_1      ;IF YES, PROCEED
                 MOV DL, ' '
                 INT 21H
-                DEC BX
+                DEC BX                                      ;DECREMENT BX
 
-                JMP ADDOVERTIME_SPACES_AFTER_NAME_1
+                JMP ADDOVERTIME_SPACES_AFTER_NAME_1         ;LOOP UNTIL BX = 0
 
-            DONE_ADDOVERTIME_BOOK_NAME_SPACES_1:
+            DONE_ADDOVERTIME_BOOK_NAME_SPACES_1:            ;DONE ADDING SPACE AFTER BOOK NAME
             
                 ;Space
                 MOV AH, 02H
@@ -1580,22 +1583,21 @@
                 MOV DL, ' '
                 INT 21H
 
-                ;BX * 30 = BOOK AUTHOR POSITION
                 XOR AX, AX
-                MOV AL, BOOK_ID_POSITION
-                DEC AL      
-                MUL BOOK_SIZE
+                MOV AL, BOOK_ID_POSITION                ; Get the book id
+                DEC AL                ; Book ID starts at 1, so subtract 1 to get the correct index
+                MUL BOOK_SIZE                           ; Multiply by 30 to get the correct index
                 MOV BX, AX
                 ;Author
                 XOR AX, AX
                 MOV AH, 09H
-                LEA DX, BOOK_AUTHORS[BX]
+                LEA DX, BOOK_AUTHORS[BX]      ; Print the author name until string terminator '$'
                 INT 21H 
 
             PUSH CX
 
                 MOV CX, 20 ;should use 29 but since not enough space for borrow by user so i use 20 instead
-                ;suspose to be 30 but 1 is for delimeter - from copilot
+                ;suspose to be 30 but 1 is for delimeter
                 ;MOVE THE BOOK AUTHOR POSITION TO BX
                 XOR AX, AX
                 MOV AL, BOOK_ID_POSITION
@@ -1605,26 +1607,26 @@
                 XOR AX, AX
             ;Count the string length
             COUNTOVERTIME_AUTHOR_SPACES:
-                CMP BOOK_AUTHORS[BX], '$' ; apa ini
-                JE DONEOVERTIME_AUTHOR_SPACES
-                DEC CX
-                INC BX
+                CMP BOOK_AUTHORS[BX], '$'                     ;CHECK IF THE STRING IS FINISHED
+                JE DONEOVERTIME_AUTHOR_SPACES                 ;IF YES PROCEED
+                DEC CX                                        ;IF NOT, DECREMENT CX 
+                INC BX                                        ;INCREMENT BX   
                 JMP COUNTOVERTIME_AUTHOR_SPACES
-            DONEOVERTIME_AUTHOR_SPACES:
+            DONEOVERTIME_AUTHOR_SPACES:                       ;DONE COUNTING THE STRING LENGTH
                 MOV AH, 02H
                 ADD BX, CX
                 SUB BX, 20
 
-            ADDOVERTIME_SPACES_AFTER_AUTHOR:
+            ADDOVERTIME_SPACES_AFTER_AUTHOR:            ;cx is the number of spaces needed to add
                 CMP CX, 0
-                JE DONE_ADDOVERTIME_AUTHOR_SPACES
+                JE DONE_ADDOVERTIME_AUTHOR_SPACES           ;IF YES, PROCEED
                 MOV DL, ' '
                 INT 21H
                 DEC CX
-                JMP ADDOVERTIME_SPACES_AFTER_AUTHOR
+                JMP ADDOVERTIME_SPACES_AFTER_AUTHOR         ;LOOP UNTIL CX = 0
 
             DONE_ADDOVERTIME_AUTHOR_SPACES:
-            POP CX ; get back the value of CX from stack
+            POP CX                          ; get back the value of CX from stack
                 ;Delimeter
                 MOV AH, 02H
                 MOV DL, '|'
@@ -1641,9 +1643,9 @@
                 DEC AL
                 MUL USER_ID_SIZE
                 XOR BX, BX
-                MOV BX , AX
+                MOV BX , AX                     ; Get the book id from the array
                 MOV AH, 09H
-                LEA DX, BORROW_BY_ARRAY[BX]
+                LEA DX, BORROW_BY_ARRAY[BX]         ; Print the user id who borrowed the book until string terminator '$'
                 INT 21H
             
             CALL NEW_LINE
@@ -1651,20 +1653,20 @@
             ;jmp to next value
             POP BX ; get back the value of BX from stack
             INC BOOK_COUNT
-            SKIP_BOOK:
+            SKIP_BOOK:                      ; move to the next book
 
                 XOR AX, AX
-                MOV AL, BOOK_SIZE
-                ADD SI, AX
-                ADD DI, 40
+                MOV AL, BOOK_SIZE           
+                ADD SI, AX                  ; Move to the next book name index
+                ADD DI, 40                  ; Move to the next book author index
 
-                INC BOOK_ID_POSITION
-                INC BX
-                DEC CX
+                INC BOOK_ID_POSITION        ; Move to the next book id
+                INC BX                      ; Move to the next book id
+                DEC CX                      ; Decrement the loop counter
 
-            JMP DISPLAY_OVERTIME_RECORD
+            JMP DISPLAY_OVERTIME_RECORD     ; Loop to the next book
 
-        END_DISPLAY_OVERTIME_RECORD:
+        END_DISPLAY_OVERTIME_RECORD:        ; End of the display
         
             ;DISPLAY LINE
             MOV AH, 09H
@@ -1673,7 +1675,8 @@
 
             CALL NEW_LINE
 
-            ;Display red
+            ;DISPLAY FOOTER
+            ;Display red color 
             MOV AH, 09H        ; BIOS function to write character and attributes
             MOV AL, ' '        ; Character to display (e.g., space or any other character)
             MOV BH, 0          ; Page number (usually 0)
@@ -1683,7 +1686,7 @@
             
             
             MOV AH, 09H 
-            LEA DX, OVERTIME_COLOR_REMARK_MSG
+            LEA DX, OVERTIME_COLOR_REMARK_MSG       ; Print the remark message in red color
             INT 21H
             
             CALL NEW_LINE
@@ -1695,35 +1698,36 @@
     ;JEREMY PART
     REMOVE_OVERTIME_BOOK PROC
 
-        CALL DISPLAY_OVERTIME_BOOK
+        CALL DISPLAY_OVERTIME_BOOK          ; Display the book catalog
         CALL NEW_LINE
 
         get_overtime_book_id:
             ; Prompt user to enter Book ID
             mov ah, 09h
-            lea dx, PROMPT_INPUT_DELETE_OVERTIME_BOOKID
+            lea dx, PROMPT_INPUT_DELETE_OVERTIME_BOOKID     
             int 21h
 
             mov ah, 0Ah
-            lea dx, DELETE_OVERTIME_BOOKID_INPUTBUFFER
+            lea dx, DELETE_OVERTIME_BOOKID_INPUTBUFFER      ; Receive user input bookid (string)
             int 21H
 
         process_overtime_input:
 
-            lea si, DELETE_OVERTIME_BOOKID_BUFFER
+            lea si, DELETE_OVERTIME_BOOKID_BUFFER     ; Point to user input (book id)
             xor ax, ax
 
             mov al, byte ptr [si]               ; Get the first digit  
-            cmp al, 0Dh                         ; Check if Enter was pressed
-            je temp_invalid_overtime_input       ; If Enter was pressed too early, it's invalid input
+            cmp al, 0Dh                         ; Check if Enter was pressed in the first character
+            je temp_invalid_overtime_input       ; If Enter was pressed, it's invalid input
             sub al, 30H                         ; Convert ASCII '0'-'9' to 0-9
             mov bl, al                          ; Store the first digit
 
             inc si                              ; Move to the next character
             mov al, byte ptr [si]               ; Get the next character (second digit or Enter)
-            cmp al, 0Dh                         ; Check if Enter was pressed for single digit
-            je one_digit_overtime_book_id       ; If Enter, we have a single-digit input
+            cmp al, 0Dh                         ; Check if Enter was pressed
+            je one_digit_overtime_book_id       ; If Enter, the book id is a single digit input
 
+            ;if not, proceed to the next character
             sub al, 30H                         ; Convert ASCII '0'-'9' to 0-9
             mov bh, al                          ; Store the second digit in bh
 
@@ -1746,8 +1750,8 @@
             cmp al, 20                          ; Check if Book ID is less than or equal to 20
             jg temp_invalid_overtime_input       ; Invalid if greater than 20
             
-            mov BOOK_ID_POSITION, al            ; Store the valid Book ID
-            jmp check_overtime_book_availability         ; Continue to check the availability of the book
+            mov BOOK_ID_POSITION, al              ; Store the valid Book ID
+            jmp check_overtime_book_availability  ; Continue to check the availability of the book
 
         temp_invalid_overtime_input:
             ; If invalid input, jump to invalid input handler
@@ -1765,21 +1769,21 @@
             add SI, ax              ; Point to the correct book name
 
             cmp byte ptr [SI], '$'
-            je temp_no_overtime_book_found ; If borrow by is empty, the book is not borrowed
-            jmp check_overtime_borrow_status
+            je temp_no_overtime_book_found  ; If borrow by is empty, the book is not borrowed
+            jmp check_overtime_borrow_status    ; the book is borrowed, check if it is overtime
 
             temp_no_overtime_book_found:
-                jmp no_overtime_book_found
+                jmp no_overtime_book_found          ; to avoid jump out of range
 
             ; Check if the book is borrowed overtime
             check_overtime_borrow_status:
             CALL CALCULATE_OVERTIME_DIFF_DAY
             CMP DIFF_DAY, 30
-            jb temp_book_borrowed_not_overtime       ; If the book is borrowed, display error message
-            jmp display_overtime_book_information
+            jb temp_book_borrowed_not_overtime       ; If the book is borrowed but not overtime, display error message
+            jmp display_overtime_book_information     ; If the book is borrowed overtime, proceed to display the book
             
             temp_book_borrowed_not_overtime:
-            jmp book_borrowed_not_overtime
+            jmp book_borrowed_not_overtime          ; to avoid jump out of range
             
 
         display_overtime_book_information:
@@ -1787,7 +1791,7 @@
             CALL NEW_LINE
 
             MOV AH, 09H 
-            LEA DX, BOOK_LINE
+            LEA DX, BOOK_LINE                       
             INT 21H 
             CALL NEW_LINE 
 
@@ -1800,28 +1804,21 @@
 
             mov al, BOOK_ID_POSITION
             dec al
-            mov cl, 30        ; 30 bytes for each book name/author
-            mul cl            ; al = al * 30
+            mov cl, 30                          ; 30 bytes for each book name/author
+            mul cl                              ; al = al * 30
             lea SI, BOOK_NAME_ARRAY
-            add SI, ax        ; Point to the correct book name
+            add SI, ax                          ; Point to the correct book name
             
-            mov cx, 30
-            display_overtime_book_name:
-                mov ah, 02H
-                cmp byte ptr[SI], '$'
-                je skip_next_overtime_bn
-                mov dl, byte ptr[SI]
-                int 21H
-                skip_next_overtime_bn:
-                    inc SI
-            loop display_overtime_book_name
+            mov ah, 09H
+            lea dx, [SI]                        ; print book name until string terminator '$'
+            int 21h
 
             call new_line
 
             ; Display book author
 
             mov ah, 09h
-            lea dx, AUTHOR
+            lea dx, AUTHOR                  
             int 21h
 
             call space
@@ -1831,24 +1828,18 @@
             mov cl, 30
             mul cl
             lea SI, BOOK_AUTHORS
-            add SI, ax        ; Point to the correct author
+            add SI, ax                              ; Point to the correct author
 
-            mov cx, 30
-            display_overtime_book_author:
-                mov ah, 02H
-                cmp byte ptr[SI], '$'
-                je skip_next_overtime_ba
-                mov dl, byte ptr[SI]
-                int 21H
-                skip_next_overtime_ba:
-                    inc SI
-            loop display_overtime_book_author
+            mov ah, 09H
+            lea dx, [SI]                            ; print author name until string terminator '$'
+            int 21h
+            
 
             call new_line
 
             ;display return date
             mov ah, 09h
-            lea dx, RET_DATE
+            lea dx, RET_DATE                        ; Print "Return Date"
             int 21h
 
             call space
@@ -1861,14 +1852,14 @@
             add SI, ax
 
             mov cx, 11
-            display_return_date:
+            display_return_date:                    ; print return date char by char
                 mov ah, 02H
                 cmp byte ptr[SI], '$'
-                je skip_next_return_date
+                je skip_next_return_date     ; If the return date is empty, proceed next character
                 mov dl, byte ptr[SI]
                 int 21H
                 skip_next_return_date:
-                    inc SI
+                    inc SI                  ; Move to the next character
             loop display_return_date
 
             call new_line
@@ -1881,61 +1872,61 @@
             call space
 
             mov ah, 09H
-            lea dx, date
+            lea dx, date                    ; Print current date
             int 21h
 
             call new_line
 
             ;display overdue days
             MOV AH, 09H 
-            LEA DX, EXCEED_RET_DATE 
+            LEA DX, EXCEED_RET_DATE         
             INT 21H 
 
             call space
 
             ;Display Exceed Days
-            MOV AX, DIFF_DAY 
+            MOV AX, DIFF_DAY                
             XOR CX, CX
 
-            READ_OVERTIME_DIFF_DAY:
-            INC CX
+            READ_OVERTIME_DIFF_DAY:         ; convert the difference day to string
+            INC CX                          ; Increment the counter for display
             DIV TEN 
             MOV BX, AX 
 
-            XOR AL, AL ; remove the integral part
-            PUSH AX ;save value to the stack
+            XOR AL, AL                      ; remove the quotient part
+            PUSH AX                         ; save remainder to the stack
 
-            CMP BL, 0
-            JE END_READ_OVERTIME_DIFF_DAY
+            CMP BL, 0                       ; Check if the quotient is 0
+            JE END_READ_OVERTIME_DIFF_DAY   ; If yes, proceed to display the remainder
 
-            XOR BH, BH ; remove remainder part
-            MOV AX, BX 
-            JMP READ_OVERTIME_DIFF_DAY
+            XOR BH, BH                      ; remove remainder part
+            MOV AX, BX                      ; get the quotient part
+            JMP READ_OVERTIME_DIFF_DAY      ; Loop to the next digit until the quotient is 0
 
             END_READ_OVERTIME_DIFF_DAY:
 
-            DISPLAY_OVERTIME_DIFF_DAY:
-            POP BX ; get the value from stack
-            MOV AH, 02H 
-            MOV DL, BH 
-            ADD DL, 30H 
-            INT 21H	
-            LOOP DISPLAY_OVERTIME_DIFF_DAY
+                DISPLAY_OVERTIME_DIFF_DAY:
+                POP BX                      ; get the value from stack
+                MOV AH, 02H                 ; print the remainder
+                MOV DL, BH                  
+                ADD DL, 30H                 ; convert to ASCII
+                INT 21H	
+                LOOP DISPLAY_OVERTIME_DIFF_DAY      ; loop until the remainder is displayed
 
-            call space
+                call space
 
-            MOV AH, 09H
-            LEA DX, DAYS
-            INT 21H
+                MOV AH, 09H
+                LEA DX, DAYS                ; Print "days"
+                INT 21H
 
-            CALL NEW_LINE
-            MOV AH, 09H 
-            LEA DX, BOOK_LINE
-            INT 21H 
+                CALL NEW_LINE
+                MOV AH, 09H 
+                LEA DX, BOOK_LINE
+                INT 21H 
 
-            CALL NEW_LINE
-            CALL NEW_LINE
-            jmp delete_overtime_confirmation
+                CALL NEW_LINE
+                CALL NEW_LINE
+                jmp delete_overtime_confirmation        ; Proceed to delete the book
 
         delete_overtime_confirmation:
             ; Prompt user to confirm deletion
@@ -1969,12 +1960,12 @@
             mov cx, 30
             del_overtime_name:
                 mov ah, 02H
-                cmp byte ptr[SI], '$'
-                je delete_overtime_next_alphabet
-                mov dl, byte ptr[SI]
+                cmp byte ptr[SI], '$'               ; Check if the char is '$'
+                je delete_overtime_next_alphabet    
+                mov dl, byte ptr[SI]                ; Print book name char by char
                 int 21H
                 delete_overtime_next_alphabet:
-                    mov byte ptr [SI], '$'
+                    mov byte ptr [SI], '$'          ; Replace with '$'
                     inc SI
             loop del_overtime_name
 
@@ -1993,17 +1984,17 @@
             mov cl, 30
             mul cl
             lea SI, BOOK_AUTHORS
-            add SI, ax        ; Point to the correct author
+            add SI, ax                  ; Point to the correct author
 
             mov cx, 30
             del_overtime_author:
                 mov ah, 02H
-                cmp byte ptr[SI], '$'
+                cmp byte ptr[SI], '$'               ; Check if the char is '$'
                 je delete_overtime_next_alphabet1
-                mov dl, byte ptr[SI]
+                mov dl, byte ptr[SI]                ; Print author name char by char
                 int 21H
                 delete_overtime_next_alphabet1:
-                    mov byte ptr [SI], '$'
+                    mov byte ptr [SI], '$'          ; Replace with '$'
                     inc SI
             loop del_overtime_author
 
@@ -2013,75 +2004,72 @@
             mov cl, 40
             mul cl
             lea SI, BORROW_BY_ARRAY
-            add SI, ax        ; Point to the correct borrow by
+            add SI, ax                          ; Point to the correct borrow by
 
             mov cx, 40
             del_overtime_borrow_by:
-                mov byte ptr [SI], '$'
+                mov byte ptr [SI], '$'          ; Replace with '$'
                 inc SI
-            loop del_overtime_borrow_by
+            loop del_overtime_borrow_by         
 
             ;replace return date with '$'
             mov al, BOOK_ID_POSITION
             dec al
             mov cl, 11
             mul cl
-            lea SI, RET_DATE_ARRAY
-            add SI, ax
+            lea SI, RET_DATE_ARRAY              
+            add SI, ax                          ; Point to the correct return date
 
             mov cx, 11
             del_return_date:
-                mov byte ptr [SI], '$'
+                mov byte ptr [SI], '$'          ; Replace with '$'
                 inc SI
             loop del_return_date
 
             ; Print success message
-            lea dx, PROMPT_BOOK_ISDELETED
+            lea dx, PROMPT_BOOK_ISDELETED           
             mov ah, 09h
             int 21h
 
             ; Print new line
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            jmp end_delete_overtime_book
+            jmp end_delete_overtime_book         ; quit module
 
-        no_overtime_book_found:
-            ; Print error message if book is not found
-            lea dx, PROMPT_BOOK_NOT_FOUND
+        no_overtime_book_found:                 ; book is not in borrow list                    
+            lea dx, PROMPT_BOOK_NOT_FOUND       ; Print error message if book is not found
             mov ah, 09h
             int 21h
 
             ; Print new line
             CALL NEW_LINE
-            CALL SYSTEM_PAUSE
+            CALL SYSTEM_PAUSE           
             CALL NEW_LINE
-            jmp get_overtime_book_id
+            jmp get_overtime_book_id    ; ask user input book id again
 
         book_borrowed_not_overtime:
-            ; Print error message if book not yet overdue
-            lea dx, PROMPT_BOOK_IS_NOT_OVERTIME
+            lea dx, PROMPT_BOOK_IS_NOT_OVERTIME    ; Print error message if book not yet overdue
             mov ah, 09h
             int 21h
 
             ; Print new line
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            jmp end_delete_overtime_book
+            jmp end_delete_overtime_book        ; quit module
 
         invalid_overtime_bookid_input:
 
-            ; Print error message for invalid input
             mov ah, 09h
-            lea dx, PROMPT_BOOKID_ERROR
+            lea dx, PROMPT_BOOKID_ERROR         ; Print error message for invalid input
             int 21h
 
             ; Print new line
             CAll NEW_LINE
             CALL SYSTEM_PAUSE
             CALL NEW_LINE
-            jmp get_overtime_book_id
+            jmp get_overtime_book_id            ; ask user to input book id again
 
-        end_delete_overtime_book:
+        end_delete_overtime_book:               ; end of the module
         RET
     REMOVE_OVERTIME_BOOK ENDP
 
