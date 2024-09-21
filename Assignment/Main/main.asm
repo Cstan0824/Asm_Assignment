@@ -528,7 +528,7 @@
             CMP BX, 0
             JE ADMIN_LOGIN_PAGE
             CALL LOGINSUCCESS
-
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE 
             CALL CLEAR_SCREEN
 
@@ -544,6 +544,7 @@
             CALL LOGINSUCCESS
             ;store current user to session if the login is successful
 
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE 
             CALL CLEAR_SCREEN
 
@@ -592,6 +593,7 @@
         LEA DX, END_BOOK_FRAME
         INT 21H
 
+        CALL NEW_LINE
         CALL NEW_LINE
         CALL SYSTEM_PAUSE
 
@@ -661,11 +663,14 @@
 
         END_CHECK_USER_AVAILABILITY:
             ;if the user_id_array is full, display message and return
+            CALL NEW_LINE
+
             MOV AH, 09H
             LEA DX, DISPLAY_ARRAYFULL
             INT 21H
 
             CALL NEW_LINE
+            CALL NEW LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
             RET
@@ -727,6 +732,7 @@
         MOV AH, 09H
         LEA DX, DISPLAY_USER_EXISTS 
         INT 21H 
+        CALL NEW_LINE
         CALL NEW_LINE 
         CALL SYSTEM_PAUSE 
         CALL CLEAR_SCREEN
@@ -821,6 +827,7 @@
             INT 21H
 
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
         RET
@@ -914,11 +921,12 @@
         ADMIN_LOGIN_FAILED:
             CALL CLEAR_SCREEN
 
+            CALL NEW_LINE
             MOV AH, 09H
             LEA DX, DISPLAY_LOGINFAIL
             INT 21H
             
-            CALL NEW_LINE 
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
             MOV BX, 0 ;login failed
@@ -1093,6 +1101,7 @@
         LEA DX, LOGOUT_MSG
         INT 21H
 
+        CALL NEW_LINE   
         CALL NEW_LINE
         CALL SYSTEM_PAUSE
         RET
@@ -1100,19 +1109,27 @@
 
     UDISPLAY_LOGINFAILED PROC
     ;-----invalid username or password
+
+        CALL NEW_LINE
+
         MOV AH, 09H
         LEA DX, DISPLAY_LOGINFAIL
         INT 21H
 
+        CALL NEW_LINE
         CALL NEW_LINE 
         CALL SYSTEM_PAUSE
         RET
     UDISPLAY_LOGINFAILED ENDP
 
     LOGINSUCCESS PROC
+
+        CALL NEW_LINE
         MOV AH, 09H
         LEA DX, DISPLAY_LOGINS
         INT 21H
+
+        CALL NEW_LINE
 
         RET
     LOGINSUCCESS ENDP
@@ -1257,6 +1274,7 @@
                     LEA DX, INVALID_INPUT
                     INT 21H
                     CALL NEW_LINE
+                    CALL NEW_LINE
                     CALL SYSTEM_PAUSE 
 
             JMP START_CHANGE_PENALTY_CHARGE
@@ -1294,6 +1312,7 @@
                     LEA DX, INVALID_INPUT
                     INT 21H
                     CALL NEW_LINE
+                    CALL NEW_LINE
                     CALL SYSTEM_PAUSE 
             JMP START_CHANGE_PENALTY_EXTRA_RATE
 
@@ -1328,6 +1347,7 @@
                     MOV AH, 09H 
                     LEA DX, INVALID_INPUT
                     INT 21H
+                    CALL NEW_LINE
                     CALL NEW_LINE
                     CALL SYSTEM_PAUSE
             JMP START_CHANGE_PENALTY_MAXIMUM_CHARGE
@@ -1651,6 +1671,7 @@
             LEA DX, ADD_UNAVAILABLE                     ;display error msg - no slot for new book
             INT 21H
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             JMP QUIT_ADD_BOOK                           ;quit module
 
@@ -1690,6 +1711,7 @@
             LEA DX, INVALID_INPUT                       ;prompt error message
             INT 21H
             CALL NEW_LINE
+            CALL NEW_LINE   
             CALL SYSTEM_PAUSE
 
             
@@ -1926,6 +1948,7 @@
 
             ; Print new line
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             jmp end_delete_book
 
@@ -1936,6 +1959,7 @@
             int 21h
 
             ; Print new line
+            CALL NEW_LINE
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL NEW_LINE
@@ -1949,6 +1973,7 @@
 
             ; Print new line
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             jmp end_delete_book                     ;quit module
 
@@ -1960,6 +1985,7 @@
 
             ; Print new line
             CAll NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL NEW_LINE
             jmp get_book_id
@@ -2585,6 +2611,7 @@
 
             ; Print new line
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             jmp end_delete_overtime_book         ; quit module
 
@@ -2594,6 +2621,7 @@
             int 21h
 
             ; Print new line
+            CALL NEW_LINE
             CALL NEW_LINE
             CALL SYSTEM_PAUSE           
             CALL NEW_LINE
@@ -2606,6 +2634,7 @@
 
             ; Print new line
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             jmp end_delete_overtime_book        ; quit module
 
@@ -2617,6 +2646,7 @@
 
             ; Print new line
             CAll NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL NEW_LINE
             jmp get_overtime_book_id            ; ask user to input book id again
@@ -2654,7 +2684,7 @@
             LEA DX, INVALID_INPUT 
             INT 21H 
             CALL NEW_LINE
-
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE 
             CALL CLEAR_SCREEN 
             JMP EDIT_BOOK_START
@@ -2697,6 +2727,7 @@
                 MOV AH, 09H
                 LEA DX, BOOKNOTFOUND
                 INT 21H
+                CALL NEW_LINE
                 CALL NEW_LINE
                 CALL SYSTEM_PAUSE 
                 CALL CLEAR_SCREEN 
@@ -2751,6 +2782,7 @@
                 LEA DX, BOOK_ID_NOT_EXISTS_MSG
                 INT 21H
 
+                CALL NEW_LINE
                 CALL NEW_LINE
                 CALL SYSTEM_PAUSE
                 CALL CLEAR_SCREEN
@@ -3141,6 +3173,7 @@
             INT 21H
             
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
             RET
@@ -3209,6 +3242,7 @@
             LEA DX, USER_NOT_AVALIABLE_MSG
             INT 21H
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
             RET
@@ -3239,6 +3273,7 @@
             INT 21H
 
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
 
@@ -3262,6 +3297,7 @@
             INT 21H
 
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
             JMP START_BORROW_BOOK
@@ -3283,6 +3319,7 @@
             LEA DX, NOT_AVALIABLE_MSG
             INT 21H
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
             JMP START_BORROW_BOOK
@@ -3303,6 +3340,7 @@
             CALL NEW_LINE 
             CALL DISPLAY_CURR_PENALTY_DET
 
+            CALL NEW_LINE
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
@@ -3464,6 +3502,7 @@
             LEA DX, BORROW_RECORED_NOT_FOUND_MSG
             INT 21H
             CALL NEW_LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE 
             RET
         USER_FOUNDED:    
@@ -3515,10 +3554,13 @@
             ;Clear the date in RET_DATE_ARRAY also _OPTIONAL 
             CALL CLEAR_SCREEN
 
+            CALL NEW_LINE
+
             MOV AH, 09H
             LEA DX, BOOK_RETURNED_MSG
             INT 21H
 
+            CALL NEW_LINE
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
             RET
@@ -3528,10 +3570,13 @@
             POP BX ;clear stack
             CALL CLEAR_SCREEN
 
+            CALL NEW_LINE
+
             MOV AH, 09H
             LEA DX, PAYMENT_FAILED
             INT 21H
 
+            CALL NEW_LINE
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
             RET
@@ -3539,11 +3584,14 @@
             POP BX ;clear stack 
             CALL CLEAR_SCREEN
 
+            CALL NEW_LINE
+
             MOV AH, 09H
             LEA DX, BOOK_RETURN_FAILED
             INT 21H
 
             CALL NEW_LINE
+            CALL NEW_LINE 
             CALL SYSTEM_PAUSE
             RET
     RETURN_BOOK ENDP
