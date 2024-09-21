@@ -100,7 +100,7 @@
                     DB "$"
 
     USER_LOGIN_MENU DB " | 1. LOGIN", 29 DUP(" "), "|", 0DH, 0AH
-                    DB " | 2. Register Account", 18 DUP(" "), "|"
+                    DB " | 2. Register Account", 18 DUP(" "), "|",0DH, 0AH
                     DB " | 3. Back to Menu", 22 DUP(" "), "|"
                     DB "$"
             
@@ -271,8 +271,8 @@
         DB 12 DUP('$')
 
     ;Borrow Status
-    BORROW_BY_ARRAY DB 40 DUP("$")
-        DB "CSTAN$", 34 DUP('$');
+    BORROW_BY_ARRAY DB "CSTANTAN$", 31 DUP('$')
+        DB 40 DUP("$")
         DB "LIM_ZHI_PING$", 27 DUP('$');
         DB 40 DUP("$")
         DB "SAMSAM_CLOWN$", 27 DUP('$');
@@ -292,12 +292,12 @@
         DB 40 DUP('$')
         DB 40 DUP('$')
     
-    CURR_USER_ID DB "CSTAN$", 34 DUP('$')
+    CURR_USER_ID DB 40 DUP('$')
 
     ;DATE
     DATE DB 11 DUP('$')
-    RET_DATE_ARRAY DB 11 DUP("$")
-                    DB "05/09/2024$"
+    RET_DATE_ARRAY  DB "05/09/2024$"
+                    DB 11 DUP("$")             
                     DB "03/05/2024$"
                     DB 11 DUP("$")
                     DB "24/08/2024$"
@@ -453,18 +453,25 @@
 	ADMIN_OUTPUT_PASSWORD DB 12 DUP('$')
     
     ;User Login
-    USER_USERNAME DB "user$"
-	USER_PASSWORD DB "user123$"
-
 	USER_INPUT_USERNAME LABEL BYTE
 	USER_USERNAME_MAXN DB 40
-	USER_USERNAME_ACTN DB ?
+	USER_USERNAME_ACTN DB 0
 	USER_OUTPUT_USERNAME DB 40 DUP("$")
 
 	USER_INPUT_PASSWORD LABEL BYTE
 	USER_INPUT_PASSWORD_MAXN DB 12
-	USER_INPUT_PASSWORD_ACTN DB ?
+	USER_INPUT_PASSWORD_ACTN DB 0
 	USER_OUTPUT_PASSWORD DB 12 DUP("$")
+
+    ;Register
+    DISPLAY_ARRAYFULL DB 0DH, 0AH,"Number register full",0DH, 0AH,"$"
+	DISPLAY_REGISTER DB 0DH, 0AH,"REGISTER$"
+	DISPLAY_REGISTRATION_SUCCESS DB 0DH, 0AH,"Registration Successfull!$"
+    DISPLAY_USER_EXISTS DB "User already exists, Please try again another ID$"
+    INVALID_PASSWORD_RANGE DB "Password must be between 4 to 11 characters$"
+
+    ;logout
+    LOGOUT_MSG DB "Logout Successfully$"
 
 .CODE
     ;login as admin or user
@@ -513,10 +520,6 @@
             CMP AX, 3
             JE START_MAIN_MENU 
 
-        
-
-
-        
         LOGIN_AS_ADMIN:
             ;ADMIN LOGIN - YY PART
             CALL CLEAR_SCREEN
@@ -539,6 +542,7 @@
             CMP BX, 0
             JE USER_LOGIN_PAGE
             CALL LOGINSUCCESS
+            ;store current user to session if the login is successful
 
             CALL SYSTEM_PAUSE 
             CALL CLEAR_SCREEN
@@ -635,20 +639,194 @@
     DISPLAY_USER_LOGIN_MENU ENDP
 
     ;USER REGISTER ACCOUNT
+    ;user are not allowed to enter '$' in the username and password
     CREATE_USER_ACCOUNT PROC 
         ;check if the user_id_array is full - if full, display message and return
-        ;check with user_id_array if the username already exist - if exist, display message and return
-        ;if not full and not exist, register the user and password[generate password] and return
+        ;check from first index of user_id_array
+        MOV CX, 0
+        CHECK_USER_AVAILABILITY:
+            XOR AX, AX
+            MOV BX, CX
+            MOV AL, USER_ID_SIZE 
+            MUL BX 
+            MOV BX, AX
 
-        ;user are not allowed to enter the same username 
-        ;user are not allowed to enter '$' in the username and password
-        ;password are recommended to be 6-11 characters long
+            CMP USER_ID_ARRAY[BX], '$'
+            JE START_INPUT_USER_DET ;if the user_id_array is not full, continue to input user details
+
+            INC CX 
+            CMP CX, 20
+            JE END_CHECK_USER_AVAILABILITY ; end the loop if the no empty slot is founded in the array
+        JMP CHECK_USER_AVAILABILITY
+
+        END_CHECK_USER_AVAILABILITY:
+            ;if the user_id_array is full, display message and return
+            MOV AH, 09H
+            LEA DX, DISPLAY_ARRAYFULL
+            INT 21H
+
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+            RET
+
+        START_INPUT_USER_DET:
+
+        PUSH CX ;store the empty slo's index of the array to stack
+        ;check with user_id_array if the username already exist - if exist, display message and return
+        MOV AH, 09H
+        LEA DX, DISPLAY_REGISTER
+        INT 21H
+
+        ;clear admin username input buffer
+        MOV USER_USERNAME_ACTN, 0
+        MOV USER_INPUT_PASSWORD_ACTN, 0
+
+        LEA SI, USER_OUTPUT_USERNAME
+        MOV CX, 40
+        MOV AL, "$"
+        CLEAR_REGIS_USER_INPUT_USERNAME:
+            MOV [SI], AL
+            INC SI 
+        LOOP CLEAR_REGIS_USER_INPUT_USERNAME
+
+        ;clear admin password input buffer
+        LEA SI, USER_OUTPUT_PASSWORD
+        MOV CX, 12
+        MOV AL, "$"
+        CLEAR_REGIS_USER_INPUT_PASSWORD:
+            MOV [SI], AL
+            INC SI 
+        LOOP CLEAR_REGIS_USER_INPUT_PASSWORD
+
+        
+        ; Display prompt to enter a new username
+        MOV AH, 09H
+        LEA DX, DISPLAY_ENTER_USERNAME
+        INT 21H
+
+        ; Input new username
+        MOV AH, 0AH
+        LEA DX, USER_INPUT_USERNAME
+        INT 21H
+
+        ;check if the username is already exist`
+        ;if exist, display message and return
+        ;if not exist, continue to register the user
+        XOR BX, BX ; clear BX register - set to 0
+        MOV BL, USER_USERNAME_ACTN
+        MOV USER_OUTPUT_USERNAME[BX], '$' ; clear '0DH' from the end of the string
+
+        LEA SI, USER_ID_ARRAY
+        LEA DI, USER_OUTPUT_USERNAME
+
+        CALL CHECK_USER_EXISTENCE ;user are not allowed to enter the same username 
+        CMP BX, 0
+        JS CONTINUE_INPUT_PASSWORD ; ask user to enter password if user id is not founded inside the user id array 
+
+        CALL NEW_LINE
+        MOV AH, 09H
+        LEA DX, DISPLAY_USER_EXISTS 
+        INT 21H 
+        CALL NEW_LINE 
+        CALL SYSTEM_PAUSE 
+        CALL CLEAR_SCREEN
+
+        JMP START_INPUT_USER_DET
+        CONTINUE_INPUT_PASSWORD: ; continue input password if user id is not founded inside the user id array
+        ; Display prompt to enter a new password
+        MOV AH, 09H
+        LEA DX, DISPLAY_ENTER_PASSWORD
+        INT 21H
+
+        ; Input new password
+        MOV AH, 0AH
+        LEA DX, USER_INPUT_PASSWORD
+        INT 21H
+
+        CMP USER_INPUT_PASSWORD_ACTN, 4
+        JAE  STORE_REGIS_USER_DET_TO_ARRAY ; user only allowed to enter from 4 to 11 characters for password
+        CMP USER_INPUT_PASSWORD_ACTN, 11
+        JBE  STORE_REGIS_USER_DET_TO_ARRAY
+
+        
+
+        ;user will asked to enter password again if the password is not in the range of 4 to 11 characters
+        CALL NEW_LINE 
+        MOV AH, 09H
+        LEA DX, INVALID_PASSWORD_RANGE
+        INT 21H
+        CALL NEW_LINE
+
+        ;clear admin password input buffer
+        MOV USER_INPUT_PASSWORD_ACTN, 0
+        LEA SI, USER_OUTPUT_PASSWORD
+        MOV CX, 12
+        MOV AL, "$"
+        CLEAR_INPUT_PASSWORD:
+            MOV [SI], AL
+            INC SI 
+        LOOP CLEAR_INPUT_PASSWORD
+
+       
+        
+        JMP CONTINUE_INPUT_PASSWORD
+
+        ;user id and password is inputed successfully
+        STORE_REGIS_USER_DET_TO_ARRAY:
+        
+            XOR BX, BX ; clear BX register - set to 0
+            MOV BL, USER_INPUT_PASSWORD_ACTN
+            MOV USER_OUTPUT_PASSWORD[BX], '$' ; clear '0DH' from the end of the string
+
+            POP CX ;get the empty slot's index of the array from stack
+            LEA SI, USER_ID_ARRAY        
+            LEA DI, USER_OUTPUT_USERNAME
+
+            XOR AX, AX ;clear AX register - set to 0
+            MOV BX, CX
+            MOV Al, USER_ID_SIZE
+            MUL BX
+            ADD SI, AX 
+
+            PUSH CX ;push the empty slot's index of the array to stack for later use - store password to array
+
+            MOV CX, 40 ; copy the username to the user_id_array
+            COPY_USER_ID:
+                MOV AL, [DI]
+                MOV [SI], AL
+                INC SI
+                INC DI 
+            LOOP COPY_USER_ID
+
+            POP CX ;get the empty slot's index of the array from stack
+            LEA SI, USER_PASSWORD_ARRAY
+            LEA DI, USER_OUTPUT_PASSWORD
+
+            MOV BX, CX
+            DEC BX
+            MOV AX, 12 ; size of password
+            MUL BX
+            ADD SI, AX
+
+            MOV CX, 12 ; copy the password to the user_password_array
+            COPY_USER_PASSWORD:
+                MOV AL, [DI]
+                MOV [SI], AL
+                INC SI
+                INC DI 
+            LOOP COPY_USER_PASSWORD
+
+            CALL CLEAR_SCREEN
+            MOV AH, 09H
+            LEA DX, DISPLAY_REGISTRATION_SUCCESS
+            INT 21H
+
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
         RET
     CREATE_USER_ACCOUNT ENDP 
-
-
-
-
 
     ;ADMIN LOGIN
     ; if login success, BX = 1 else BX = 0
@@ -755,6 +933,7 @@
     ;USER LOGIN
     ; if login success, BX = 1 else BX = 0
     USER_LOGIN PROC 
+        
         ;clear admin username input buffer
         MOV USER_USERNAME_ACTN, 0
         MOV USER_INPUT_PASSWORD_ACTN, 0
@@ -801,9 +980,20 @@
 
         MOV CX, 0
         NEXT_USER:
+
+            CALL SPACE 
+            MOV AH, 09H 
+            MOV DX, SI 
+            INT 21H 
+            CALL SPACE
+            MOV AH,09H 
+            MOV DX, DI
+            INT 21H 
+            CALL SPACE 
+
             INC CX ; increase user count
 
-            CMP CX, 20            ;compare if alr out of bounds - only 20 user at max
+            CMP CX, 19            ;compare if alr out of bounds - only 20 user at max
             JA USER_LOGIN_FAILED  ; If out of bounds, fail login
 
             PUSH CX ;push number of user to stack
@@ -861,6 +1051,15 @@
 
         PASSWORD_MATCH:
             ; If both username and password are valid, proceed to success
+            MOV CX, 40 
+            LEA SI, USER_OUTPUT_USERNAME
+            LEA DI, CURR_USER_ID
+            SAVE_CURRENT_USER_ID:
+                MOV AL, [SI]
+                MOV [DI], AL
+                INC SI
+                INC DI
+            LOOP SAVE_CURRENT_USER_ID
             POP CX ; clear value from stack
             MOV BX, 1
             RET
@@ -872,8 +1071,27 @@
             RET
     USER_LOGIN ENDP 
 
+    USER_LOGOUT PROC 
+        LEA SI, CURR_USER_ID
+        MOV CX, 40
+        MOV AL, "$"
+        CLEAR_CURR_USER_ID:
+            MOV [SI], AL
+            INC SI 
+        LOOP CLEAR_CURR_USER_ID
+
+        CALL NEW_LINE 
+        MOV AH, 09H
+        LEA DX, LOGOUT_MSG
+        INT 21H
+
+        CALL NEW_LINE
+        CALL SYSTEM_PAUSE
+        RET
+    USER_LOGOUT ENDP 
+
     UDISPLAY_LOGINFAILED PROC
-    ;-----invalid username or password - _UPDATE
+    ;-----invalid username or password
         MOV AH, 09H
         LEA DX, DISPLAY_LOGINFAIL
         INT 21H
@@ -956,6 +1174,7 @@
             JMP START_ADMIN_MENU
 
         ADMIN_BACK_TO_MAIN_MENU:
+
             CALL CLEAR_SCREEN
             RET
     ADMIN_MODULES ENDP
@@ -2948,6 +3167,7 @@
             JMP START_USER_MENU
         
         USER_BACK_TO_MAIN_MENU:
+            CALL USER_LOGOUT
             CALL CLEAR_SCREEN
             RET
     USER_MODULES ENDP
@@ -2971,6 +3191,8 @@
     ; 6. display the book details, return date and penalty caution message, (DISPLAY_BOOK_DETAILS, PENALTY_CAUTION_MSG)
     BORROW_BOOK PROC
         ;Ensure user didnt borrow any book
+        LEA SI, BORROW_BY_ARRAY        
+        LEA DI, CURR_USER_ID
         CALL CHECK_USER_EXISTENCE
         CMP BX, 0
         JS USER_AVAILABLE_TO_BORROW ; display the details if user is not founded inside the borrow by array 
@@ -3218,12 +3440,14 @@
     SET_BORROW_STATUS ENDP
     
     ;CSTAN PART
-    ; 1. check if user has borrowed book before proceed to return book, CHECK_USER_EXISTENCE
+    ; 1. check if user has borrowed book before proceed to return book, _CHECK_USER_EXISTENCE
     ; 2. confirm with user to return the book, continue the process if Yes, GET_CONFIRMATION
     ; 3. calculate the difference between return date and current date, CALCULATE_PENALTY
     ; 4. if results in positive, calculate the panalty and ask user to proceed payment
     ; 5. if results in negative, proceed to update the borrow status(CLEAR_BORROW_STATUS)
     RETURN_BOOK PROC
+        LEA SI, BORROW_BY_ARRAY
+        LEA DI, CURR_USER_ID
         CALL CHECK_USER_EXISTENCE
         CMP BX, 0
         JNS USER_FOUNDED ; display the details if user is founded inside the borrow by array 
@@ -3255,7 +3479,7 @@
 
         POP BX ; get back the index from stack
         CMP HAS_PENALTY_CHARGE, 0 ; no penalty charge if true
-        JE UPDATE_BORROW_STATUS  ; update status - _UPDATE
+        JE UPDATE_BORROW_STATUS  ; update status -
 
         ;proceed payment if exceeds return date
         CALL NEW_LINE
@@ -3280,7 +3504,7 @@
         ; set the borrow status if the book is return successfully
         UPDATE_BORROW_STATUS:
             CALL CLEAR_BORROW_STATUS
-            ;Clear the date in RET_DATE_ARRAY also _OPTIONAL _UPDATE
+            ;Clear the date in RET_DATE_ARRAY also _OPTIONAL 
             CALL CLEAR_SCREEN
 
             MOV AH, 09H
@@ -3404,10 +3628,10 @@
 
     ;return value to BX
     ;BX - negative if user not found in BORROW_BY_ARRAY else positive
+    ;SI - point to BORROW_BY_ARRAY or USER_ID_ARRAY, is passed by caller pass array of user id
+    ;DI - point to CURR_USER_ID, is passed by caller - pass a single user id
     CHECK_USER_EXISTENCE PROC
         ;Point to array
-        LEA SI, BORROW_BY_ARRAY
-        LEA DI, CURR_USER_ID
 
         MOV CX, 0
         CHECK_USER_ID_EXISTENCE:
