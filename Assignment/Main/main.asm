@@ -374,19 +374,7 @@
     ACTN_AUTHOR DB 0 
     EDITEDAUTHOR DB 30 DUP("$")
 
-    ;Admin Login
-    ADMIN_USERNAME DB 'admin$'
-	ADMIN_PASSWORD DB 'admin123$'
-
-	ADMIN_INPUT_USERNAME LABEL BYTE
-	ADMIN_USERNAME_MAXN DB 40
-	ADMIN_USERNAME_ACTN DB ?
-	ADMIN_OUTPUT_USERNAME DB 40 DUP('$')
-
-	ADMIN_INPUT_PASSWORD LABEL BYTE
-	ADMIN_INPUT_PASSWORD_MAXN DB 12
-	ADMIN_INPUT_PASSWORD_ACTN DB ?
-	ADMIN_OUTPUT_PASSWORD DB 12 DUP('$')
+    
 
     
     
@@ -441,6 +429,34 @@
 
     PROMPT_BOOK_IS_NOT_OVERTIME DB "Book is not overtime, cannot delete!$"
 
+    ;Admin Login
+    ADMIN_USERNAME DB "admin$"
+	ADMIN_PASSWORD DB "admin123$"
+
+	ADMIN_INPUT_USERNAME LABEL BYTE
+	ADMIN_USERNAME_MAXN DB 40
+	ADMIN_USERNAME_ACTN DB ?
+	ADMIN_OUTPUT_USERNAME DB 40 DUP('$')
+
+	ADMIN_INPUT_PASSWORD LABEL BYTE
+	ADMIN_INPUT_PASSWORD_MAXN DB 12
+	ADMIN_INPUT_PASSWORD_ACTN DB ?
+	ADMIN_OUTPUT_PASSWORD DB 12 DUP('$')
+    
+    ;User Login
+    USER_USERNAME DB "user$"
+	USER_PASSWORD DB "user123$"
+
+	USER_INPUT_USERNAME LABEL BYTE
+	USER_USERNAME_MAXN DB 40
+	USER_USERNAME_ACTN DB ?
+	USER_OUTPUT_USERNAME DB 40 DUP("$")
+
+	USER_INPUT_PASSWORD LABEL BYTE
+	USER_INPUT_PASSWORD_MAXN DB 12
+	USER_INPUT_PASSWORD_ACTN DB ?
+	USER_OUTPUT_PASSWORD DB 12 DUP("$")
+
 .CODE
     ;login as admin or user
     MAIN PROC
@@ -491,6 +507,8 @@
             CALL CLEAR_SCREEN
 
             CALL ADMIN_LOGIN
+            CMP BX, 0
+            JE ADMIN_LOGIN_PAGE
             CALL LOGINSUCCESS
 
             CALL SYSTEM_PAUSE 
@@ -503,6 +521,9 @@
             CALL CLEAR_SCREEN
 
             CALL USER_LOGIN
+            CMP BX, 0
+            JE ADMIN_LOGIN_PAGE
+            
             CALL LOGINSUCCESS
 
             CALL SYSTEM_PAUSE 
@@ -595,9 +616,28 @@
 
     ;ADMIN LOGIN
     ; if login success, BX = 1 else BX = 0
-    
     ADMIN_LOGIN PROC
-        ;need to clear the input buffer before enter the string
+        ;clear admin username input buffer
+        MOV ADMIN_INPUT_USERNAME[1], 0
+        MOV ADMIN_INPUT_PASSWORD[1], 0
+
+        LEA SI, ADMIN_OUTPUT_USERNAME
+        MOV CX, 40
+        MOV AL, "$"
+        CLEAR_ADMIN_INPUT_USERNAME:
+            MOV [SI], AL
+            INC SI 
+        LOOP CLEAR_ADMIN_INPUT_USERNAME
+
+        ;clear admin password input buffer
+        LEA SI, ADMIN_OUTPUT_PASSWORD
+        MOV CX, 12
+        MOV AL, "$"
+        CLEAR_ADMIN_INPUT_PASSWORD:
+            MOV [SI], AL
+            INC SI 
+        LOOP CLEAR_ADMIN_INPUT_PASSWORD
+
         ;----ask to enter username
 		MOV AH, 09H
 		LEA DX, DISPLAY_ENTER_USERNAME
@@ -620,8 +660,8 @@
 		INT 21H
 
 		;---actual number of username
-		MOV CL,ADMIN_INPUT_USERNAME[1]
-		MOV SI,2
+		MOV CL, ADMIN_INPUT_USERNAME[1]
+		MOV SI, 2
 		MOV DI, OFFSET ADMIN_USERNAME
 
 		;-----validate username
@@ -651,7 +691,7 @@
 
 			INC SI
 			INC DI
-			LOOP ADMINPASSWORD                ; Continue looping through the length of the input password
+		LOOP ADMINPASSWORD                ; Continue looping through the length of the input password
 
 		; Validate if the input password has been fully matched
 		CMP BYTE PTR [DI], '$'                ; Check if we reached the end of the stored password
@@ -676,11 +716,135 @@
             RET
     ADMIN_LOGIN ENDP
 
+    ; if login success, BX = 1 else BX = 0
     USER_LOGIN PROC 
-        ;USER LOGIN - YY PART
-        ;Handle login at here if success continue to user modules else ask user to try again
-        RET
+        ;clear admin username input buffer
+        MOV USER_INPUT_USERNAME[1], 0
+        MOV USER_INPUT_PASSWORD[1], 0
+
+        LEA SI, USER_OUTPUT_USERNAME
+        MOV CX, 40
+        MOV AL, "$"
+        CLEAR_USER_INPUT_USERNAME:
+            MOV [SI], AL
+            INC SI 
+        LOOP CLEAR_USER_INPUT_USERNAME
+
+        ;clear admin password input buffer
+        LEA SI, USER_OUTPUT_PASSWORD
+        MOV CX, 12
+        MOV AL, "$"
+        CLEAR_USER_INPUT_PASSWORD:
+            MOV [SI], AL
+            INC SI 
+        LOOP CLEAR_USER_INPUT_PASSWORD
+
+        ;----ask to enter username
+        MOV AH, 09H
+        LEA DX, DISPLAY_ENTER_USERNAME
+        INT 21H
+        
+        ;---input username STRING
+        MOV AH, 0AH
+        LEA DX, USER_INPUT_USERNAME
+        INT 21H
+
+        ;-----ask to enter password
+        MOV AH, 09H
+        LEA DX, DISPLAY_ENTER_PASSWORD
+        INT 21H
+        
+        ;-----input password STRING
+        MOV AH, 0AH
+        LEA DX, USER_INPUT_PASSWORD
+        INT 21H
+
+        LEA SI, USER_ID_ARRAY
+        LEA DI, USER_PASSWORD_ARRAY 
+
+        MOV CX, 0
+        NEXT_USER:
+            INC CX
+
+            CMP CX, 20            ;compare if alr out of bounds - only 20 user at max
+            JA USER_LOGIN_FAILED  ; If out of bounds, fail login
+
+            PUSH CX ;push number of user to stack
+            ;---validate username
+            MOV CX, 0
+            MOV CL, USER_INPUT_USERNAME[1]      ; CX = length of the input username (second byte of buffer)
+            MOV BX, 2                           ; BX points to start of input username (skip length byte)
+    
+        COMPARE_USERNAME:
+            MOV AL, USER_INPUT_USERNAME[BX]     ; Load input username character
+            CMP AL, [SI]                        ; Compare with current character in USER_ID_ARRAY
+            JNE USERNAME_MISMATCH               ; If not equal, go to the next user
+            INC BX                              ; Move to the next input character
+            INC SI                              ; Move to the next stored username character
+            CMP BYTE PTR [SI], "$"              ; Check if we"ve reached the end of stored username
+            JE USERNAME_MATCH                   ; If reached end of stored username, match is successful
+        LOOP COMPARE_USERNAME                   ; Continue comparing until CX becomes zero
+
+        USERNAME_MISMATCH:
+            ; Skip the rest of the current username and move to the next one
+            MOV CX, 40                          ; Assume max username length is 40 bytes
+            SUB CL, USER_INPUT_USERNAME[1]      ; Subtract the actual length to know how many byte left to move to next index
+            SKIP_USERNAME:
+                INC SI                              ; Move to the next character
+            LOOP SKIP_USERNAME                       ; Continue until delimiter or max length reached
+
+        JMP PASSWORD_MISMATCH         ; jmp to PASSWORD_MISMATCH instead of NEXT_USER to clear move the pointer of array for USER_PASSWORD_ARRAY to next index
+
+        USERNAME_MATCH:
+            ; If username matches, check the password
+            MOV CX, 0
+            MOV CL, USER_INPUT_PASSWORD[1]      ; CX = length of input password (second byte of buffer) 
+            MOV BX, 2                           ; DI points to start of input password 
+
+        COMPARE_PASSWORD:
+            MOV AL, USER_INPUT_PASSWORD[BX]     ; Load input password character
+            CMP AL, [DI]                        ; Compare with current password character
+            JNE PASSWORD_MISMATCH               ; If not equal, go to the next user
+            INC BX                              ; Move to the next input character
+            INC DI                              ; Move to the next stored password character
+            CMP BYTE PTR [DI], "$"              ; Check if we"ve reached the end of stored password
+            JE PASSWORD_MATCH                   ; If reached end of stored password, match is successful
+        LOOP COMPARE_PASSWORD                   ; Continue comparing until CX becomes zero
+
+        PASSWORD_MISMATCH:
+            ; Skip the current password to go to the next password
+            MOV CX, 12                          ; Assume max password length is 12 bytes
+            SUB CL, USER_INPUT_PASSWORD[1]      ; Substract the actual length 
+            SKIP_PASSWORD:
+                INC DI
+            LOOP SKIP_PASSWORD                   ; Continue until delimiter or max length reached
+            POP CX ;get the number of user from stack for further process
+
+            JMP NEXT_USER               ; If password mismatches, check the next user
+
+        PASSWORD_MATCH:
+            ; If both username and password are valid, proceed to success
+            JMP PASSUSERLOGIN
+
+        USER_LOGIN_FAILED:
+            ;Display login failed
+            CALL UDISPLAY_LOGINFAILED           
+            MOV BX, 0
+            RET
+        PASSUSERLOGIN:
+            ;Proceed to user menu after successful login
+            POP CX ; clear value from stack
+            MOV BX, 1
+            RET
     USER_LOGIN ENDP 
+
+    UDISPLAY_LOGINFAILED PROC
+    ;-----invalid username or password - _UPDATE
+        MOV AH, 09H
+        LEA DX, DISPLAY_LOGINFAIL
+        INT 21H
+        RET
+    UDISPLAY_LOGINFAILED ENDP
 
     LOGINSUCCESS PROC
         MOV AH, 09H
