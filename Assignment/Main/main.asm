@@ -649,7 +649,7 @@
             MOV BX, CX
             MOV AL, USER_ID_SIZE 
             MUL BX 
-            MOV BX, AX
+            MOV BX, AX 
 
             CMP USER_ID_ARRAY[BX], '$'
             JE START_INPUT_USER_DET ;if the user_id_array is not full, continue to input user details
@@ -671,7 +671,6 @@
             RET
 
         START_INPUT_USER_DET:
-
         PUSH CX ;store the empty slo's index of the array to stack
         ;check with user_id_array if the username already exist - if exist, display message and return
         MOV AH, 09H
@@ -787,9 +786,9 @@
             MOV BX, CX
             MOV Al, USER_ID_SIZE
             MUL BX
-            ADD SI, AX 
+            ADD SI, AX
 
-            PUSH CX ;push the empty slot's index of the array to stack for later use - store password to array
+            PUSH CX ;push the empty slot's index to stack for later use - store password to array
 
             MOV CX, 40 ; copy the username to the user_id_array
             COPY_USER_ID:
@@ -804,7 +803,6 @@
             LEA DI, USER_OUTPUT_PASSWORD
 
             MOV BX, CX
-            DEC BX
             MOV AX, 12 ; size of password
             MUL BX
             ADD SI, AX
@@ -998,8 +996,8 @@
 
             INC CX ; increase user count
 
-            CMP CX, 19            ;compare if alr out of bounds - only 20 user at max
-            JA USER_LOGIN_FAILED  ; If out of bounds, fail login
+            CMP CX, 20            ;compare if alr out of bounds - only 20 user at max
+            JE USER_LOGIN_FAILED  ; If out of bounds, fail login
 
             PUSH CX ;push number of user to stack
             ;---validate username
