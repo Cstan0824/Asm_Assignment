@@ -559,10 +559,9 @@
 
         REGISTER_USER_ACC:
             CALL CLEAR_SCREEN
-            ;register new account
-            CALL CREATE_USER_ACCOUNT
+            CALL CREATE_USER_ACCOUNT ;register new account
+            
             JMP START_MAIN_MENU
-
         REDIRECT_TO_ADMIN_MODULES:
             CALL CLEAR_SCREEN
             CALL ADMIN_MODULES
@@ -676,10 +675,7 @@
             LEA DX, DISPLAY_ARRAYFULL
             INT 21H
 
-            CALL NEW_LINE
-            CALL NEW_LINE
-            CALL SYSTEM_PAUSE
-            RET
+            JMP END_CREATE_USER_ACCOUNT
 
         START_INPUT_USER_DET:
         PUSH CX ;store the empty slo's index of the array to stack
@@ -765,9 +761,9 @@
         INT 21H
 
         ; Input new password
-        MOV AH, 0AH
-        LEA DX, USER_INPUT_PASSWORD
-        INT 21H
+        LEA DI, USER_INPUT_PASSWORD
+        CALL GET_PASSWORD
+
 
         ;VALIDATE IF THE FIRST INPUT CHARACTER IS ENTER KEY
         LEA SI, USER_OUTPUT_PASSWORD
@@ -791,9 +787,13 @@
         CONTINUE_CHECK_PASSWORD:
         
         CMP USER_INPUT_PASSWORD_ACTN, 4
-        JAE  STORE_REGIS_USER_DET_TO_ARRAY ; user only allowed to enter from 4 to 11 characters for password
+        JB  DISPLAY_INVALID_PASSWORD_RANGE ; user only allowed to enter from 4 to 11 characters for password
         CMP USER_INPUT_PASSWORD_ACTN, 11
-        JBE  STORE_REGIS_USER_DET_TO_ARRAY
+        JA  DISPLAY_INVALID_PASSWORD_RANGE
+
+        JMP STORE_REGIS_USER_DET_TO_ARRAY
+
+        DISPLAY_INVALID_PASSWORD_RANGE:
 
         ;user will asked to enter password again if the password is not in the range of 4 to 11 characters
         CALL NEW_LINE 
@@ -816,13 +816,12 @@
 
         CREATEUSER_INVALID_INPUT:
             CALL NEW_LINE
+
             MOV AH, 09H
             LEA DX, INVALID_INPUT
             INT 21H
-            CALL NEW_LINE
-            CALL NEW_LINE
-            CALL SYSTEM_PAUSE
-            RET
+
+            JMP END_CREATE_USER_ACCOUNT
 
         ;user id and password is inputed successfully
         STORE_REGIS_USER_DET_TO_ARRAY:
@@ -872,10 +871,12 @@
             MOV AH, 09H
             LEA DX, DISPLAY_REGISTRATION_SUCCESS
             INT 21H
-
+        
+        END_CREATE_USER_ACCOUNT:
             CALL NEW_LINE
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
         RET
     CREATE_USER_ACCOUNT ENDP 
 
@@ -935,9 +936,9 @@
 		INT 21H
 		
 		;-----input password STRING
-		MOV AH, 0AH
-		LEA DX, ADMIN_INPUT_PASSWORD
-		INT 21H
+        LEA DI, ADMIN_INPUT_PASSWORD
+        CALL GET_PASSWORD
+
 
         ; CHECK IF THE FIRST INPUT CHARACTER IS ENTER KEY
         LEA SI, ADMIN_OUTPUT_PASSWORD
@@ -1092,10 +1093,9 @@
         LEA DX, DISPLAY_ENTER_PASSWORD
         INT 21H
         
-        ;-----input password STRING
-        MOV AH, 0AH
-        LEA DX, USER_INPUT_PASSWORD
-        INT 21H
+        ;-----input password STRING with masking
+        LEA DI, USER_INPUT_PASSWORD
+        CALL GET_PASSWORD
 
         ; CHECK IF THE FIRST INPUT CHARACTER IS ENTER KEY
         LEA SI, USER_OUTPUT_PASSWORD
@@ -1195,9 +1195,6 @@
                 INC DI
             LOOP SAVE_CURRENT_USER_ID
 
-            MOV AH, 09H 
-            LEA DX, CURR_USER_ID
-            INT 21H 
             POP CX ; clear value from stack
             MOV BX, 1
             RET
@@ -1243,6 +1240,63 @@
         CALL SYSTEM_PAUSE
         RET
     USER_LOGOUT ENDP 
+    ; DI points to the password input buffer
+    GET_PASSWORD PROC
+        ;-----input password STRING with masking
+        MOV SI, DI ;store the memory address of DI to SI temp 
+        ;LEA DI, USER_OUTPUT_PASSWORD       ;
+        MOV CX, 0                           ; CX will count password length (up to 12)
+        ADD DI, 2                           ; Skip the length byte
+        PASSWORD_INPUT_LOOP:
+            MOV AH, 08H                         ; DOS interrupt to read a character without displaying it
+            INT 21H                             ; all the characters are stored in AL
+
+            CMP AL, 0DH                         ; check if enter which is check the empty input 
+            JE DONE_PASSWORD_INPUT              ; If Enter is pressed, end input
+
+            CMP AL, 08H                         ; backspace is consider as a character ,  have to handle it
+            JE BACKSPACE                        ; If Backspace is pressed, handle it
+
+            ; if not backspace , save it in the buffer which is DI 
+            MOV [DI], AL                        ; Store typed character in ADMIN_OUTPUT_PASSWORD buffer
+            INC DI                              ; Move to the next buffer position
+            INC CX                              ; Increase password length counter
+            CMP CX, 12                          ; Check if password is too long
+            JGE PASSWORD_INPUT_LOOP             ; If password length exceeds, continue input
+
+            ; Display '*' for each typed character
+            MOV AH, 02H
+            MOV DL, '*'
+            INT 21H
+
+            JMP PASSWORD_INPUT_LOOP             ; Continue to capture more characters
+
+            BACKSPACE:
+                CMP CX, 0                           ; Check if there's something to delete
+                JZ PASSWORD_INPUT_LOOP              ; If nothing to delete, skip backspace
+
+                ; Move cursor back, overwrite last '*', move back again
+                DEC CX                              ; Reduce password length counter
+                DEC DI                              ; Move DI back to delete last character
+
+                MOV AH, 02H
+                MOV DL, 08H                         ; Backspace character
+                INT 21H
+
+                MOV DL, ' '                         ; Overwrite last '*'
+                INT 21H
+                
+                MOV DL, 08H                         ; Move cursor back again
+                INT 21H
+
+                JMP PASSWORD_INPUT_LOOP
+
+            DONE_PASSWORD_INPUT:
+             ; Store actual length of the entered password into the admin input buffer, because the 08H are taking character one by one , they dont have the 0ah ,
+                ; so it wont automatically set the length to the input buffer 
+                MOV [SI + 1], CL   ;store the actual length of the password to the second byte of the buffer
+                RET
+    GET_PASSWORD ENDP
 
     UDISPLAY_LOGINFAILED PROC
     ;-----invalid username or password
