@@ -964,6 +964,11 @@
         MOV AH, 0AH
         LEA DX, USER_INPUT_USERNAME
         INT 21H
+        
+        XOR BX, BX ; clear BX register - set to 0
+        MOV BL, USER_USERNAME_ACTN
+        MOV USER_OUTPUT_USERNAME[BX], '$' ; clear '0DH' from the end of the string
+
 
         ;-----ask to enter password
         MOV AH, 09H
@@ -1051,6 +1056,7 @@
 
         PASSWORD_MATCH:
             ; If both username and password are valid, proceed to success
+
             MOV CX, 40 
             LEA SI, USER_OUTPUT_USERNAME
             LEA DI, CURR_USER_ID
@@ -1060,6 +1066,10 @@
                 INC SI
                 INC DI
             LOOP SAVE_CURRENT_USER_ID
+
+            MOV AH, 09H 
+            LEA DX, CURR_USER_ID
+            INT 21H 
             POP CX ; clear value from stack
             MOV BX, 1
             RET
