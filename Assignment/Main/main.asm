@@ -451,6 +451,8 @@
 	ADMIN_INPUT_PASSWORD_MAXN DB 12
 	ADMIN_INPUT_PASSWORD_ACTN DB ?
 	ADMIN_OUTPUT_PASSWORD DB 12 DUP('$')
+
+    PROMPT_ADMIN_LOGIN_INPUT_ERROR DB "Invalid input. Please try again. $"
     
     ;User Login
 	USER_INPUT_USERNAME LABEL BYTE
@@ -462,6 +464,8 @@
 	USER_INPUT_PASSWORD_MAXN DB 12
 	USER_INPUT_PASSWORD_ACTN DB 0
 	USER_OUTPUT_PASSWORD DB 12 DUP("$")
+
+    PROMPT_USER_LOGIN_INPUT_ERROR DB "Invalid input. Please try again. $"
 
     ;Register
     DISPLAY_ARRAYFULL DB 0DH, 0AH,"Number register full",0DH, 0AH,"$"
@@ -675,7 +679,6 @@
             CALL NEW_LINE
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            CALL CLEAR_SCREEN
             RET
 
         START_INPUT_USER_DET:
@@ -717,6 +720,20 @@
         LEA DX, USER_INPUT_USERNAME
         INT 21H
 
+        ;VALIDATE IF THE FIRST INPUT CHARACTER IS ENTER KEY
+        LEA SI, USER_OUTPUT_USERNAME
+        CMP BYTE PTR [SI], 0DH
+        JE TEMP_CREATEUSER_INVALID_INPUT
+
+        ; IF NOT, PROCEED TO VALIDATE THE INPUT
+        MOV CL, USER_USERNAME_ACTN
+        VALIDATE_CREATEUSER_USERNAME_INPUT:
+            MOV AL, [SI]
+            CMP AL, '$'
+            JE TEMP_CREATEUSER_INVALID_INPUT
+            INC SI
+        LOOP VALIDATE_CREATEUSER_USERNAME_INPUT
+
         ;check if the username is already exist`
         ;if exist, display message and return
         ;if not exist, continue to register the user
@@ -752,12 +769,31 @@
         LEA DX, USER_INPUT_PASSWORD
         INT 21H
 
+        ;VALIDATE IF THE FIRST INPUT CHARACTER IS ENTER KEY
+        LEA SI, USER_OUTPUT_PASSWORD
+        CMP BYTE PTR [SI], 0DH
+        JE TEMP_CREATEUSER_INVALID_INPUT
+
+        ; IF NOT, PROCEED TO VALIDATE THE INPUT
+        MOV CL, USER_INPUT_PASSWORD_ACTN
+        VALIDATE_CREATEUSER_PASSWORD_INPUT:
+            MOV AL, [SI]
+            CMP AL, '$'
+            JE TEMP_CREATEUSER_INVALID_INPUT
+            INC SI
+        LOOP VALIDATE_CREATEUSER_PASSWORD_INPUT
+
+        JMP CONTINUE_CHECK_PASSWORD
+
+        TEMP_CREATEUSER_INVALID_INPUT:
+            JMP CREATEUSER_INVALID_INPUT
+
+        CONTINUE_CHECK_PASSWORD:
+        
         CMP USER_INPUT_PASSWORD_ACTN, 4
         JAE  STORE_REGIS_USER_DET_TO_ARRAY ; user only allowed to enter from 4 to 11 characters for password
         CMP USER_INPUT_PASSWORD_ACTN, 11
         JBE  STORE_REGIS_USER_DET_TO_ARRAY
-
-        
 
         ;user will asked to enter password again if the password is not in the range of 4 to 11 characters
         CALL NEW_LINE 
@@ -775,10 +811,18 @@
             MOV [SI], AL
             INC SI 
         LOOP CLEAR_INPUT_PASSWORD
-
-       
         
         JMP CONTINUE_INPUT_PASSWORD
+
+        CREATEUSER_INVALID_INPUT:
+            CALL NEW_LINE
+            MOV AH, 09H
+            LEA DX, INVALID_INPUT
+            INT 21H
+            CALL NEW_LINE
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            RET
 
         ;user id and password is inputed successfully
         STORE_REGIS_USER_DET_TO_ARRAY:
@@ -832,7 +876,6 @@
             CALL NEW_LINE
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            CALL CLEAR_SCREEN
         RET
     CREATE_USER_ACCOUNT ENDP 
 
@@ -870,6 +913,21 @@
 		LEA DX, ADMIN_INPUT_USERNAME
 		INT 21H
 
+        ; CHECK IF THE FIRST INPUT CHARACTER IS ENTER KEY
+        LEA SI, ADMIN_OUTPUT_USERNAME
+        CMP BYTE PTR [SI], 0DH
+        JE TEMP_ADMIN_LOGIN_INVALID_INPUT
+
+        ; IF NOT, PROCEED TO VALIDATE THE INPUT
+        MOV CL, ADMIN_USERNAME_ACTN
+        VALIDATE_ADMIN_USERNAME_INPUT:
+            MOV AL, [SI]
+            CMP AL, '$'
+            JE TEMP_ADMIN_LOGIN_INVALID_INPUT
+            INC SI
+        LOOP VALIDATE_ADMIN_USERNAME_INPUT
+
+        ; IF THE INPUT IS VALID, PROCEED TO ENTER PASSWORD
 
 		;-----ask to enter password
 		MOV AH, 09H
@@ -881,7 +939,28 @@
 		LEA DX, ADMIN_INPUT_PASSWORD
 		INT 21H
 
+        ; CHECK IF THE FIRST INPUT CHARACTER IS ENTER KEY
+        LEA SI, ADMIN_OUTPUT_PASSWORD
+        CMP BYTE PTR [SI], 0DH
+        JE TEMP_ADMIN_LOGIN_INVALID_INPUT
+
+        ; IF NOT, PROCEED TO VALIDATE THE INPUT
+        MOV CL, ADMIN_INPUT_PASSWORD_ACTN
+        VALIDATE_ADMIN_PASSWORD_INPUT:
+            MOV AL, [SI]
+            CMP AL, '$'
+            JE ADMIN_LOGIN_INVALID_INPUT
+            INC SI
+        LOOP VALIDATE_ADMIN_PASSWORD_INPUT
+
+        JMP PROCEED_CHECK_ADMIN_LOGIN
+
+        TEMP_ADMIN_LOGIN_INVALID_INPUT:
+            JMP ADMIN_LOGIN_INVALID_INPUT
+
+        PROCEED_CHECK_ADMIN_LOGIN:
 		;---actual number of username
+        MOV SI, 0
 		MOV CL, ADMIN_INPUT_USERNAME[1]
 		MOV SI, 2
 		MOV DI, OFFSET ADMIN_USERNAME
@@ -919,8 +998,22 @@
 		CMP BYTE PTR [DI], '$'                ; Check if we reached the end of the stored password
 		JNE ADMIN_LOGIN_FAILED              ; If not, jump to invalid password
 
-		JMP PASSADMINLOGIN         
-		
+		JMP PASSADMINLOGIN
+
+        ADMIN_LOGIN_INVALID_INPUT:
+            CALL CLEAR_SCREEN
+
+            CALL NEW_LINE
+            MOV AH, 09H
+            LEA DX, PROMPT_ADMIN_LOGIN_INPUT_ERROR
+            INT 21H
+            
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+
+            MOV BX, 0 ;login failed
+            RET    
         ADMIN_LOGIN_FAILED:
             CALL CLEAR_SCREEN
 
@@ -973,11 +1066,26 @@
         MOV AH, 0AH
         LEA DX, USER_INPUT_USERNAME
         INT 21H
+
+        ; CHECK IF THE FIRST INPUT CHARACTER IS ENTER KEY
+        LEA SI, USER_OUTPUT_USERNAME
+        CMP BYTE PTR [SI], 0DH
+        JE TEMP_USER_LOGIN_INVALID_INPUT
+
+        ; IF NOT, PROCEED TO VALIDATE THE INPUT
+        MOV CL, USER_USERNAME_ACTN
+        VALIDATE_USER_USERNAME_INPUT:
+            MOV AL, [SI]
+            CMP AL, '$'
+            JE TEMP_USER_LOGIN_INVALID_INPUT
+            INC SI
+        LOOP VALIDATE_USER_USERNAME_INPUT
+
+        ; IF THE INPUT IS VALID, PROCEED TO ENTER PASSWORD
         
         XOR BX, BX ; clear BX register - set to 0
         MOV BL, USER_USERNAME_ACTN
         MOV USER_OUTPUT_USERNAME[BX], '$' ; clear '0DH' from the end of the string
-
 
         ;-----ask to enter password
         MOV AH, 09H
@@ -989,21 +1097,32 @@
         LEA DX, USER_INPUT_PASSWORD
         INT 21H
 
+        ; CHECK IF THE FIRST INPUT CHARACTER IS ENTER KEY
+        LEA SI, USER_OUTPUT_PASSWORD
+        CMP BYTE PTR [SI], 0DH
+        JE TEMP_USER_LOGIN_INVALID_INPUT
+
+        ; IF NOT, PROCEED TO VALIDATE THE INPUT
+        MOV CL, USER_INPUT_PASSWORD_ACTN
+        VALIDATE_USER_PASSWORD_INPUT:
+            MOV AL, [SI]
+            CMP AL, '$'
+            JE TEMP_USER_LOGIN_INVALID_INPUT
+            INC SI
+        LOOP VALIDATE_USER_PASSWORD_INPUT
+
+        JMP PROCEED_CHECK_USER_LOGIN
+
+        TEMP_USER_LOGIN_INVALID_INPUT:
+            JMP USER_LOGIN_INVALID_INPUT
+
+        PROCEED_CHECK_USER_LOGIN:
+
         LEA SI, USER_ID_ARRAY
         LEA DI, USER_PASSWORD_ARRAY 
 
         MOV CX, 0
         NEXT_USER:
-
-            CALL SPACE 
-            MOV AH, 09H 
-            MOV DX, SI 
-            INT 21H 
-            CALL SPACE
-            MOV AH,09H 
-            MOV DX, DI
-            INT 21H 
-            CALL SPACE 
 
             INC CX ; increase user count
 
@@ -1087,6 +1206,21 @@
             ;Display login failed
             CALL UDISPLAY_LOGINFAILED           
             MOV BX, 0
+            RET
+
+        USER_LOGIN_INVALID_INPUT:
+            CALL CLEAR_SCREEN
+
+            CALL NEW_LINE
+            MOV AH, 09H
+            LEA DX, PROMPT_USER_LOGIN_INPUT_ERROR
+            INT 21H
+            
+            CALL NEW_LINE
+            CALL SYSTEM_PAUSE
+            CALL CLEAR_SCREEN
+
+            MOV BX, 0 ;login failed
             RET
     USER_LOGIN ENDP 
 
