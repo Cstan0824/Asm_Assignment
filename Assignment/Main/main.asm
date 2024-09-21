@@ -522,8 +522,7 @@
 
             CALL USER_LOGIN
             CMP BX, 0
-            JE ADMIN_LOGIN_PAGE
-            
+            JE USER_LOGIN_PAGE
             CALL LOGINSUCCESS
 
             CALL SYSTEM_PAUSE 
