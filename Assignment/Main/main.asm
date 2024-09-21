@@ -492,7 +492,10 @@
             CMP AX, 2
             JE USER_LOGIN_PAGE
             CMP AX, 3
-            JE EXIT_PROGRAM
+            JE TEMP_EXIT_PROGRAM
+
+        TEMP_EXIT_PROGRAM:
+            JMP EXIT_PROGRAM
 
         ADMIN_LOGIN_PAGE:
             ;ADMIN LOGIN - YY PART
@@ -670,7 +673,7 @@
             INT 21H
 
             CALL NEW_LINE
-            CALL NEW LINE
+            CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN
             RET
