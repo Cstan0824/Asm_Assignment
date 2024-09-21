@@ -3,7 +3,7 @@
 
 .DATA
     ;Animation
-        START_BOOK_FRAME db "   |____________________________________________________|", 0DH, 0AH
+    START_BOOK_FRAME db "   |____________________________________________________|", 0DH, 0AH
     db "   | __     __   ____   ___ ||  ____    ____     _  __  |", 0DH, 0AH
     db "  ||  |__ |--|_| || |_|   |||_|**|*|__|+|+||___| ||  | |", 0DH, 0AH
     db "  ||==|^^||--| |=||=| |=*=||| |~~|~|  |=|=|| | |~||==| |", 0DH, 0AH
@@ -94,6 +94,15 @@
     LOGIN_MENU  DB " | 1. LOGIN", 29 DUP(" "), "|", 0DH, 0AH
                 DB " | 2. Back to Menu", 22 DUP(" "), "|"
                 DB "$"
+
+    ADMIN_LOGIN_MENU DB " | 1. LOGIN", 29 DUP(" "), "|", 0DH, 0AH
+                    DB " | 2. Back to Menu", 22 DUP(" "), "|"
+                    DB "$"
+
+    USER_LOGIN_MENU DB " | 1. LOGIN", 29 DUP(" "), "|", 0DH, 0AH
+                    DB " | 2. Register Account", 18 DUP(" "), "|"
+                    DB " | 3. Back to Menu", 22 DUP(" "), "|"
+                    DB "$"
             
 
     NL DB 0AH,0DH,"$"
@@ -495,12 +504,18 @@
             CALL CLEAR_SCREEN
             CALL DISPLAY_USER_LOGIN_MENU
 
-            MOV BX, '2'   ;Maximum value for user input
+            MOV BX, '3'   ;Maximum value for user input
             CALL GET_CHOICE
             CMP AX, 1
             JE LOGIN_AS_USER
             CMP AX, 2
-            JE START_MAIN_MENU  
+            JE REGISTER_USER_ACC 
+            CMP AX, 3
+            JE START_MAIN_MENU 
+
+        
+
+
         
         LOGIN_AS_ADMIN:
             ;ADMIN LOGIN - YY PART
@@ -529,6 +544,12 @@
             CALL CLEAR_SCREEN
 
             JMP REDIRECT_TO_USER_MODULES ; JUMP TO USER MODULES if login is successful
+
+        REGISTER_USER_ACC:
+            CALL CLEAR_SCREEN
+            ;register new account
+            CALL CREATE_USER_ACCOUNT
+            JMP START_MAIN_MENU
 
         REDIRECT_TO_ADMIN_MODULES:
             CALL CLEAR_SCREEN
@@ -592,7 +613,7 @@
             
         ;-----login
         MOV AH,09H
-        LEA DX, LOGIN_MENU
+        LEA DX, ADMIN_LOGIN_MENU
         INT 21H 
         CALL BORDER
         RET
@@ -606,12 +627,165 @@
             
         ;-----login
         MOV AH,09H
-        LEA DX, LOGIN_MENU
+        LEA DX, USER_LOGIN_MENU
         INT 21H 
 
         CALL BORDER
         RET
     DISPLAY_USER_LOGIN_MENU ENDP
+
+    ;USER REGISTER ACCOUNT
+    CREATE_USER_ACCOUNT PROC 
+        ;check if the user_id_array is full - if full, display message and return
+        ;check with user_id_array if the username already exist - if exist, display message and return
+        ;if not full and not exist, register the user and password[generate password] and return
+
+        ;user are not allowed to enter the same username 
+        ;user are not allowed to enter '$' in the username and password
+        ;password are recommended to be 6-11 characters long
+        RET
+    CREATE_USER_ACCOUNT ENDP 
+
+    USERREGISTER PROC
+            MOV AH, 09H
+            LEA DX, DISPLAY_REGISTER
+            INT 21H
+
+            ;clear admin username input buffer
+            MOV USER_USERNAME_ACTN, 0
+            MOV USER_INPUT_PASSWORD_ACTN, 0
+
+            LEA SI, USER_OUTPUT_USERNAME
+            MOV CX, 40
+            MOV AL, "$"
+            CLEAR_USER_INPUT_USERNAME:
+                MOV [SI], AL
+                INC SI 
+            LOOP CLEAR_USER_INPUT_USERNAME
+
+            ;clear admin password input buffer
+            LEA SI, USER_OUTPUT_PASSWORD
+            MOV CX, 12
+            MOV AL, "$"
+            CLEAR_USER_INPUT_PASSWORD:
+                MOV [SI], AL
+                INC SI 
+            LOOP CLEAR_USER_INPUT_PASSWORD
+
+            
+            ; Display prompt to enter a new username
+            MOV AH, 09H
+            LEA DX, DISPLAY_ENTER_USERNAME
+            INT 21H
+
+            ; Input new username
+            MOV AH, 0AH
+            LEA DX, USER_INPUT_USERNAME
+            INT 21H
+
+            ; Display prompt to enter a new password
+            MOV AH, 09H
+            LEA DX, DISPLAY_ENTER_PASSWORD
+            INT 21H
+
+            ; Input new password
+            MOV AH, 0AH
+            LEA DX, USER_INPUT_PASSWORD
+            INT 21H
+
+            ; Initialize username and password array offsets
+            MOV SI, OFFSET USER_ID_ARRAY        ; SI points to USER_ID_ARRAY
+            MOV DI, OFFSET USER_PASSWORD_ARRAY  ; BX points to USER_PASSWORD_ARRAY
+
+        FIND_EMPTY_SPOT:
+            ; Check if current position in USER_ID_ARRAY is empty ('$' delimiter)
+            CMP BYTE PTR [SI], '$'
+            JE STORE_USERNAME                   ; If empty spot found, store the new username
+
+            ; Skip current username (max length 32 bytes or until '$' delimiter)
+            MOV CX, 32
+        NEXT_USERNAME:
+            CMP BYTE PTR [SI], '$'              ; Check for username delimiter
+            JE DONE_NEXT_USERNAME               ; Stop skipping when delimiter is found
+            INC SI                              ; Move to next character              
+            DEC CX
+            JNZ NEXT_USERNAME                   ; Keep skipping
+
+        DONE_NEXT_USERNAME:
+            INC SI                              ; Move past the delimiter
+
+            ; Skip the current password (max length 12 bytes or until '$' delimiter)
+            MOV CX, 12
+        NEXT_PASSWORD:
+            CMP BYTE PTR [BX], '$'              ; Check for password delimiter
+            JE DONE_NEXT_PASSWORD               ; Stop when delimiter is found
+            INC DI                              ; Move to next character
+            DEC CX
+            JNZ NEXT_PASSWORD
+
+        DONE_NEXT_PASSWORD:
+            INC DI                              ; Move past the delimiter
+
+            ; Check if we've reached the end of the username array
+            CMP SI, OFFSET USER_ID_ARRAY + 320  ; End of the array (10 users * 32 bytes)
+            JAE ARRAYFULL                      ; If full, no registration possible
+
+            JMP FIND_EMPTY_SPOT                 ; Continue searching for an empty spot
+
+        ARRAYFULL:
+            ; Display message indicating that the array is full
+            MOV AH, 09H
+            LEA DX, DISPLAY_ARRAYFULL
+            INT 21H
+            JMP REGISTER_END                    ; Exit the register procedure
+
+        STORE_USERNAME:
+            ; Store the new username into USER_ID_ARRAY
+            MOV CX,0
+            MOV CL, USER_INPUT_USERNAME[1]      ; Length of the input username
+            MOV BX, 2                           ; Skip the length byte in the input buffer
+
+        COPY_USERNAME:
+            MOV AL, USER_INPUT_USERNAME[BX]     ; Get input character
+            MOV [SI], AL                        ; Store it in USER_ID_ARRAY
+            INC BX
+            INC SI
+            LOOP COPY_USERNAME                  ; Repeat for the entire username
+
+            ; Add the '$' delimiter after the username
+            MOV BYTE PTR [SI], '$'
+            INC SI
+
+        STORE_PASSWORD:
+            ; Store the new password into USER_PASSWORD_ARRAY
+            MOV CX,0
+            MOV CL, USER_INPUT_PASSWORD[1]      ; Length of the input password
+            MOV BX, 2                           ; Skip the length byte
+
+        COPY_PASSWORD:
+            MOV AL, USER_INPUT_PASSWORD[BX]     ; Get input character
+            MOV [BX], AL                        ; Store it in USER_PASSWORD_ARRAY
+            INC DI
+            INC BX
+            LOOP COPY_PASSWORD
+
+            ; Add the '$' delimiter after the password
+            MOV BYTE PTR [DI], '$'
+            INC DI
+
+            ; Registration successful message
+            MOV AH, 09H
+            LEA DX, DISPLAY_REGISTRATION_SUCCESS
+            INT 21H
+            
+
+        REGISTER_END:
+
+            JMP USERPAGE
+        RETN
+    USERREGISTER ENDP
+
+
 
     ;ADMIN LOGIN
     ; if login success, BX = 1 else BX = 0
@@ -715,6 +889,7 @@
             RET
     ADMIN_LOGIN ENDP
 
+    ;USER LOGIN
     ; if login success, BX = 1 else BX = 0
     USER_LOGIN PROC 
         ;clear admin username input buffer
