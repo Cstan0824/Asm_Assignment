@@ -245,11 +245,11 @@
         DB "ezpass$", 5 DUP('$')
         DB "password$", 3 DUP('$')
         DB "user1234$", 3 DUP('$')
-        DB 12 DUP('$')
-        DB 12 DUP('$')
-        DB 12 DUP('$')
-        DB 12 DUP('$')
-        DB 12 DUP('$')
+        DB "123456$", 5 DUP('$')
+        DB "testpass$", 3 DUP('$')
+        DB "gem123$", 5 DUP('$')
+        DB "jay123$", 5 DUP('$')
+        DB "coldplay123$"
         DB 12 DUP('$')
         DB 12 DUP('$')
         DB 12 DUP('$')
@@ -718,8 +718,8 @@
     ; if login success, BX = 1 else BX = 0
     USER_LOGIN PROC 
         ;clear admin username input buffer
-        MOV USER_INPUT_USERNAME[1], 0
-        MOV USER_INPUT_PASSWORD[1], 0
+        MOV USER_USERNAME_ACTN, 0
+        MOV USER_INPUT_PASSWORD_ACTN, 0
 
         LEA SI, USER_OUTPUT_USERNAME
         MOV CX, 40
@@ -763,7 +763,7 @@
 
         MOV CX, 0
         NEXT_USER:
-            INC CX
+            INC CX ; increase user count
 
             CMP CX, 20            ;compare if alr out of bounds - only 20 user at max
             JA USER_LOGIN_FAILED  ; If out of bounds, fail login
@@ -771,11 +771,11 @@
             PUSH CX ;push number of user to stack
             ;---validate username
             MOV CX, 0
-            MOV CL, USER_INPUT_USERNAME[1]      ; CX = length of the input username (second byte of buffer)
-            MOV BX, 2                           ; BX points to start of input username (skip length byte)
+            MOV CL, USER_USERNAME_ACTN      ; CX = length of the input username (second byte of buffer)
+            MOV BX, 0                           ; BX points to start of input username (skip length byte)
     
         COMPARE_USERNAME:
-            MOV AL, USER_INPUT_USERNAME[BX]     ; Load input username character
+            MOV AL, USER_OUTPUT_USERNAME[BX]        ; Load input username character
             CMP AL, [SI]                        ; Compare with current character in USER_ID_ARRAY
             JNE USERNAME_MISMATCH               ; If not equal, go to the next user
             INC BX                              ; Move to the next input character
@@ -787,21 +787,21 @@
         USERNAME_MISMATCH:
             ; Skip the rest of the current username and move to the next one
             MOV CX, 40                          ; Assume max username length is 40 bytes
-            SUB CL, USER_INPUT_USERNAME[1]      ; Subtract the actual length to know how many byte left to move to next index
+            SUB CX, BX      ; Subtract the BX to know how many byte left to move to next index
             SKIP_USERNAME:
                 INC SI                              ; Move to the next character
             LOOP SKIP_USERNAME                       ; Continue until delimiter or max length reached
-
-        JMP PASSWORD_MISMATCH         ; jmp to PASSWORD_MISMATCH instead of NEXT_USER to clear move the pointer of array for USER_PASSWORD_ARRAY to next index
+            MOV BX, 0 ;move to next user password
+            JMP PASSWORD_MISMATCH         ; jmp to PASSWORD_MISMATCH instead of NEXT_USER to clear move the pointer of array for USER_PASSWORD_ARRAY to next index
 
         USERNAME_MATCH:
             ; If username matches, check the password
             MOV CX, 0
-            MOV CL, USER_INPUT_PASSWORD[1]      ; CX = length of input password (second byte of buffer) 
-            MOV BX, 2                           ; DI points to start of input password 
+            MOV CL, USER_INPUT_PASSWORD_ACTN      ; CX = length of input password (second byte of buffer) 
+            MOV BX, 0                           ; DI points to start of input password 
 
         COMPARE_PASSWORD:
-            MOV AL, USER_INPUT_PASSWORD[BX]     ; Load input password character
+            MOV AL, USER_OUTPUT_PASSWORD[BX]        ; Load input password character
             CMP AL, [DI]                        ; Compare with current password character
             JNE PASSWORD_MISMATCH               ; If not equal, go to the next user
             INC BX                              ; Move to the next input character
@@ -809,31 +809,28 @@
             CMP BYTE PTR [DI], "$"              ; Check if we"ve reached the end of stored password
             JE PASSWORD_MATCH                   ; If reached end of stored password, match is successful
         LOOP COMPARE_PASSWORD                   ; Continue comparing until CX becomes zero
-
+        MOV BX, 0
+        JMP USERNAME_MISMATCH ;jump to next username index also 
         PASSWORD_MISMATCH:
             ; Skip the current password to go to the next password
             MOV CX, 12                          ; Assume max password length is 12 bytes
-            SUB CL, USER_INPUT_PASSWORD[1]      ; Substract the actual length 
+            SUB CX, BX      ; Substract the BX to know how many byte left to move to next index 
             SKIP_PASSWORD:
                 INC DI
             LOOP SKIP_PASSWORD                   ; Continue until delimiter or max length reached
             POP CX ;get the number of user from stack for further process
-
             JMP NEXT_USER               ; If password mismatches, check the next user
 
         PASSWORD_MATCH:
             ; If both username and password are valid, proceed to success
-            JMP PASSUSERLOGIN
+            POP CX ; clear value from stack
+            MOV BX, 1
+            RET
 
         USER_LOGIN_FAILED:
             ;Display login failed
             CALL UDISPLAY_LOGINFAILED           
             MOV BX, 0
-            RET
-        PASSUSERLOGIN:
-            ;Proceed to user menu after successful login
-            POP CX ; clear value from stack
-            MOV BX, 1
             RET
     USER_LOGIN ENDP 
 
@@ -842,6 +839,9 @@
         MOV AH, 09H
         LEA DX, DISPLAY_LOGINFAIL
         INT 21H
+
+        CALL NEW_LINE 
+        CALL SYSTEM_PAUSE
         RET
     UDISPLAY_LOGINFAILED ENDP
 
