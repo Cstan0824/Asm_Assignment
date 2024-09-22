@@ -217,7 +217,7 @@
         DB "Leo Tolstoy$", 18 DUP('$')
         DB "Aldous Huxley$", 16 DUP('$')
         DB "J.R.R. Tolkien$", 15 DUP('$')
-        DB "Fyodor Dostoevsky$", 11 DUP('$')
+        DB "Fyodor Dostoevsky$", 12 DUP('$')
         DB "Oscar Wilde$", 18 DUP('$')
         DB 30 DUP('$')
         DB 30 DUP('$')
@@ -555,7 +555,7 @@
             CALL CLEAR_SCREEN
             CALL CREATE_USER_ACCOUNT ;register new account
             
-            JMP JMP USER_LOGIN_PAGE  
+            JMP USER_LOGIN_PAGE  
         REDIRECT_TO_ADMIN_MODULES:
             CALL CLEAR_SCREEN
             CALL ADMIN_MODULES
@@ -876,6 +876,8 @@
 
     ;ADMIN LOGIN
     ; if login success, BX = 1 else BX = 0
+    ; username: admin
+    ; password: admin123
     ADMIN_LOGIN PROC
 
         mov ah, 09H
