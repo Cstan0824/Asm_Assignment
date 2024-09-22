@@ -496,7 +496,7 @@
             JMP EXIT_PROGRAM
 
         ADMIN_LOGIN_PAGE:
-            ;ADMIN LOGIN - YY PART
+            ;ADMIN LOGIN
             CALL CLEAR_SCREEN
             CALL DISPLAY_ADMIN_LOGIN_MENU
 
@@ -508,7 +508,7 @@
             JE START_MAIN_MENU
         
         USER_LOGIN_PAGE:
-            ;USER LOGIN - YY PART
+            ;USER LOGIN 
             CALL CLEAR_SCREEN
             CALL DISPLAY_USER_LOGIN_MENU
 
@@ -522,7 +522,7 @@
             JE START_MAIN_MENU 
 
         LOGIN_AS_ADMIN:
-            ;ADMIN LOGIN - YY PART
+            ;ADMIN LOGIN
             CALL CLEAR_SCREEN
 
             CALL ADMIN_LOGIN
@@ -536,7 +536,7 @@
             JMP REDIRECT_TO_ADMIN_MODULES ; JUMP TO ADMIN MODULES if login is successful
         
         LOGIN_AS_USER:
-            ;USER LOGIN - YY PART
+            ;USER LOGIN
             CALL CLEAR_SCREEN
 
             CALL USER_LOGIN
@@ -1311,10 +1311,8 @@
                 MOV [SI + 1], CL   ;store the actual length of the password to the second byte of the buffer
                 RET
     GET_PASSWORD ENDP
-
-    UDISPLAY_LOGINFAILED PROC
     ;-----invalid username or password
-
+    UDISPLAY_LOGINFAILED PROC
         CALL NEW_LINE
 
         MOV AH, 09H
@@ -1689,7 +1687,6 @@
         RET
     DISPLAY_CURR_PENALTY_DET ENDP
 
-    ;JEREMY PART
     ADD_BOOK PROC
         ;Point to array
         LEA SI, BOOK_NAME_ARRAY                         ;point to book name array
@@ -1925,7 +1922,6 @@
             RET                                         ;back to admin menu
     ADD_BOOK ENDP
 
-    ;JEREMY PART
     REMOVE_BOOK PROC
         CALL DISPLAY_BOOK_CATALOG                       ;display book catalog
         CALL NEW_LINE
@@ -2199,7 +2195,6 @@
             RET
     REMOVE_BOOK ENDP
 
-    ;JEREMY PART
     DISPLAY_OVERTIME_BOOK PROC              
 
         CALL GET_DATE
@@ -2478,7 +2473,6 @@
         RET
     DISPLAY_OVERTIME_BOOK ENDP
 
-    ;JEREMY PART
     REMOVE_OVERTIME_BOOK PROC
 
         CALL DISPLAY_OVERTIME_BOOK          ; Display the book catalog
@@ -3129,7 +3123,7 @@
 
     EDIT_BOOK ENDP
 
-    ;CSTAN PART - View Borrow Details
+    ;View Borrow Details
     VIEW_BORROW_RECORD PROC 
         ;Point to array
         LEA SI, BOOK_NAME_ARRAY
@@ -3428,7 +3422,7 @@
         RET
     DISPLAY_USER_MENU ENDP
 
-    ;CSTAN/GAN PART
+    
     ; 1. check if user is available to borrow, each user only allowed to borrow 1 book at a time
     ; 2. display book catalog and user choose the book to borrow, DISPLAY_BOOK_CATALOG
     ; 3. check if the book is available to borrow, book is not borrowed by other users
@@ -3690,7 +3684,7 @@
         RET
     SET_BORROW_STATUS ENDP
     
-    ;CSTAN PART
+    
     ; 1. check if user has borrowed book before proceed to return book, _CHECK_USER_EXISTENCE
     ; 2. confirm with user to return the book, continue the process if Yes, GET_CONFIRMATION
     ; 3. calculate the difference between return date and current date, CALCULATE_PENALTY
@@ -3961,6 +3955,13 @@
     ;Final Penalty Charge becomes 0 if the current date does not exceed the return date, DIFF_DAY is 0 at the same time
     ;the final result will be stored in PENALTY as string with 2 decimal places
     CALCULATE_PENALTY PROC
+        ;clear penalty array
+        LEA SI, PENALTY
+        MOV CX, 10
+        CLEAR_PENALTY:
+            MOV BYTE PTR [SI], '$'
+            INC SI
+        LOOP CLEAR_PENALTY
         MOV HAS_PENALTY_CHARGE, 0
         CALL CALCULATE_DIFF_DAY
         
