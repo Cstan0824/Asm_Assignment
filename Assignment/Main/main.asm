@@ -107,18 +107,18 @@
 
     NL DB 0AH,0DH,"$"
 	LINE DB 0AH,0DH,"  ====================================== ",0DH, 0AH,"$"
-	DISPLAY_WELCOME_MAINPAGE DB 0DH, 0AH,"Welcome to our library system!",0DH, 0AH,"$"
+	DISPLAY_WELCOME_MAINPAGE DB 0DH, 0AH,"  Welcome to our library system!",0DH, 0AH,"$"
 
 	;---Admin Menu
-	DISPLAY_WELCOME_ADMINPAGE DB 0DH, 0AH,"Welcome to Admin page!",0DH, 0AH,"$"
+	DISPLAY_WELCOME_ADMINPAGE DB 0DH, 0AH," Welcome to Admin page!",0DH, 0AH,"$"
 	;---User Menu
-	DISPLAY_WELCOME_USERPAGE DB 0DH, 0AH,"Welcome to User page!",0DH, 0AH,"$"
+	DISPLAY_WELCOME_USERPAGE DB 0DH, 0AH,"  Welcome to User page!",0DH, 0AH,"$"
 
 	;---login page displays
 	DISPLAY_LOGIN DB 0DH, 0AH,"LOGIN$"
 	DISPLAY_ENTER_USERNAME DB 0DH, 0AH,"  Please enter your username: $"
 	DISPLAY_ENTER_PASSWORD DB 0DH, 0AH,"  Please enter your password: $"
-	DISPLAY_LOGINFAIL DB 0DH, 0AH," The username or password u entered might be wrong, please try again!",0DH, 0AH,"$"
+	DISPLAY_LOGINFAIL DB 0DH, 0AH,"  The username or password u entered might be wrong, please try again!",0DH, 0AH,"$"
 	DISPLAY_LOGINS DB 0DH, 0AH,"  Login Successfull!",0DH, 0AH,"$"
 
 	
@@ -464,12 +464,12 @@
     ;Register
     DISPLAY_ARRAYFULL DB 0DH, 0AH," Number of users is full. Please try again later. ",0DH, 0AH,"$"
 	DISPLAY_REGISTER DB 0DH, 0AH,"  ACCOUNT REGISTRATION$"
-	DISPLAY_REGISTRATION_SUCCESS DB 0DH, 0AH," Registration Successfull!$"
+	DISPLAY_REGISTRATION_SUCCESS DB 0DH, 0AH,"  Registration Successfull!$"
     DISPLAY_USER_EXISTS DB " User already exists, Please try again another ID$"
     INVALID_PASSWORD_RANGE DB " Password must be between 4 to 11 characters$"
 
     ;logout
-    LOGOUT_MSG DB " Logout Successfully$"
+    LOGOUT_MSG DB "  Logout Successfully$"
 
 .CODE
     ;login as admin or user
