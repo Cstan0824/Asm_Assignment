@@ -555,7 +555,7 @@
             CALL CLEAR_SCREEN
             CALL CREATE_USER_ACCOUNT ;register new account
             
-            JMP START_MAIN_MENU
+            JMP JMP USER_LOGIN_PAGE  
         REDIRECT_TO_ADMIN_MODULES:
             CALL CLEAR_SCREEN
             CALL ADMIN_MODULES
@@ -870,7 +870,7 @@
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
             CALL CLEAR_SCREEN          ; Ensure screen is cleared
-            JMP START_MAIN_MENU        ; Return to the main menu after user creation
+            JMP USER_LOGIN_PAGE         ; Return to the main menu after user creation
         RET
     CREATE_USER_ACCOUNT ENDP 
 
