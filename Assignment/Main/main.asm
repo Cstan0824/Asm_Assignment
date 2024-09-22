@@ -462,8 +462,8 @@
 	USER_OUTPUT_PASSWORD DB 12 DUP("$")
 
     ;Register
-    DISPLAY_ARRAYFULL DB 0DH, 0AH," Number register full",0DH, 0AH,"$"
-	DISPLAY_REGISTER DB 0DH, 0AH," ACCOUNT REGISTRATION$"
+    DISPLAY_ARRAYFULL DB 0DH, 0AH," Number of users is full. Please try again later. ",0DH, 0AH,"$"
+	DISPLAY_REGISTER DB 0DH, 0AH,"  ACCOUNT REGISTRATION$"
 	DISPLAY_REGISTRATION_SUCCESS DB 0DH, 0AH," Registration Successfull!$"
     DISPLAY_USER_EXISTS DB " User already exists, Please try again another ID$"
     INVALID_PASSWORD_RANGE DB " Password must be between 4 to 11 characters$"
