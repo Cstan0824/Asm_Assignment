@@ -116,10 +116,10 @@
 
 	;---login page displays
 	DISPLAY_LOGIN DB 0DH, 0AH,"LOGIN$"
-	DISPLAY_ENTER_USERNAME DB 0DH, 0AH," Please enter your username: $"
-	DISPLAY_ENTER_PASSWORD DB 0DH, 0AH," Please enter your password: $"
+	DISPLAY_ENTER_USERNAME DB 0DH, 0AH,"  Please enter your username: $"
+	DISPLAY_ENTER_PASSWORD DB 0DH, 0AH,"  Please enter your password: $"
 	DISPLAY_LOGINFAIL DB 0DH, 0AH," The username or password u entered might be wrong, please try again!",0DH, 0AH,"$"
-	DISPLAY_LOGINS DB 0DH, 0AH," Login Successfull!",0DH, 0AH,"$"
+	DISPLAY_LOGINS DB 0DH, 0AH,"  Login Successfull!",0DH, 0AH,"$"
 
 	
 
@@ -383,11 +383,6 @@
     ACTN_AUTHOR DB 0 
     EDITEDAUTHOR DB 30 DUP("$")
 
-    
-
-    
-    
-
     ;DELETE_BOOK VARIABLES
     PROMPT_INPUT_DELETE_BOOKID DB " Enter the book ID to delete: $"
     DELETE_BOOKID_INPUTBUFFER LABEL BYTE             
@@ -441,6 +436,7 @@
     ;Admin Login
     ADMIN_USERNAME DB "admin$"
 	ADMIN_PASSWORD DB "admin123$"
+    ADMIN_LOGIN_TITLE DB "  Admin Login$"
 
 	ADMIN_INPUT_USERNAME LABEL BYTE
 	ADMIN_USERNAME_MAXN DB 40
@@ -453,6 +449,8 @@
 	ADMIN_OUTPUT_PASSWORD DB 12 DUP('$')
 
     ;User Login
+    USER_LOGIN_TITLE DB "  User Login$"
+
 	USER_INPUT_USERNAME LABEL BYTE
 	USER_USERNAME_MAXN DB 40
 	USER_USERNAME_ACTN DB 0
@@ -680,6 +678,10 @@
         LEA DX, DISPLAY_REGISTER
         INT 21H
 
+        mov ah, 09H
+        lea dx, line
+        int 21H
+
         ;clear admin username input buffer
         MOV USER_USERNAME_ACTN, 0
         MOV USER_INPUT_PASSWORD_ACTN, 0
@@ -875,6 +877,15 @@
     ;ADMIN LOGIN
     ; if login success, BX = 1 else BX = 0
     ADMIN_LOGIN PROC
+
+        mov ah, 09H
+        lea dx, ADMIN_LOGIN_TITLE
+        int 21H
+
+        mov ah, 09H
+        lea dx, line
+        int 21H
+
         ;clear admin username input buffer
         MOV ADMIN_INPUT_USERNAME[1], 0
         MOV ADMIN_INPUT_PASSWORD[1], 0
@@ -1028,6 +1039,14 @@
     ;USER LOGIN
     ; if login success, BX = 1 else BX = 0
     USER_LOGIN PROC 
+
+        mov ah, 09H
+        lea dx, user_login_title
+        int 21H
+
+        mov ah, 09H
+        lea dx, line
+        int 21H
         
         ;clear admin username input buffer
         MOV USER_USERNAME_ACTN, 0
