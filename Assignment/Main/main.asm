@@ -436,7 +436,7 @@
     ACTUAL_DELETE_OVERTIME_BUFFER DB 0                
     DELETE_OVERTIME_BOOKID_BUFFER DB 3 DUP(0)
 
-    PROMPT_BOOK_IS_NOT_OVERTIME DB "Book is not overtime, cannot delete!$"
+    PROMPT_BOOK_IS_NOT_OVERTIME DB " Book is not overtime, cannot delete!$"
 
     ;Admin Login
     ADMIN_USERNAME DB "admin$"
@@ -452,8 +452,6 @@
 	ADMIN_INPUT_PASSWORD_ACTN DB ?
 	ADMIN_OUTPUT_PASSWORD DB 12 DUP('$')
 
-    PROMPT_ADMIN_LOGIN_INPUT_ERROR DB "Invalid input. Please try again. $"
-    
     ;User Login
 	USER_INPUT_USERNAME LABEL BYTE
 	USER_USERNAME_MAXN DB 40
@@ -465,17 +463,15 @@
 	USER_INPUT_PASSWORD_ACTN DB 0
 	USER_OUTPUT_PASSWORD DB 12 DUP("$")
 
-    PROMPT_USER_LOGIN_INPUT_ERROR DB "Invalid input. Please try again. $"
-
     ;Register
-    DISPLAY_ARRAYFULL DB 0DH, 0AH,"Number register full",0DH, 0AH,"$"
-	DISPLAY_REGISTER DB 0DH, 0AH,"REGISTER$"
-	DISPLAY_REGISTRATION_SUCCESS DB 0DH, 0AH,"Registration Successfull!$"
-    DISPLAY_USER_EXISTS DB "User already exists, Please try again another ID$"
-    INVALID_PASSWORD_RANGE DB "Password must be between 4 to 11 characters$"
+    DISPLAY_ARRAYFULL DB 0DH, 0AH," Number register full",0DH, 0AH,"$"
+	DISPLAY_REGISTER DB 0DH, 0AH," ACCOUNT REGISTRATION$"
+	DISPLAY_REGISTRATION_SUCCESS DB 0DH, 0AH," Registration Successfull!$"
+    DISPLAY_USER_EXISTS DB " User already exists, Please try again another ID$"
+    INVALID_PASSWORD_RANGE DB " Password must be between 4 to 11 characters$"
 
     ;logout
-    LOGOUT_MSG DB "Logout Successfully$"
+    LOGOUT_MSG DB " Logout Successfully$"
 
 .CODE
     ;login as admin or user
@@ -678,7 +674,7 @@
             JMP END_CREATE_USER_ACCOUNT
 
         START_INPUT_USER_DET:
-        PUSH CX ;store the empty slo's index of the array to stack
+        PUSH CX ;store the empty slot's index of the array to stack
         ;check with user_id_array if the username already exist - if exist, display message and return
         MOV AH, 09H
         LEA DX, DISPLAY_REGISTER
@@ -716,30 +712,25 @@
         LEA DX, USER_INPUT_USERNAME
         INT 21H
 
-        ;VALIDATE IF THE FIRST INPUT CHARACTER IS ENTER KEY
-        LEA SI, USER_OUTPUT_USERNAME
-        CMP BYTE PTR [SI], 0DH
-        JE TEMP_CREATEUSER_INVALID_INPUT
+        XOR BX, BX ; clear BX register - set to 0
+        MOV BL, USER_USERNAME_ACTN
+        MOV USER_OUTPUT_USERNAME[BX], '$' ; clear '0DH' from the end of the string
 
         ; IF NOT, PROCEED TO VALIDATE THE INPUT
+        LEA SI, USER_OUTPUT_USERNAME
         MOV CL, USER_USERNAME_ACTN
+        CMP CL, 0 
+        JE TEMP_CREATEUSER_INVALID_INPUT
         VALIDATE_CREATEUSER_USERNAME_INPUT:
             MOV AL, [SI]
             CMP AL, '$'
             JE TEMP_CREATEUSER_INVALID_INPUT
             INC SI
         LOOP VALIDATE_CREATEUSER_USERNAME_INPUT
-
-        ;check if the username is already exist`
-        ;if exist, display message and return
-        ;if not exist, continue to register the user
-        XOR BX, BX ; clear BX register - set to 0
-        MOV BL, USER_USERNAME_ACTN
-        MOV USER_OUTPUT_USERNAME[BX], '$' ; clear '0DH' from the end of the string
-
+        
+        ;CHECK IF USER_OUTPUT_USERNAME exist in USER_ID_ARRAY if true return the index of user id to BX else return BX = -1
         LEA SI, USER_ID_ARRAY
         LEA DI, USER_OUTPUT_USERNAME
-
         CALL CHECK_USER_EXISTENCE ;user are not allowed to enter the same username 
         CMP BX, 0
         JS CONTINUE_INPUT_PASSWORD ; ask user to enter password if user id is not founded inside the user id array 
@@ -754,6 +745,7 @@
         CALL CLEAR_SCREEN
 
         JMP START_INPUT_USER_DET
+
         CONTINUE_INPUT_PASSWORD: ; continue input password if user id is not founded inside the user id array
         ; Display prompt to enter a new password
         MOV AH, 09H
@@ -762,16 +754,16 @@
 
         ; Input new password
         LEA DI, USER_INPUT_PASSWORD
-        CALL GET_PASSWORD
-
-
-        ;VALIDATE IF THE FIRST INPUT CHARACTER IS ENTER KEY
-        LEA SI, USER_OUTPUT_PASSWORD
-        CMP BYTE PTR [SI], 0DH
-        JE TEMP_CREATEUSER_INVALID_INPUT
+        CALL GET_PASSWORD                   ; enter password with hidden characters
+        XOR BX, BX                          ; clear BX register - set to 0
+        MOV BL, USER_INPUT_PASSWORD_ACTN
+        MOV USER_OUTPUT_PASSWORD[BX], '$'   ; clear '0DH' from the end of the string
 
         ; IF NOT, PROCEED TO VALIDATE THE INPUT
+        LEA SI, USER_OUTPUT_PASSWORD
         MOV CL, USER_INPUT_PASSWORD_ACTN
+        CMP CL, 0 
+        JE TEMP_CREATEUSER_INVALID_INPUT
         VALIDATE_CREATEUSER_PASSWORD_INPUT:
             MOV AL, [SI]
             CMP AL, '$'
@@ -826,9 +818,7 @@
         ;user id and password is inputed successfully
         STORE_REGIS_USER_DET_TO_ARRAY:
         
-            XOR BX, BX ; clear BX register - set to 0
-            MOV BL, USER_INPUT_PASSWORD_ACTN
-            MOV USER_OUTPUT_PASSWORD[BX], '$' ; clear '0DH' from the end of the string
+            
 
             POP CX ;get the empty slot's index of the array from stack
             LEA SI, USER_ID_ARRAY        
@@ -867,16 +857,18 @@
                 INC DI 
             LOOP COPY_USER_PASSWORD
 
-            CALL CLEAR_SCREEN
+            CALL NEW_LINE 
+
             MOV AH, 09H
             LEA DX, DISPLAY_REGISTRATION_SUCCESS
             INT 21H
         
         END_CREATE_USER_ACCOUNT:
-            CALL NEW_LINE
+            CALL NEW_LINE 
             CALL NEW_LINE
             CALL SYSTEM_PAUSE
-            CALL CLEAR_SCREEN
+            CALL CLEAR_SCREEN          ; Ensure screen is cleared
+            JMP START_MAIN_MENU        ; Return to the main menu after user creation
         RET
     CREATE_USER_ACCOUNT ENDP 
 
@@ -1006,7 +998,7 @@
 
             CALL NEW_LINE
             MOV AH, 09H
-            LEA DX, PROMPT_ADMIN_LOGIN_INPUT_ERROR
+            LEA DX, INVALID_INPUT
             INT 21H
             
             CALL NEW_LINE
@@ -1210,7 +1202,7 @@
 
             CALL NEW_LINE
             MOV AH, 09H
-            LEA DX, PROMPT_USER_LOGIN_INPUT_ERROR
+            LEA DX, INVALID_INPUT
             INT 21H
             
             CALL NEW_LINE
@@ -1240,6 +1232,7 @@
         CALL SYSTEM_PAUSE
         RET
     USER_LOGOUT ENDP 
+
     ; DI points to the password input buffer
     GET_PASSWORD PROC
         ;-----input password STRING with masking
